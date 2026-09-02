@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: a3690e00d563a4f4299a4fc19780beaa
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Samples/Projectiles/PlasmaShot.prefab
+  uploadId: 315857

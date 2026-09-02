@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: 9691fddcf88372d4bb94855c83c3e0ed
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Samples/Materials/TerrainMat.mat
+  uploadId: 315857

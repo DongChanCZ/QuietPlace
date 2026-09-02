@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: a8fb8249ee6f2724ab9f8732b5ba2b1a
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Samples/FX1/starOutside.mat
+  uploadId: 315857

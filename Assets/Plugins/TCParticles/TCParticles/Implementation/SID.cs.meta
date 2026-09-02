@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 81a3dba1a2c35ac4d8b93118ccd2326c
+timeCreated: 1511623118
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Implementation/SID.cs
+  uploadId: 315857

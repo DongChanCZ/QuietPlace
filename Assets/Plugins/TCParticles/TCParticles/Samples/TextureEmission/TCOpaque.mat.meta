@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 16df453342f8aef4caf9a4f04ec5ff1e
+timeCreated: 1491486610
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Samples/TextureEmission/TCOpaque.mat
+  uploadId: 315857

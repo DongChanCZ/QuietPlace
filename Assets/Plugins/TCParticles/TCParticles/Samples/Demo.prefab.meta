@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: bb18be3b8e760e84d975c32f3fdb3456
+timeCreated: 1488978467
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Samples/Demo.prefab
+  uploadId: 315857

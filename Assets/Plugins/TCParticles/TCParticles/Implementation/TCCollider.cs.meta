@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: f5c475e19fa196149935a517e6d29cc8
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Implementation/TCCollider.cs
+  uploadId: 315857

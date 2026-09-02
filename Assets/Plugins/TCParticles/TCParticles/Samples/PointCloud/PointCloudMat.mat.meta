@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 5fe6f3d210f20e84ebe52ea0e6e96f7c
+timeCreated: 1488985071
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Samples/PointCloud/PointCloudMat.mat
+  uploadId: 315857

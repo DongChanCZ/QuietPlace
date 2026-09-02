@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: e615f603992e7824995448298d082ff3
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Samples/Materials/pAlphaExample.mat
+  uploadId: 315857

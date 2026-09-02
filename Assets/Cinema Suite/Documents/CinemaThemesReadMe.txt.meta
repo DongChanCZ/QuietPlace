@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 65f164166d67c9a4e8e2574307df54cd
+timeCreated: 1557243951
+licenseType: Store
+TextScriptImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 20394
+  packageName: Cinema Themes 2 - Color Grading LUTs Library
+  packageVersion: 2.1.0.0
+  assetPath: Assets/Cinema Suite/Documents/CinemaThemesReadMe.txt
+  uploadId: 376526

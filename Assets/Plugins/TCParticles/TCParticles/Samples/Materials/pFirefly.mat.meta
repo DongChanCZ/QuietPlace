@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: 5cb4c2f145bc24a4c828153918ea8ca5
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Samples/Materials/pFirefly.mat
+  uploadId: 315857

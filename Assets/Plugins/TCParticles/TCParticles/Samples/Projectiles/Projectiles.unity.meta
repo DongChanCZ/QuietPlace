@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: 44e490838dd459c45a7c2eb923599259
+DefaultImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Samples/Projectiles/Projectiles.unity
+  uploadId: 315857

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: fc3db163a0e006e4fa282780b703f157
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Samples/Materials/TCLogo_DiffuseSpec
+    horiz.mat
+  uploadId: 315857

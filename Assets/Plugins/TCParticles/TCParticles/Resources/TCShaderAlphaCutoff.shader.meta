@@ -1,0 +1,12 @@
+fileFormatVersion: 2
+guid: ae19f5dbd49f65041b566ea949a32577
+ShaderImporter:
+  defaultTextures: []
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Resources/TCShaderAlphaCutoff.shader
+  uploadId: 315857

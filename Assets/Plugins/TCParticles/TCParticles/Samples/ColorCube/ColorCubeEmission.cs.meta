@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: ddff84cd41e8f584aa6ddface311aa36
+timeCreated: 1488319631
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Samples/ColorCube/ColorCubeEmission.cs
+  uploadId: 315857

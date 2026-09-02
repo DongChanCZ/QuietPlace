@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 96d759c1b7ad269448b0d7871eeb097a
+timeCreated: 1525013170
+licenseType: Store
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Resources/Editor/WireframeShader.shader
+  uploadId: 315857

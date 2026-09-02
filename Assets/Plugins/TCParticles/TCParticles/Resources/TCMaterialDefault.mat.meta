@@ -1,0 +1,11 @@
+fileFormatVersion: 2
+guid: 0ec042c16977a3747b3afe3d9ad25def
+NativeFormatImporter:
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Resources/TCMaterialDefault.mat
+  uploadId: 315857

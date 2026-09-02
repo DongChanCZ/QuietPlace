@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: 1fd1c9617ad843f429b2159ad0d652b8
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Samples/Materials/TCLogo_Dark.mat
+  uploadId: 315857

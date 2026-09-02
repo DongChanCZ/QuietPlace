@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: be52dcf676229864ab0fbb7b454f1f96
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Implementation/internal/MinMax.cs
+  uploadId: 315857
