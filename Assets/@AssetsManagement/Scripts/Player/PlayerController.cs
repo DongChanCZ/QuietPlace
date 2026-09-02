@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -79,6 +80,10 @@ public class PlayerController : MonoBehaviour
     private int lowerBodyOverrideLayer = -1;
     private bool lowerBodyLocked;
     private Transform[] lowerBodyBones;
+
+    // player.fbx 바인드 포즈 버그 보정용 (본 자체 회전은 정상인데 메시의 스키닝 바인드포즈만 잘못 기록됨)
+    private Transform leftHandBone;
+    private Transform rightHandBone;
     private Quaternion[] lowerBodyLocalRotations;
     private Vector3 hipsFrozenLocalPosition;
     private Quaternion modelBaseLocalRotation;
@@ -145,6 +150,10 @@ public class PlayerController : MonoBehaviour
                 lowerBodyBones[i] = animator.GetBoneTransform(LowerBodyBoneIds[i]);
             }
             lowerBodyLocalRotations = new Quaternion[LowerBodyBoneIds.Length];
+
+            leftHandBone = animator.GetBoneTransform(HumanBodyBones.LeftHand);
+            rightHandBone = animator.GetBoneTransform(HumanBodyBones.RightHand);
+            FixHandBindPoseBug();
         }
 
         noiseRangeDisc = RangeGizmo.CreateDisc(transform, "NoiseRange_Gizmo", new Color(0.2f, 0.5f, 1f, 0.05f));
@@ -420,6 +429,28 @@ public class PlayerController : MonoBehaviour
         else
         {
             lowerBodyLocked = false;
+        }
+    }
+
+    // player.fbx의 LeftHand/RightHand 메시 바인드포즈가 실제 스켈레톤 회전과 어긋나 있어
+    // 손목이 뒤틀려 보이는 버그. 본 자체는 정상이므로, 현재(애니메이션 재생 전) 본 위치를
+    // 기준으로 바인드포즈를 다시 계산해서 메시 쪽을 고친다 — 포즈에 상관없이 한 번만 수정하면 됨.
+    private void FixHandBindPoseBug()
+    {
+        if (leftHandBone == null && rightHandBone == null) return;
+        foreach (var smr in animator.GetComponentsInChildren<SkinnedMeshRenderer>())
+        {
+            var bones = smr.bones;
+            int li = leftHandBone != null ? Array.IndexOf(bones, leftHandBone) : -1;
+            int ri = rightHandBone != null ? Array.IndexOf(bones, rightHandBone) : -1;
+            if (li < 0 && ri < 0) continue;
+
+            var mesh = Instantiate(smr.sharedMesh); // 원본 에셋을 안 건드리도록 복사본에만 적용
+            var bindposes = mesh.bindposes;
+            if (li >= 0) bindposes[li] = leftHandBone.worldToLocalMatrix * smr.transform.localToWorldMatrix;
+            if (ri >= 0) bindposes[ri] = rightHandBone.worldToLocalMatrix * smr.transform.localToWorldMatrix;
+            mesh.bindposes = bindposes;
+            smr.sharedMesh = mesh;
         }
     }
 
