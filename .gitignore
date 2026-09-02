@@ -49,3 +49,6 @@ desktop.ini
 # ---- 작업 중 나온 임시 캡처 (필요하면 이 줄을 지우세요) ----
 /[Aa]ssets/[Ss]creenshots/
 /[Aa]ssets/[Ss]creenshots.meta
+
+# ---- Claude Code 로컬 전용 설정 (개인 권한/경로 포함, 공유 금지) ----
+.claude/settings.local.json
