@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: ee7fb34896e71334dbb05e79876ce0ef
+PackageManifestImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/package.json
+  uploadId: 315857

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: c7278ed15c031dc43a4c9ce52fc8d8f0
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Editor/Inspector/TCParticleSystemEditor.cs
+  uploadId: 315857

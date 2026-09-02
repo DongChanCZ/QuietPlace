@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: c4e18278a845df04dad372d653230caa
+timeCreated: 1523217287
+licenseType: Store
+AssemblyDefinitionImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/TCParticles.asmdef
+  uploadId: 315857

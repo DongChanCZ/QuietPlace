@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: a4f14bd2e6b6a354b9696d18e1f58c79
+timeCreated: 1523974764
+licenseType: Store
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Samples/PointCloud/Guanyin/Guanyin.unity
+  uploadId: 315857

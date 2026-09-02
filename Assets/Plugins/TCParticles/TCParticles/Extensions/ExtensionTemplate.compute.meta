@@ -1,0 +1,11 @@
+fileFormatVersion: 2
+guid: b74fcf5f1cb36644d95dc30303e8e8d0
+ComputeShaderImporter:
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Extensions/ExtensionTemplate.compute
+  uploadId: 315857

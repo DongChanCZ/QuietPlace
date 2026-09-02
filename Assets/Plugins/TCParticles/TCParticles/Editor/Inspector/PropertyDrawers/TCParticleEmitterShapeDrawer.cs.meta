@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 77dc6fc58c253d349b41be4acdd5e131
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Editor/Inspector/PropertyDrawers/TCParticleEmitterShapeDrawer.cs
+  uploadId: 315857

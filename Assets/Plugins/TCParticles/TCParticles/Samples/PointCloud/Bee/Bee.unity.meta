@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: ca91a345495b8ce4194bfaa594578f5d
+timeCreated: 1508861202
+licenseType: Store
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Samples/PointCloud/Bee/Bee.unity
+  uploadId: 315857

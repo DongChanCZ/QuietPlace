@@ -1,0 +1,12 @@
+fileFormatVersion: 2
+guid: e753cf5d2acab9f45ad5a8386e566bce
+ShaderImporter:
+  defaultTextures: []
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Resources/Standard/TcStandardParticles.cginc
+  uploadId: 315857

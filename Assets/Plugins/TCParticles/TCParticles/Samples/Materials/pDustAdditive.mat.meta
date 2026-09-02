@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: f0b7e8404f498794e92a9e13f8566261
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Samples/Materials/pDustAdditive.mat
+  uploadId: 315857

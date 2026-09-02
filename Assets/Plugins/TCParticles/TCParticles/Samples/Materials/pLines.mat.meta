@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: 60ed40da1dc04a04a8f6cbcf5cee113d
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Samples/Materials/pLines.mat
+  uploadId: 315857

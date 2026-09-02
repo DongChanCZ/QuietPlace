@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 7d19754ab4fa97b45b5833f2c9026974
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Implementation/internal/TCParticleEmitter.cs
+  uploadId: 315857

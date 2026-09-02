@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: 26ff0e71eabe6a448bdec7f94568233f
+timeCreated: 1508997921
+licenseType: Store
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Implementation/PointCloudData.cs
+  uploadId: 315857

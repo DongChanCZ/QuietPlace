@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: 19c9724ae47685a4586445be3d72d58a
+DefaultImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Samples/Forces/forces.unity
+  uploadId: 315857

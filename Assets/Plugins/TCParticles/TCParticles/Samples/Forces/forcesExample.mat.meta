@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: 5aa211c4fdec114479dc528fbf433073
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Samples/Forces/forcesExample.mat
+  uploadId: 315857

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 4d4b294d50f052647996d36d3e2eea81
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Editor/Inspector/PropertyDrawers/Vector3CurveDrawer.cs
+  uploadId: 315857

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: a2e9d485eccb2a442a028dff26fe49f0
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Editor/Inspector/TCForceEditor.cs
+  uploadId: 315857

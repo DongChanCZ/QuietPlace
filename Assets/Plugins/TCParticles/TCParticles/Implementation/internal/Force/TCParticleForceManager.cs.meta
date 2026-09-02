@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: fdcd09d8b4a41c34cbc828131a6b3928
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Implementation/internal/Force/TCParticleForceManager.cs
+  uploadId: 315857
