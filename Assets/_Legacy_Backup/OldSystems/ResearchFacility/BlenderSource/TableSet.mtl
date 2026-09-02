@@ -1,0 +1,9 @@
+newmtl grey
+Kd 0.5879999 0.5879999 0.5879999
+Ns 32
+newmtl Table_Texture_Set_1
+Kd 1 1 1
+Ns 32
+newmtl Table_Glass.004
+Kd 0.5879999 0.5879999 0.5879999
+Ns 32
