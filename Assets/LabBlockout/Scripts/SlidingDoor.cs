@@ -58,7 +58,7 @@ public sealed class SlidingDoor : Interactable
         if (leafB != null) leafB.position = shutB + offset;
     }
 
-    public override string Prompt(BlockoutWalkPlayer player)
+    public override string Prompt(IInteractor player)
     {
         switch (access)
         {
@@ -73,7 +73,7 @@ public sealed class SlidingDoor : Interactable
         }
     }
 
-    public override void Interact(BlockoutWalkPlayer player)
+    public override void Interact(IInteractor player)
     {
         if (access == Access.Sealed)
         {
