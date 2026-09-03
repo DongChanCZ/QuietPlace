@@ -10,8 +10,12 @@ public sealed class SlidingDoor : Interactable
     {
         Unlocked,   // opens on E
         Keycard,    // opens on E once the player is carrying a card
-        Sealed,     // never opens - access restricted
+        Sealed,     // never opens - out of bounds
     }
+    // Nothing uses Keycard right now, on purpose. The building has no power for
+    // most of the route, so a card reader that works would contradict the story
+    // the player is in the middle of. The mode stays because power comes back at
+    // route beat 15 and doors can be gated again after that.
 
     [SerializeField] Transform leafA;
     [SerializeField] Transform leafB;
@@ -59,7 +63,7 @@ public sealed class SlidingDoor : Interactable
         switch (access)
         {
             case Access.Sealed:
-                return label + " · 접근 제한";
+                return "출입 제한";
             case Access.Keycard:
                 return player != null && player.HasKeycard
                     ? "E  " + label + " " + (open ? "닫기" : "열기")
@@ -73,7 +77,7 @@ public sealed class SlidingDoor : Interactable
     {
         if (access == Access.Sealed)
         {
-            player.ShowNotice(label + "은 접근이 제한되어 있습니다.");
+            player.ShowNotice("출입 제한 구역입니다.");
             return;
         }
         if (access == Access.Keycard && (player == null || !player.HasKeycard))
@@ -83,7 +87,6 @@ public sealed class SlidingDoor : Interactable
         }
         open = !open;
         direction = open ? 1 : -1;
-        if (access == Access.Keycard && !open) { }
         player.ShowNotice(label + (open ? " 열림" : " 닫힘"));
     }
 
