@@ -69,6 +69,7 @@ public class SittingState : IPlayerState
         s.currentNoiseRange = s.ClampNoiseTier(s.noiseRangeBase - s.noiseTierStep);
         s.currentMoveSpeed = s.sittingMoveSpeed;
         ctx.SetAnimState("Sitting");
+        ctx.SetSittingCollider(true);
     }
 
     public void Tick(PlayerController ctx, float dt)
@@ -80,7 +81,10 @@ public class SittingState : IPlayerState
         ctx.Move(dir);
     }
 
-    public void Exit(PlayerController ctx) { }
+    public void Exit(PlayerController ctx)
+    {
+        ctx.SetSittingCollider(false);
+    }
 }
 
 public class StoppingState : IPlayerState
