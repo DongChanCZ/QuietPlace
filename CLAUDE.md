@@ -25,6 +25,8 @@ Unity/C# architecture and coding rules for this repo. Respond in Korean (한국�
 - Prefix naming: `P_` prefab, `T_` texture, `M_` material.
 - Prefabs under `@Resources`, one subfolder per category.
 - LabHorror map (`Assets/LabBlockout/Prefabs/LabHorror_Blockout_Step7_3F_Floor.prefab`) is live-linked into `GameScene` as a connected prefab instance. `LabHorror_Blockout_Step7_3F_Floor.unity` is a preview/test scene for the same prefab — edits made there (doors, props, lighting, etc.) do NOT reach `GameScene` until they're applied back to the prefab. Always **Apply to Prefab** (or edit directly in Prefab Mode) before committing; saving only the scene leaves `GameScene` out of sync.
+- All scenes live under `Assets/@Scenes/` (`MainMenu.unity`, `Intro_Cutscene.unity`, `GameScene.unity`, `QTE_Test.unity`, `SampleScene.unity`). `Assets/Scenes/` is now empty/unused — don't create new scenes there. Scene transitions load by name (`SceneManager.LoadScene("GameScene")`), never by path, so moving scene files around doesn't break references — only Build Settings' scene list needs to stay in sync.
+- Exception: `LabHorror_Blockout_Step7_3F_Floor.unity` stays in `Assets/LabBlockout/Scenes/`, NOT `@Scenes`. It's the live prefab-preview workspace a teammate actively edits (see line above) — moving it risks a path-rename conflict against their in-progress local changes for no real benefit, since it's a preview/test scene rather than part of the MainMenu/Intro/Game flow.
 
 ## 5. No Per-Frame Allocation
 
