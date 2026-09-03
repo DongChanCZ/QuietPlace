@@ -24,6 +24,7 @@ Unity/C# architecture and coding rules for this repo. Respond in Korean (한국�
 - Dynamic/repeated objects must be prefabs. Edit only the source in Prefab Mode, never scene instances.
 - Prefix naming: `P_` prefab, `T_` texture, `M_` material.
 - Prefabs under `@Resources`, one subfolder per category.
+- LabHorror map (`Assets/LabBlockout/Prefabs/LabHorror_Blockout_Step7_3F_Floor.prefab`) is live-linked into `GameScene` as a connected prefab instance. `LabHorror_Blockout_Step7_3F_Floor.unity` is a preview/test scene for the same prefab — edits made there (doors, props, lighting, etc.) do NOT reach `GameScene` until they're applied back to the prefab. Always **Apply to Prefab** (or edit directly in Prefab Mode) before committing; saving only the scene leaves `GameScene` out of sync.
 
 ## 5. No Per-Frame Allocation
 

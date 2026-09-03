@@ -25,7 +25,11 @@ public sealed class MainEntranceCollapse : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.GetComponentInParent<BlockoutWalkPlayer>() != null) TriggerCollapse();
+        // BlockoutWalkPlayer for the blockout walk-test scene, PlayerController for the real game -
+        // a given scene only ever has one of the two.
+        if (other.GetComponentInParent<BlockoutWalkPlayer>() != null ||
+            other.GetComponentInParent<PlayerController>() != null)
+            TriggerCollapse();
     }
 
     [ContextMenu("Trigger Entrance Collapse")]
