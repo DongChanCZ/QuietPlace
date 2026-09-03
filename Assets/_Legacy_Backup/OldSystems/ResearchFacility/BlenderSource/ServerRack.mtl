@@ -1,9 +1,0 @@
-newmtl Control_Panel
-Kd 1 1 1
-Ns 32
-newmtl Keyboard_props
-Kd 1 1 1
-Ns 32
-newmtl Techware
-Kd 1 1 1
-Ns 32

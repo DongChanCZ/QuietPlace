@@ -1,3 +1,0 @@
-using UnityEngine;
-public sealed class RebuildSlideDoor:MonoBehaviour,IRebuildInteractable
-{public Transform panel;public Vector3 openOffset=new Vector3(0,0,2.8f);public float speed=2.5f;Vector3 closed;bool open;void Awake(){if(panel==null)panel=transform;closed=panel.localPosition;}public string Prompt(RebuildPlayer p)=>!p.HasKeycard?"잠김 — 카드키 필요":open?"문 닫기":"슬라이드 도어 열기";public void Interact(RebuildPlayer p){if(!p.HasKeycard){RebuildGame.Instance.Notify("카드키가 필요합니다");return;}open=!open;if(open)RebuildGame.Instance.SetObjective("로비의 안내도와 찢어진 문서를 조사하세요");}void Update()=>panel.localPosition=Vector3.MoveTowards(panel.localPosition,closed+(open?openOffset:Vector3.zero),speed*Time.deltaTime);}
