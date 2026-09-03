@@ -18,6 +18,12 @@
 *.giparams     merge=unityyamlmerge eol=lf
 *.meta         merge=unityyamlmerge eol=lf
 
+# [예외] 아래 .asset 은 YAML 이 아니라 유니티 바이너리 포맷이다.
+# 위 규칙(eol=lf)이 적용되면 커밋 시 CR 바이트가 제거되어 파일이 깨진다.
+LightingData.asset   binary
+NavMesh.asset        binary
+*.cubemap            binary
+
 # 소스는 자동 줄바꿈 정규화
 *.cs           text diff=csharp
 *.shader       text
@@ -40,3 +46,16 @@
 *.otf          filter=lfs diff=lfs merge=lfs -text
 *.dll          filter=lfs diff=lfs merge=lfs -text
 *.unitypackage filter=lfs diff=lfs merge=lfs -text
+
+# [추가] LFS 로 이미 커밋됐지만 규칙이 빠져 있던 확장자.
+# 규칙이 없으면 smudge 필터가 안 돌아 130바이트 포인터 텍스트로 체크아웃된다.
+*.exr          filter=lfs diff=lfs merge=lfs -text
+*.tif          filter=lfs diff=lfs merge=lfs -text
+*.tiff         filter=lfs diff=lfs merge=lfs -text
+*.obj          filter=lfs diff=lfs merge=lfs -text
+*.zip          filter=lfs diff=lfs merge=lfs -text
+
+# 대문자 확장자 (core.ignorecase=false 환경 대비)
+*.FBX          filter=lfs diff=lfs merge=lfs -text
+*.PNG          filter=lfs diff=lfs merge=lfs -text
+*.PSD          filter=lfs diff=lfs merge=lfs -text
