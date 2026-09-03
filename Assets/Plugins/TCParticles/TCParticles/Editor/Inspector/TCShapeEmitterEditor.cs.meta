@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 00caef6839198e940a1cfb863d668d4c
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Editor/Inspector/TCShapeEmitterEditor.cs
+  uploadId: 315857

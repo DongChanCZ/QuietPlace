@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 6c6c3685215d6314aa62f0ac9ec0d171
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Samples/SharedScripts/SmoothRandomRotate.cs
+  uploadId: 315857

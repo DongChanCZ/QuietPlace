@@ -1,0 +1,12 @@
+fileFormatVersion: 2
+guid: c4bd0eac4d4902443be770e6fb9568e9
+ShaderImporter:
+  defaultTextures: []
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Resources/TCShaderMultiply.shader
+  uploadId: 315857

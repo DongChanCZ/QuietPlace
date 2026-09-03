@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 8f607aaaa8f513e4d91245e34f90f483
+timeCreated: 1512143016
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Resources/TCMaterialDefaultLit.mat
+  uploadId: 315857

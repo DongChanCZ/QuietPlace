@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 8daf60d207c48694689eb6bb267edb42
+timeCreated: 1488151490
+licenseType: Store
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Resources/Compute/SimplexNoiseGrad3D.cginc
+  uploadId: 315857

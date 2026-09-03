@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 11e2cca80435fa84d9f66b1fc84091f9
+timeCreated: 1488322349
+licenseType: Store
+ComputeShaderImporter:
+  currentAPIMask: 4
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Resources/Compute/BakeForce.compute
+  uploadId: 315857

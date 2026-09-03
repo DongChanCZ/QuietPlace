@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: cf493ec5b5431d84383a7ca5109352ea
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Samples/Projectiles/PowerFade.cs
+  uploadId: 315857

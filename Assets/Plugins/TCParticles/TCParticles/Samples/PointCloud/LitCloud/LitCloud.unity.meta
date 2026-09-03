@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 09e5da88b3047e74a985e5127ef4ea26
+timeCreated: 1524988855
+licenseType: Store
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Samples/PointCloud/LitCloud/LitCloud.unity
+  uploadId: 315857

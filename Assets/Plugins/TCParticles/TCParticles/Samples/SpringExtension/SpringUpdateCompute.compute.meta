@@ -1,0 +1,11 @@
+fileFormatVersion: 2
+guid: c32e8c9179f8e294fb0997aa12a9e443
+ComputeShaderImporter:
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Samples/SpringExtension/SpringUpdateCompute.compute
+  uploadId: 315857

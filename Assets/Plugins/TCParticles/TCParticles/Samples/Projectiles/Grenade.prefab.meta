@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: 737c350522f10204985df4cee8c3f48e
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Samples/Projectiles/Grenade.prefab
+  uploadId: 315857

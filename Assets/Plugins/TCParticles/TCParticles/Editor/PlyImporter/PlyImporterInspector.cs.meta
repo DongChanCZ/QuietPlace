@@ -1,0 +1,20 @@
+fileFormatVersion: 2
+guid: 95b6a588a78b42349b595f58b4a69570
+timeCreated: 1509009112
+licenseType: Store
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Editor/PlyImporter/PlyImporterInspector.cs
+  uploadId: 315857

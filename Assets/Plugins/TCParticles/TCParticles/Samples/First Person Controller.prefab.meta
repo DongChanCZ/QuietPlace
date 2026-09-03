@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: 9d4133d5d30b644bd87802a347eaccbe
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Samples/First Person Controller.prefab
+  uploadId: 315857

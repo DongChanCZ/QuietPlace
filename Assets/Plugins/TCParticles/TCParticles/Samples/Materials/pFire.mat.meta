@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: 5430d46a197ffd342b5f6b92cc96b83c
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Samples/Materials/pFire.mat
+  uploadId: 315857

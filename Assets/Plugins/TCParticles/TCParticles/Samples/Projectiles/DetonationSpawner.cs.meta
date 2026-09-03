@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 0b3fec2c929f9ef439b0d49dcf2837bf
+timeCreated: 1502667506
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Samples/Projectiles/DetonationSpawner.cs
+  uploadId: 315857

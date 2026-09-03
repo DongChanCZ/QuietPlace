@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 7014bf197bee68f4982a8b3edaf7bafe
+timeCreated: 1501721463
+licenseType: Store
+ShaderImporter:
+  defaultTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 7326
+  packageName: TC Particles
+  packageVersion: 2.0
+  assetPath: Assets/Plugins/TCParticles/TCParticles/Resources/TCDefaultVert.cginc
+  uploadId: 315857
