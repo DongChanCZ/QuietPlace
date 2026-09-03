@@ -2895,6 +2895,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1751801871}
   - component: {fileID: 1751801872}
+  - component: {fileID: 1751801873}
   m_Layer: 0
   m_Name: Stage4_TextTip
   m_TagString: Untagged
@@ -2938,9 +2939,35 @@ MonoBehaviour:
   fadeInDuration: 0.6
   fadeOutDuration: 0.6
   waitForFadeInBeforeClick: 1
+  minDisplayDuration: 2.5
   onTipDismissed:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1751801873}
+        m_TargetAssemblyTypeName: LoadSceneOnEvent, Assembly-CSharp
+        m_MethodName: Load
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+--- !u!114 &1751801873
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1751801870}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 096a0872920dca643b47cbedbf475ee7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LoadSceneOnEvent
+  nextSceneName: GameScene
 --- !u!1 &1752568039
 GameObject:
   m_ObjectHideFlags: 0
