@@ -69,8 +69,15 @@ public class PlayerController : MonoBehaviour
 
     [Header("Sitting Look")]
     public float sittingLookDownPitch = 10f; // Sitting 중 고개를 숙이는 정도(도)
+    public float sittingEyeDropOffset = 0.73f; // Sitting 중 시야 높이를 이만큼 낮춤 (콜라이더 축소량과 동일 비율)
     public float sittingLookLerpSpeed = 6f;
     private float sittingLookOffset;
+    private float sittingEyeOffset;
+
+    [Header("Sitting Collider")]
+    public float sittingColliderHeight = 1.05f; // 실제로 쪼그려 앉은 것처럼 Y축 판정만 줄임
+    private float standingColliderHeight;
+    private Vector3 standingColliderCenter;
     private Vector3 cameraBaseLocalPosition;
     private int playerBodyLayerMask;
     private int cameraBaseCullingMask;
@@ -114,6 +121,8 @@ public class PlayerController : MonoBehaviour
     void Awake()
     {
         Controller = GetComponent<CharacterController>();
+        standingColliderHeight = Controller.height;
+        standingColliderCenter = Controller.center;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
@@ -202,8 +211,9 @@ public class PlayerController : MonoBehaviour
 
     void UpdateSittingLookOffset(float dt)
     {
-        float target = currentState.Type == PlayerStateType.Sitting ? sittingLookDownPitch : 0f;
-        sittingLookOffset = Mathf.Lerp(sittingLookOffset, target, dt * sittingLookLerpSpeed);
+        bool sitting = currentState.Type == PlayerStateType.Sitting;
+        sittingLookOffset = Mathf.Lerp(sittingLookOffset, sitting ? sittingLookDownPitch : 0f, dt * sittingLookLerpSpeed);
+        sittingEyeOffset = Mathf.Lerp(sittingEyeOffset, sitting ? sittingEyeDropOffset : 0f, dt * sittingLookLerpSpeed);
     }
 
     // pitch(마우스 시야)+sittingLookOffset 합이 90도를 넘으면 카메라 forward 벡터의 좌우 성분이 뒤집혀
@@ -268,7 +278,9 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            playerCamera.transform.localPosition = cameraBaseLocalPosition;
+            Vector3 pos = cameraBaseLocalPosition;
+            pos.y -= sittingEyeOffset;
+            playerCamera.transform.localPosition = pos;
             playerCamera.transform.localEulerAngles = new Vector3(EffectivePitch, 0f, 0f);
         }
     }
@@ -396,6 +408,14 @@ public class PlayerController : MonoBehaviour
         if (animator == null) return;
         if (animatorParamNames != null && !animatorParamNames.Contains(name)) return;
         animator.SetTrigger(name);
+    }
+
+    public void SetSittingCollider(bool active)
+    {
+        if (Controller == null) return;
+        float height = active ? sittingColliderHeight : standingColliderHeight;
+        Controller.height = height;
+        Controller.center = new Vector3(standingColliderCenter.x, height * 0.5f, standingColliderCenter.z);
     }
 
     public void SetGaspingModelTilt(bool active)
