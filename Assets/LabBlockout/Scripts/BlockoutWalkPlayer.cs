@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
-public sealed class BlockoutWalkPlayer : MonoBehaviour
+public sealed class BlockoutWalkPlayer : MonoBehaviour, IInteractor
 {
     public float walkSpeed = 3f;
     public float mouseSensitivity = 0.09f;
