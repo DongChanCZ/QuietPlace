@@ -104,3 +104,6 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# Claude Code 작업용 worktree - 프로젝트 통째 사본이라 절대 올리면 안 됨
+.claude/

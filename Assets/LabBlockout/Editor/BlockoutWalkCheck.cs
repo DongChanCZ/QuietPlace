@@ -443,7 +443,10 @@ public static class BlockoutWalkCheck
         var opened = new List<SlidingDoor>();
         foreach (var door in UnityEngine.Object.FindObjectsByType<SlidingDoor>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
-            if (door.Locking != SlidingDoor.Access.Unlocked || door.IsOpen) continue;
+            if (door.Locking != SlidingDoor.Access.Unlocked) continue;
+            // Force the leaves, never trust IsOpen. A door told to open one frame
+            // ago reads as open while its leaves are still shut - the slide takes
+            // most of a second - and skipping it there leaves the way blocked.
             door.SetOpenImmediate(true);
             opened.Add(door);
         }
