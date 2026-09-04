@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -64,6 +65,7 @@ public sealed class BlockoutWalkPlayer : MonoBehaviour, IInteractor
                 // hands free once you are there.
                 if (keyboard.cKey.wasPressedThisFrame || keyboard.leftCtrlKey.wasPressedThisFrame)
                     SetCrouch(!crouching);
+                if (keyboard.spaceKey.wasPressedThisFrame) TryVault();
                 movement = new Vector2(
                     (keyboard.dKey.isPressed ? 1 : 0) - (keyboard.aKey.isPressed ? 1 : 0),
                     (keyboard.wKey.isPressed ? 1 : 0) - (keyboard.sKey.isPressed ? 1 : 0));
@@ -216,7 +218,91 @@ public sealed class BlockoutWalkPlayer : MonoBehaviour, IInteractor
         verticalSpeed = Mathf.Max(verticalSpeed - 20f * deltaTime, -40f);
         Vector3 planar = transform.right * input.x + transform.forward * input.y;
         float speed = crouching ? crouchSpeed : walkSpeed;
-        body.Move((planar * speed + Vector3.up * verticalSpeed) * deltaTime);
+        // 수평 이동을 먼저, 중력을 나중에 따로 넣는다. 한 번에 합쳐서 넣으면
+        // 아래로 향한 성분이 CharacterController 의 계단 오르기(stepOffset)를
+        // 막아 0.2m 턱도 못 넘는다. 경사로만 있을 때는 드러나지 않던 문제다.
+        body.Move(planar * speed * deltaTime);
+        body.Move(Vector3.up * verticalSpeed * deltaTime);
+    }
+
+    // 넘어가기. 창턱이나 낮은 턱을 짚고 넘는 동작이다. 걸어 올라갈 수 없는
+    // 높이(stepOffset 0.30 초과)를 이걸로 통과한다.
+    public float vaultMaxRise = 1.30f;      // 발 기준 올라탈 수 있는 최대 높이
+    public float vaultForward = 1.50f;      // 넘어간 뒤 앞으로 나아가는 거리
+    public float vaultSeconds = 0.38f;
+    bool vaulting;
+
+    public bool IsVaulting => vaulting;
+
+    /// 앞의 턱을 찾아 넘어간다. 넘을 곳이 없거나 몸이 안 들어가면 아무 일도 없다.
+    public bool TryVault() { return TryVault(false); }
+
+    /// instant 는 검증용이다. 볼트 모션은 코루틴이라 실제 프레임이 필요한데,
+    /// 체크는 Move 를 손으로 돌리므로 코루틴이 진행되지 않는다.
+    public bool TryVault(bool instant)
+    {
+        if (vaulting || !body.isGrounded) return false;
+        Vector3 foot = transform.position;
+        Vector3 fwd = transform.forward; fwd.y = 0f;
+        if (fwd.sqrMagnitude < 0.001f) return false;
+        fwd.Normalize();
+
+        // 1) 무릎에서 가슴까지 훑어 앞을 막는 턱을 찾는다.
+        RaycastHit hit;
+        bool found = false;
+        Vector3 face = default;
+        for (float h = 0.25f; h <= vaultMaxRise; h += 0.15f)
+            if (Physics.Raycast(foot + Vector3.up * h, fwd, out hit, 1.0f, ~0, QueryTriggerInteraction.Ignore))
+            { found = true; face = hit.point; break; }
+        if (!found) return false;
+
+        // 2) 턱 너머 위에서 아래로 쏴 윗면을 찾는다.
+        Vector3 above = face + fwd * 0.30f + Vector3.up * (vaultMaxRise + 0.50f);
+        if (!Physics.Raycast(above, Vector3.down, out hit, vaultMaxRise + 0.90f, ~0, QueryTriggerInteraction.Ignore))
+            return false;
+        float rise = hit.point.y - foot.y;
+        if (rise < 0.15f || rise > vaultMaxRise) return false;
+
+        // 3) 착지 자리에 웅크린 몸이 들어가는지. 안 들어가면 넘지 않는다 -
+        //    벽 속으로 밀어 넣는 것보다 아무 일도 안 일어나는 편이 낫다.
+        Vector3 dest = new Vector3(face.x, hit.point.y + 0.05f, face.z) + fwd * vaultForward;
+        float r = body.radius - 0.02f;
+        if (Physics.CheckCapsule(dest + Vector3.up * (r + 0.02f),
+                                 dest + Vector3.up * (CrouchHeight - r - 0.02f), r, ~0, QueryTriggerInteraction.Ignore))
+            return false;
+
+        if (instant)
+        {
+            body.enabled = false;
+            transform.position = dest;
+            body.enabled = true;
+            verticalSpeed = 0f;
+        }
+        else StartCoroutine(VaultTo(dest));
+        return true;
+    }
+
+    IEnumerator VaultTo(Vector3 dest)
+    {
+        vaulting = true;
+        body.enabled = false;                 // 컨트롤러가 이동과 싸우지 않게
+        SetCrouch(true);
+        Vector3 from = transform.position;
+        float peak = Mathf.Max(from.y, dest.y) + 0.25f;
+        for (float t = 0f; t < vaultSeconds; t += Time.deltaTime)
+        {
+            float k = Mathf.Clamp01(t / vaultSeconds);
+            // 손을 짚고 올라타는 느낌: 먼저 뜨고 나중에 앞으로 넘어간다.
+            Vector3 p = Vector3.Lerp(from, dest, k * k * (3f - 2f * k));
+            p.y = Mathf.Lerp(Mathf.Lerp(from.y, peak, Mathf.Clamp01(k / 0.5f)),
+                             dest.y, Mathf.Clamp01((k - 0.5f) / 0.5f));
+            transform.position = p;
+            yield return null;
+        }
+        transform.position = dest;
+        body.enabled = true;
+        verticalSpeed = 0f;
+        vaulting = false;
     }
 
     public void ResetToStart()
@@ -241,7 +327,7 @@ public sealed class BlockoutWalkPlayer : MonoBehaviour, IInteractor
     void OnGUI()
     {
         GUI.Box(new Rect(12, 12, Screen.width - 24, 30),
-            "화면 클릭 후 WASD 이동 · 마우스 시점 · C 웅크리기(토글) · E 획득 · F 손전등 · Esc 커서 · R 시작 위치");
+            "화면 클릭 후 WASD 이동 · 마우스 시점 · Space 짚고 올라가기 · C 웅크리기(토글) · E 획득 · F 손전등 · Esc 커서 · R 시작 위치");
         GUI.Label(new Rect(18, 46, 460, 24),
             $"손전등: {(hasFlashlight ? "보유" : "없음")} · 빛: {(FlashlightEnabled ? "켜짐" : "꺼짐")} · 카드키: {(hasKeycard ? "보유" : "없음")} · 자세: {(crouching ? "웅크림" : "서 있음")}");
         if (Cursor.lockState == CursorLockMode.Locked)

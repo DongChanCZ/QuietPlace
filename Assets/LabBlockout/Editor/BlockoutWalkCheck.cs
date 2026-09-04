@@ -543,22 +543,28 @@ public static class BlockoutWalkCheck
             Vector3 local = player.transform.InverseTransformDirection(Vector3.left);
             var input = new Vector2(local.x, local.z);
             for (int i = 0; i < 300; i++) player.Move(input, 1f / 60f);
-            float rampTop = player.transform.position.y;
-            if (rampTop < 1.45f)
-                throw new Exception("Ramp did not reach the sill; stopped at " + player.transform.position.ToString("F2"));
+            // 발판은 두툼한 박스 하나라 걸어 올라갈 수 없다. 짚고 올라가는
+            // 동작을 두 번 쓴다 - 땅에서 박스로, 박스에서 창턱으로.
+            // 볼트는 바라보는 방향을 쓰는데 여기까지 회전을 준 적이 없으므로
+            // 창을 마주보게 먼저 돌린다.
+            player.transform.rotation = Quaternion.LookRotation(Vector3.left);
+            for (int i = 0; i < 5; i++) player.Move(Vector2.zero, 1f / 60f);
+            if (!player.TryVault(true))
+                throw new Exception("Vault onto the crate refused at " + player.transform.position.ToString("F2"));
+            for (int i = 0; i < 60; i++) player.Move(Vector2.zero, 1f / 60f);
+            float crateTop = player.transform.position.y;
+            if (crateTop < 0.85f)
+                throw new Exception("Did not land on the crate; at " + player.transform.position.ToString("F2"));
 
-            player.SetCrouch(true);
-            if (!player.IsCrouching) throw new Exception("Crouch refused at the window.");
-            for (int i = 0; i < 480; i++)
-            {
-                player.Move(input, 1f / 60f);
-                if (player.transform.position.x < 14.4f) break;
-            }
+            Vector3 toWindow = player.transform.InverseTransformDirection(Vector3.left);
+            for (int i = 0; i < 60; i++) player.Move(new Vector2(toWindow.x, toWindow.z), 1f / 60f);
+            if (!player.TryVault(true))
+                throw new Exception("Vault through the window refused at " + player.transform.position.ToString("F2"));
+
+            for (int i = 0; i < 150; i++) player.Move(Vector2.zero, 1f / 60f);
             if (player.transform.position.x > 14.8f)
-                throw new Exception("Could not get through the window; stopped at "
+                throw new Exception("Vault did not clear the window; ended at "
                                     + player.transform.position.ToString("F2"));
-
-            for (int i = 0; i < 90; i++) player.Move(Vector2.zero, 1f / 60f);
             player.SetCrouch(false);
             for (int i = 0; i < 30; i++) player.Move(Vector2.zero, 1f / 60f);
             if (player.IsCrouching)
@@ -567,8 +573,8 @@ public static class BlockoutWalkCheck
             if (end.x > 15f || end.x < 7.5f || end.z < -10.5f || end.z > -3f || end.y > 0.5f)
                 throw new Exception("Ended outside the guard room at " + end.ToString("F2"));
 
-            return "PASS: climbed the rubble ramp to y " + rampTop.ToString("F2")
-                 + ", crouched through the window clear of the mullion, landed in the guard room at "
+            return "PASS: vaulted onto the crate at y " + crateTop.ToString("F2")
+                 + ", vaulted through the window clear of the mullion, landed in the guard room at "
                  + end.ToString("F2") + " and stood back up.";
         }
         finally
