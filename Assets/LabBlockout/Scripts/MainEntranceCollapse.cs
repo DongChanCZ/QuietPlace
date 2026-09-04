@@ -20,6 +20,9 @@ public sealed class MainEntranceCollapse : MonoBehaviour
     // 않는 구성이면 이걸 켜서 걷기 트리거를 되살릴 수 있다.
     [SerializeField] bool collapseOnWalkIn;
 
+    // SoundManager 의 sfxClips 에 등록된 클립 이름. 오디오 파일 이름과 같아야 한다.
+    [SerializeField] string collapseSoundName = "collapse";
+
     bool triggered;
     public bool Triggered => triggered;
     public bool IsConfigured => intactPieces != null && intactPieces.Length > 0 &&
@@ -64,6 +67,7 @@ public sealed class MainEntranceCollapse : MonoBehaviour
         permanentBlocker.enabled = true;
         if (dust != null) dust.Play();
         NoiseManager.Instance?.Emit(new NoiseEvent(transform.position, 10f, 25f, NoiseType.Custom)); // 붕괴 순간 큰 소리 (Range는 실측 거리+벽감쇠 감안해 25로 확장)
+        SoundManager.Instance?.PlaySFX(collapseSoundName); // 위 NoiseEvent 는 몬스터 청각용이고, 실제로 플레이어에게 들리는 소리는 이쪽
         ReleaseFragments();
         StartCoroutine(ShakeCamera());
     }

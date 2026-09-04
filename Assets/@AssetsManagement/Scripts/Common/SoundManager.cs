@@ -39,13 +39,17 @@ public class SoundManager : MonoBehaviour
     {
         if (sfxClips == null) return;
 
+        int emptySlots = 0;
+
         for (int i = 0; i < sfxClips.Length; i++)
         {
             AudioClip clip = sfxClips[i];
 
+            // 배열 칸을 늘려두고 아직 안 채운 건 흔한 작업 중간 상태다.
+            // 칸마다 경고를 찍으면 콘솔이 도배되므로 개수만 세서 한 번에 알린다.
             if (clip == null)
             {
-                Debug.LogWarning($"[{nameof(SoundManager)}] sfxClips[{i}] 칸이 비어 있다.", this);
+                emptySlots++;
                 continue;
             }
 
@@ -57,6 +61,9 @@ public class SoundManager : MonoBehaviour
 
             _sfxByName.Add(clip.name, clip);
         }
+
+        if (emptySlots > 0)
+            Debug.LogWarning($"[{nameof(SoundManager)}] sfxClips 에 빈 칸이 {emptySlots}개 있다. 등록된 효과음은 {_sfxByName.Count}개.", this);
     }
 
     /// <summary>
