@@ -10,6 +10,11 @@ public sealed class MainEntranceCollapse : MonoBehaviour
     public Collider permanentBlocker;
     public ParticleSystem dust;
 
+    // Opening the front door is what brings the entrance down. The walk-in
+    // trigger stays as a fallback for the real game scene, where the player may
+    // never press E on anything.
+    [SerializeField] SlidingDoor triggerDoor;
+
     bool triggered;
     public bool Triggered => triggered;
     public bool IsConfigured => intactPieces != null && intactPieces.Length > 0 &&
@@ -21,6 +26,16 @@ public sealed class MainEntranceCollapse : MonoBehaviour
         fallingFragments.SetActive(false);
         debris.SetActive(false);
         permanentBlocker.enabled = false;
+    }
+
+    void OnEnable()
+    {
+        if (triggerDoor != null) triggerDoor.Opened += TriggerCollapse;
+    }
+
+    void OnDisable()
+    {
+        if (triggerDoor != null) triggerDoor.Opened -= TriggerCollapse;
     }
 
     void OnTriggerEnter(Collider other)
