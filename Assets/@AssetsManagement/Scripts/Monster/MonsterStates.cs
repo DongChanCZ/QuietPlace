@@ -96,11 +96,13 @@ public class MonsterFirstDetectionState : IMonsterState
 {
     public MonsterStateType Type => MonsterStateType.FirstDetection;
 
+    private bool isPaused;
+    private float pauseTimer;
+
     public void Enter(MonsterController ctx)
     {
         ctx.Agent.speed = ctx.firstChaseSpeed;
-        ctx.SetAnimState("Walking");
-        ctx.Agent.SetDestination(ctx.LastHeardPosition); // 실제 소리 발생 위치로 스냅샷 (매 프레임 추적 아님)
+        BeginPause(ctx, ctx.reactionDelay); // 감지 직후 바로 움직이지 않고 "어?" 하고 멈칫
     }
 
     public void Tick(MonsterController ctx, float dt)
@@ -111,25 +113,52 @@ public class MonsterFirstDetectionState : IMonsterState
             return;
         }
 
-        // 스냅샷 지점에 도착했는데도 여전히 들리면, 그 시점 위치로 다시 한번 스냅샷
+        if (isPaused)
+        {
+            pauseTimer -= dt;
+            if (pauseTimer <= 0f) EndPause(ctx);
+            return;
+        }
+
+        // 스냅샷 지점에 도착했는데도 여전히 들리면, 잠깐 두리번거린 후 다시 스냅샷
         if (!ctx.Agent.pathPending && ctx.Agent.remainingDistance <= ctx.Agent.stoppingDistance)
         {
-            ctx.Agent.SetDestination(ctx.LastHeardPosition);
+            BeginPause(ctx, ctx.investigateLingerTime);
         }
     }
 
-    public void Exit(MonsterController ctx) { }
+    public void Exit(MonsterController ctx) { isPaused = false; }
+
+    private void BeginPause(MonsterController ctx, float duration)
+    {
+        isPaused = true;
+        pauseTimer = duration;
+        ctx.Agent.ResetPath();
+        ctx.SetAnimState("Idle");
+    }
+
+    private void EndPause(MonsterController ctx)
+    {
+        isPaused = false;
+        ctx.SetAnimState("Walking");
+        ctx.Agent.SetDestination(ctx.GetHeardPositionWithError()); // 정확한 좌표가 아니라 대충 그 근처
+    }
 }
 
 public class MonsterSecondDetectionState : IMonsterState
 {
     public MonsterStateType Type => MonsterStateType.SecondDetection;
 
+    private bool isPaused;
+    private float pauseTimer;
+
     public void Enter(MonsterController ctx)
     {
         ctx.Agent.speed = ctx.secondChaseSpeed;
-        ctx.SetAnimState("Chasing");
-        ctx.Agent.SetDestination(ctx.LastHeardPosition); // 마지막으로 들은 위치로 스냅샷 (실시간 추적 아님)
+        isPaused = true;
+        pauseTimer = ctx.reactionDelay; // 감지 직후 바로 움직이지 않고 "어?" 하고 멈칫 (딱 한 번만)
+        ctx.Agent.ResetPath();
+        ctx.SetAnimState("Idle");
     }
 
     public void Tick(MonsterController ctx, float dt)
@@ -146,25 +175,38 @@ public class MonsterSecondDetectionState : IMonsterState
             return;
         }
 
-        // 스냅샷 지점 도착 후에도 여전히 들리면, 그 시점 위치로 다시 스냅샷
-        if (!ctx.Agent.pathPending && ctx.Agent.remainingDistance <= ctx.Agent.stoppingDistance)
+        if (isPaused)
         {
-            ctx.Agent.SetDestination(ctx.LastHeardPosition);
+            pauseTimer -= dt;
+            if (pauseTimer <= 0f)
+            {
+                isPaused = false;
+                ctx.SetAnimState("Chasing");
+            }
+            return;
         }
+
+        // 확실히 알아챈 상태 — 스냅샷이 아니라 플레이어 실시간 위치를 계속 추적 (계속 움직여도 놓치지 않음)
+        ctx.Agent.SetDestination(ctx.player.transform.position);
     }
 
-    public void Exit(MonsterController ctx) { }
+    public void Exit(MonsterController ctx) { isPaused = false; }
 }
 
 public class MonsterFinalDetectionState : IMonsterState
 {
     public MonsterStateType Type => MonsterStateType.FinalDetection;
 
+    private bool isPaused;
+    private float pauseTimer;
+
     public void Enter(MonsterController ctx)
     {
         ctx.Agent.speed = ctx.secondChaseSpeed;
-        ctx.SetAnimState("Chasing");
-        ctx.Agent.SetDestination(ctx.LastHeardPosition); // 마지막으로 들은 위치로 스냅샷 (실시간 추적 아님)
+        isPaused = true;
+        pauseTimer = ctx.reactionDelay; // 감지 직후 바로 움직이지 않고 "어?" 하고 멈칫 (딱 한 번만)
+        ctx.Agent.ResetPath();
+        ctx.SetAnimState("Idle");
     }
 
     public void Tick(MonsterController ctx, float dt)
@@ -181,14 +223,22 @@ public class MonsterFinalDetectionState : IMonsterState
             return;
         }
 
-        // 스냅샷 지점 도착 후에도 여전히 들리면, 그 시점 위치로 다시 스냅샷
-        if (!ctx.Agent.pathPending && ctx.Agent.remainingDistance <= ctx.Agent.stoppingDistance)
+        if (isPaused)
         {
-            ctx.Agent.SetDestination(ctx.LastHeardPosition);
+            pauseTimer -= dt;
+            if (pauseTimer <= 0f)
+            {
+                isPaused = false;
+                ctx.SetAnimState("Chasing");
+            }
+            return;
         }
+
+        // 확실히 알아챈 상태 — 스냅샷이 아니라 플레이어 실시간 위치를 계속 추적 (계속 움직여도 놓치지 않음)
+        ctx.Agent.SetDestination(ctx.player.transform.position);
     }
 
-    public void Exit(MonsterController ctx) { }
+    public void Exit(MonsterController ctx) { isPaused = false; }
 }
 
 public class MonsterAttackState : IMonsterState
