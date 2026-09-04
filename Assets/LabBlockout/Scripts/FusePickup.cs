@@ -14,16 +14,6 @@ public sealed class FusePickup : Interactable
     public bool Taken { get; private set; }
     public bool Installed { get; private set; }
 
-    /// How the fuse sits on the shelf. The FBX carries its own axis correction,
-    /// so the slot rotates relative to this instead of building a rotation from
-    /// scratch and losing it.
-    public Quaternion RestRotation { get; private set; }
-
-    void Awake()
-    {
-        RestRotation = transform.rotation;
-    }
-
     public override string Prompt(IInteractor player)
     {
         return Taken ? null : "E  " + displayName + " 획득";

@@ -9,10 +9,11 @@ public sealed class FuseSlot : Interactable
     [SerializeField] Transform anchor;
     [SerializeField] string displayName = "배전반";
 
-    /// Turn applied to the fuse's shelf orientation so it lies along the slot.
-    /// On the shelf it runs left-right; in the board it has to run front-back.
-    /// Tune this instead of re-exporting the FBX.
-    [SerializeField] Vector3 installEuler = new Vector3(0f, 90f, 0f);
+    /// World rotation the fuse takes in the slot. It lies flat in storage but
+    /// stands upright once seated, so this is absolute rather than a turn
+    /// relative to how it happened to be lying on the shelf. (270, 0, 0) is the
+    /// FBX's own axis correction - the model standing on its end.
+    [SerializeField] Vector3 installEuler = new Vector3(270f, 0f, 0f);
 
     void Awake()
     {
@@ -33,7 +34,7 @@ public sealed class FuseSlot : Interactable
             if (player != null) player.ShowNotice("빈 퓨즈 슬롯입니다. 퓨즈를 찾아오세요.");
             return;
         }
-        fuse.InstallAt(anchor, fuse.RestRotation * Quaternion.Euler(installEuler));
+        fuse.InstallAt(anchor, Quaternion.Euler(installEuler));
         if (player != null) player.ShowNotice("퓨즈를 설치했습니다.");
     }
 }

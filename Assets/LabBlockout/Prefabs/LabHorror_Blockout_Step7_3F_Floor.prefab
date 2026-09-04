@@ -137831,7 +137831,7 @@ MonoBehaviour:
   fuse: {fileID: 2619446431600663044}
   anchor: {fileID: 5237511493578581193}
   displayName: "\uBC30\uC804\uBC18"
-  installEuler: {x: 0, y: 0, z: 90}
+  installEuler: {x: 270, y: 0, z: 0}
 --- !u!1001 &8158301242581260456
 PrefabInstance:
   m_ObjectHideFlags: 0
