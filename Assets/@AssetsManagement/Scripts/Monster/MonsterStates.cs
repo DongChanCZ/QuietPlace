@@ -186,8 +186,11 @@ public class MonsterSecondDetectionState : IMonsterState
             return;
         }
 
-        // 확실히 알아챈 상태 — 스냅샷이 아니라 플레이어 실시간 위치를 계속 추적 (계속 움직여도 놓치지 않음)
-        ctx.Agent.SetDestination(ctx.player.transform.position);
+        // 확실히 알아챈 상태 — 스냅샷이 아니라 플레이어 실시간 위치를 계속 추적 (계속 움직여도 놓치지 않음).
+        // 단, 목적지가 크게 안 바뀌었으면 재지정 안 함 - 좁은 틈 너머라 도달 불가한 경우 매프레임
+        // 가장 가까운 지점을 다시 계산하면서 제자리에서 떠는 것처럼 보이는 걸 방지.
+        if (Vector3.Distance(ctx.Agent.destination, ctx.player.transform.position) > ctx.destinationUpdateThreshold)
+            ctx.Agent.SetDestination(ctx.player.transform.position);
     }
 
     public void Exit(MonsterController ctx) { isPaused = false; }
@@ -212,7 +215,9 @@ public class MonsterFinalDetectionState : IMonsterState
     public void Tick(MonsterController ctx, float dt)
     {
         float dist = Vector3.Distance(ctx.transform.position, ctx.player.transform.position);
-        if (dist <= ctx.attackRange && ctx.HasLineOfSightToPlayer())
+        // 터치 거리 안쪽이면 시야 체크 생략 - 문틀 상단 같은 얇은 구조물에 막혀서
+        // 실제로 붙어있는데 공격을 못 하는 경우 방지. 그 밖(원거리)은 기존대로 벽 너머 공격 방지 유지.
+        if (dist <= ctx.touchAttackRange || (dist <= ctx.attackRange && ctx.HasLineOfSightToPlayer()))
         {
             ctx.GoToAttack();
             return;
@@ -234,8 +239,11 @@ public class MonsterFinalDetectionState : IMonsterState
             return;
         }
 
-        // 확실히 알아챈 상태 — 스냅샷이 아니라 플레이어 실시간 위치를 계속 추적 (계속 움직여도 놓치지 않음)
-        ctx.Agent.SetDestination(ctx.player.transform.position);
+        // 확실히 알아챈 상태 — 스냅샷이 아니라 플레이어 실시간 위치를 계속 추적 (계속 움직여도 놓치지 않음).
+        // 단, 목적지가 크게 안 바뀌었으면 재지정 안 함 - 좁은 틈 너머라 도달 불가한 경우 매프레임
+        // 가장 가까운 지점을 다시 계산하면서 제자리에서 떠는 것처럼 보이는 걸 방지.
+        if (Vector3.Distance(ctx.Agent.destination, ctx.player.transform.position) > ctx.destinationUpdateThreshold)
+            ctx.Agent.SetDestination(ctx.player.transform.position);
     }
 
     public void Exit(MonsterController ctx) { isPaused = false; }
@@ -244,7 +252,7 @@ public class MonsterFinalDetectionState : IMonsterState
 public class MonsterAttackState : IMonsterState
 {
     public MonsterStateType Type => MonsterStateType.Attack;
-    private const float Duration = 1f; // no anim yet; placeholder length
+    private const float Duration = 2.13f; // Death_Angel_Attack 클립 실제 길이에 맞춤 (예전엔 애니메이션이 없어서 1초 placeholder였음)
     private float timer;
 
     public void Enter(MonsterController ctx)

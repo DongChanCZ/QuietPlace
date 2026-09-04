@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.AI;
 
 [RequireComponent(typeof(BoxCollider), typeof(Rigidbody))]
 public sealed class MainEntranceCollapse : MonoBehaviour
@@ -24,6 +25,7 @@ public sealed class MainEntranceCollapse : MonoBehaviour
     [SerializeField] string collapseSoundName = "collapse";
 
     bool triggered;
+    NavMeshObstacle blockerObstacle; // permanentBlocker와 같은 오브젝트에 있으면 자동으로 찾아서 같이 켜고 끈다 (몬스터가 잔해에 너무 붙지 않게)
     public bool Triggered => triggered;
     public bool IsConfigured => intactPieces != null && intactPieces.Length > 0 &&
                                 fallingFragments != null && debris != null &&
@@ -34,6 +36,8 @@ public sealed class MainEntranceCollapse : MonoBehaviour
         fallingFragments.SetActive(false);
         debris.SetActive(false);
         permanentBlocker.enabled = false;
+        blockerObstacle = permanentBlocker.GetComponent<NavMeshObstacle>();
+        if (blockerObstacle != null) blockerObstacle.enabled = false;
     }
 
     void OnEnable()
@@ -65,6 +69,7 @@ public sealed class MainEntranceCollapse : MonoBehaviour
         fallingFragments.SetActive(true);
         debris.SetActive(true);
         permanentBlocker.enabled = true;
+        if (blockerObstacle != null) blockerObstacle.enabled = true;
         if (dust != null) dust.Play();
         NoiseManager.Instance?.Emit(new NoiseEvent(transform.position, 10f, 25f, NoiseType.Custom)); // 붕괴 순간 큰 소리 (Range는 실측 거리+벽감쇠 감안해 25로 확장)
         SoundManager.Instance?.PlaySFX(collapseSoundName); // 위 NoiseEvent 는 몬스터 청각용이고, 실제로 플레이어에게 들리는 소리는 이쪽
