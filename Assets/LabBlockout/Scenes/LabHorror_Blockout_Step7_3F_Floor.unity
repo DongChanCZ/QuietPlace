@@ -167,10 +167,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5877141536225666955, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
-      propertyPath: m_LocalScale.y
-      value: -0.13
-      objectReference: {fileID: 0}
     - target: {fileID: 7161807316732062362, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
       propertyPath: m_Name
       value: LabHorror_Blockout_Step7_3F_Floor
