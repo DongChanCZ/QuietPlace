@@ -42,6 +42,7 @@ public sealed class MainEntranceCollapse : MonoBehaviour
         debris.SetActive(true);
         permanentBlocker.enabled = true;
         if (dust != null) dust.Play();
+        NoiseManager.Instance?.Emit(new NoiseEvent(transform.position, 10f, 25f, NoiseType.Custom)); // 붕괴 순간 큰 소리 (Range는 실측 거리+벽감쇠 감안해 25로 확장)
         ReleaseFragments();
         StartCoroutine(ShakeCamera());
     }
