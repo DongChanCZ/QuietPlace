@@ -21,6 +21,11 @@ public class MonsterController : MonoBehaviour
     [Header("Hearing Memory")]
     public float hearingMemoryDuration = 2f; // 이 시간 안에 새 소리가 없으면 '안 들림' (Raycast 없이 시간 비교만)
 
+    [Header("Sound Reaction")]
+    public float reactionDelay = 0.4f; // 소리 감지 직후 "어?" 하고 멈칫하는 텀 (즉각 반응 방지)
+    public float investigateLingerTime = 1.2f; // 소리 지점 도착 후 두리번거리는 시간
+    public float soundPositionError = 1.5f; // 소리 위치를 정확히 안 찍고 이 반경 안에서 랜덤하게 어긋나게 함
+
     public NavMeshAgent Agent { get; private set; }
     public MonsterStateType CurrentStateType => currentState != null ? currentState.Type : MonsterStateType.Idle;
     public Vector3 LastHeardPosition { get; private set; }
@@ -63,6 +68,16 @@ public class MonsterController : MonoBehaviour
 
     // 벽에 붙어있으면 벽 너머 플레이어를 공격하지 못하도록 하는 게이트. MonsterHearing이 없으면(설정 누락) 항상 통과.
     public bool HasLineOfSightToPlayer() => hearing == null || hearing.HasClearLineOfSight(player.transform.position);
+
+    // 소리 난 위치를 정확히 찍지 않고 soundPositionError 반경 안에서 어긋난 지점을 돌려줌 (NavMesh 위로 보정).
+    public Vector3 GetHeardPositionWithError()
+    {
+        Vector2 offset = Random.insideUnitCircle * soundPositionError;
+        Vector3 jittered = LastHeardPosition + new Vector3(offset.x, 0f, offset.y);
+        if (NavMesh.SamplePosition(jittered, out NavMeshHit hit, soundPositionError + 1f, NavMesh.AllAreas))
+            return hit.position;
+        return LastHeardPosition;
+    }
 
     public void OnNoiseHeard(NoiseTier tier, Vector3 position)
     {
