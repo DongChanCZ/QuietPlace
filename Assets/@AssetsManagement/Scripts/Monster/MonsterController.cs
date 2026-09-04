@@ -98,7 +98,11 @@ public class MonsterController : MonoBehaviour
         if (currentState.Type == MonsterStateType.Attack || currentState.Type == MonsterStateType.Neutralization) return;
 
         LastHeardPosition = position;
-        LastHeardLoudness = loudness;
+        // Patrol(완전히 잊은 상태)에서 새로 듣기 시작하면 이번 소리 크기로 새로 잡는다.
+        // 이미 추적 중이면 더 큰 값만 반영 - 큰 소리 듣고 쫓아가는 도중 플레이어의 조용한 발소리가
+        // 계속 들어와서 LastHeardLoudness를 깎아버리면, 시끄러운 소리로 얻은 "끝까지 쫓아갈 시간"이
+        // 몇 프레임 만에 사라져버리는 문제가 있었음.
+        LastHeardLoudness = currentState == patrolState ? loudness : Mathf.Max(LastHeardLoudness, loudness);
         lastHeardTime = Time.time;
 
         MonsterStateType target = tier == NoiseTier.Final ? MonsterStateType.FinalDetection

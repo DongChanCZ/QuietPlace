@@ -1039,7 +1039,7 @@ MonoBehaviour:
   stats:
     fear: 0
     fearMax: 100
-    fearIncreaseRate: 1
+    fearIncreaseRate: 0.5
     oxygen: 100
     oxygenMax: 100
     oxygenDrainRate: 10

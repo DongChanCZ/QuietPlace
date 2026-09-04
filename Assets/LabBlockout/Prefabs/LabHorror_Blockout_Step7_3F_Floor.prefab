@@ -78515,7 +78515,7 @@ MonoBehaviour:
   m_OverrideTileSize: 0
   m_TileSize: 256
   m_OverrideVoxelSize: 0
-  m_VoxelSize: 0.29999998
+  m_VoxelSize: 0.23333333
   m_MinRegionArea: 2
   m_NavMeshData: {fileID: 23800000, guid: 370e1371e04c936439f0a02045d9987a, type: 2}
   m_BuildHeightMesh: 0
@@ -115025,6 +115025,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 8547278044461357950}
     m_Modifications:
+    - target: {fileID: 54439717729162364, guid: 126b2c575cf932341a8f0414ccd5b254, type: 3}
+      propertyPath: m_IsKinematic
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5133627903560087177, guid: 126b2c575cf932341a8f0414ccd5b254, type: 3}
       propertyPath: m_LocalPosition.x
       value: 12.439968
@@ -116033,6 +116037,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1995621458578492239}
     m_Modifications:
+    - target: {fileID: 54439717729162364, guid: 126b2c575cf932341a8f0414ccd5b254, type: 3}
+      propertyPath: m_IsKinematic
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5133627903560087177, guid: 126b2c575cf932341a8f0414ccd5b254, type: 3}
       propertyPath: m_LocalPosition.x
       value: 4.0291176
@@ -116577,6 +116585,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1995621458578492239}
     m_Modifications:
+    - target: {fileID: 54439717729162364, guid: 126b2c575cf932341a8f0414ccd5b254, type: 3}
+      propertyPath: m_IsKinematic
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5133627903560087177, guid: 126b2c575cf932341a8f0414ccd5b254, type: 3}
       propertyPath: m_LocalPosition.x
       value: -5.122841
