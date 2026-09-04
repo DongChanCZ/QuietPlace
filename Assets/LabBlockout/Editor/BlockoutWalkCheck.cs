@@ -156,6 +156,11 @@ public static class BlockoutWalkCheck
         Vector3 eye = Vector3.up * Vt(1.0f);
         RaycastHit hit;
         if (!Physics.Linecast(from + eye, to + eye, out hit)) return null;
+        // A door leaf is gameplay state wherever it sits in the hierarchy. The map
+        // moved into the blockout prefab, so doors now live under the blockout root
+        // too - the root name alone can no longer tell structure from door.
+        var door = hit.collider.GetComponentInParent<SlidingDoor>();
+        if (door != null) return hit.collider.name + " (door '" + door.Label + "', " + door.Locking + ")";
         Transform root = hit.collider.transform;
         while (root.parent != null) root = root.parent;
         if (root.name.StartsWith("LabHorror_Blockout")) return null;   // structure: not forgivable
@@ -443,7 +448,10 @@ public static class BlockoutWalkCheck
         var opened = new List<SlidingDoor>();
         foreach (var door in UnityEngine.Object.FindObjectsByType<SlidingDoor>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
-            if (door.Locking != SlidingDoor.Access.Unlocked) continue;
+            // Keycard doors open too. This check validates geometry, not gating -
+            // the player does hold a card by the time the route reaches one, and
+            // leaving it shut would make the 3F route untestable.
+            if (door.Locking == SlidingDoor.Access.Sealed) continue;
             // Force the leaves, never trust IsOpen. A door told to open one frame
             // ago reads as open while its leaves are still shut - the slide takes
             // most of a second - and skipping it there leaves the way blocked.
