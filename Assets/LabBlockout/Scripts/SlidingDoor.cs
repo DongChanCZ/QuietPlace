@@ -79,11 +79,11 @@ public sealed class SlidingDoor : Interactable
                     ? "E  " + label + " " + (open ? "닫기" : "열기")
                     : label + " · 카드키 필요";
             default:
-                // Past the guard room every 1F and 2F door stands open, so a
-                // "close the door" prompt on each doorway is noise. Carrying the
-                // torch is the signal that the guard room is done - it is the
-                // one thing the player can only have picked up in there.
-                if (player != null && player.HasFlashlight) return null;
+                // Past the guard room every 1F and 2F doorway stands open, so a
+                // "close the door" prompt on each one is noise. Only the doorways
+                // authored open are silenced - props the player operates, like the
+                // hiding cabinet, keep their prompt or they read as scenery.
+                if (startOpen && player != null && player.HasFlashlight) return null;
                 return "E  " + label + " " + (open ? "닫기" : "열기");
         }
     }
