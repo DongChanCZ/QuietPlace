@@ -98,7 +98,7 @@ public class MonsterHearing : MonoBehaviour
                         : intensity >= tier1Threshold ? NoiseTier.First
                         : NoiseTier.None;
 
-        controller.OnNoiseHeard(tier, evt.Position);
+        controller.OnNoiseHeard(tier, evt.Position, evt.Loudness);
     }
 
     private float PerceivedDistance(Vector3 delta)

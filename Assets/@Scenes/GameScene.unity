@@ -1096,7 +1096,7 @@ MonoBehaviour:
   stats:
     fear: 0
     fearMax: 100
-    fearIncreaseRate: 1
+    fearIncreaseRate: 0.5
     oxygen: 100
     oxygenMax: 100
     oxygenDrainRate: 10
@@ -1144,6 +1144,9 @@ MonoBehaviour:
   sittingEyeDropOffset: 0.73
   sittingLookLerpSpeed: 6
   sittingColliderHeight: 1.05
+  vaultMaxRise: 1.3
+  vaultForward: 1.5
+  vaultSeconds: 0.38
   noiseRangeGizmoGroundOffset: 0.02
   showNoiseRangeGizmo: 0
 --- !u!114 &808745194

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -55,6 +56,7 @@ public class PlayerController : MonoBehaviour
     public bool InteractPressed { get; private set; }
     public bool ThrowPressed { get; private set; }
     public bool DropPressed { get; private set; }
+    public bool SpacePressed { get; private set; }
     public bool HasMoveInput => MoveAxis.sqrMagnitude > 0.0001f;
 
     private IPlayerState currentState;
@@ -78,6 +80,14 @@ public class PlayerController : MonoBehaviour
     public float sittingColliderHeight = 1.05f; // 실제로 쪼그려 앉은 것처럼 Y축 판정만 줄임
     private float standingColliderHeight;
     private Vector3 standingColliderCenter;
+
+    [Header("Vault")]
+    public float vaultMaxRise = 1.30f;   // 발 기준 올라탈 수 있는 최대 높이
+    public float vaultForward = 1.50f;   // 넘어간 뒤 앞으로 나아가는 거리
+    public float vaultSeconds = 0.38f;
+    private bool vaulting;
+    // Pre-allocated: OverlapCapsuleNonAlloc would otherwise allocate an array every call.
+    private readonly Collider[] headroom = new Collider[8];
     private Vector3 cameraBaseLocalPosition;
     private int playerBodyLayerMask;
     private int cameraBaseCullingMask;
@@ -175,6 +185,7 @@ public class PlayerController : MonoBehaviour
         float dt = Time.deltaTime;
         ReadInput();
         HandleCursorToggle();
+        if (SpacePressed) TryVault();
 
         stats.TickFear(dt);
         if (currentState.Type != PlayerStateType.Stopping)
@@ -188,7 +199,7 @@ public class PlayerController : MonoBehaviour
             ChangeState(fearingState);
         }
 
-        currentState.Tick(this, dt);
+        if (!vaulting) currentState.Tick(this, dt);
         ApplyStationaryNoiseOverride();
         UpdateSittingLookOffset(dt);
 
@@ -337,6 +348,7 @@ public class PlayerController : MonoBehaviour
             StopHeld = kb.leftShiftKey.isPressed;
             InteractPressed = kb.fKey.wasPressedThisFrame;
             DropPressed = kb.gKey.wasPressedThisFrame;
+            SpacePressed = kb.spaceKey.wasPressedThisFrame;
         }
 
         ThrowPressed = Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
@@ -416,6 +428,99 @@ public class PlayerController : MonoBehaviour
         float height = active ? sittingColliderHeight : standingColliderHeight;
         Controller.height = height;
         Controller.center = new Vector3(standingColliderCenter.x, height * 0.5f, standingColliderCenter.z);
+    }
+
+    // BlockoutWalkPlayer.TryVault를 그대로 이식. 낮은 턱/창틀을 짚고 넘어가는 동작 (점프 아님).
+    public bool TryVault()
+    {
+        // Controller.isGrounded는 이 프로젝트의 중력 처리 방식과 맞지 않아 항상 false로 나옴 -
+        // 발밑 짧은 레이캐스트로 직접 확인한다.
+        if (vaulting || !Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, 0.25f, ~0, QueryTriggerInteraction.Ignore))
+            return false;
+        Vector3 foot = transform.position;
+        Vector3 fwd = transform.forward; fwd.y = 0f;
+        if (fwd.sqrMagnitude < 0.001f) return false;
+        fwd.Normalize();
+
+        // 1) 무릎에서 가슴까지 훑어 앞을 막는 턱을 찾는다.
+        RaycastHit hit;
+        bool found = false;
+        Vector3 face = default;
+        for (float h = 0.25f; h <= vaultMaxRise; h += 0.15f)
+            if (Physics.Raycast(foot + Vector3.up * h, fwd, out hit, 1.0f, ~0, QueryTriggerInteraction.Ignore))
+            { found = true; face = hit.point; break; }
+        if (!found) return false;
+
+        // 2) 턱 너머 위에서 아래로 쏴 윗면을 찾는다.
+        Vector3 above = face + fwd * 0.30f + Vector3.up * (vaultMaxRise + 0.50f);
+        if (!Physics.Raycast(above, Vector3.down, out hit, vaultMaxRise + 0.90f, ~0, QueryTriggerInteraction.Ignore))
+            return false;
+        float rise = hit.point.y - foot.y;
+        if (rise < 0.15f || rise > vaultMaxRise) return false;
+
+        // 3) 착지 자리에 웅크린 몸이 들어가는지. 안 들어가면 넘지 않는다.
+        Vector3 dest = new Vector3(face.x, hit.point.y + 0.05f, face.z) + fwd * vaultForward;
+        float r = Controller.radius - 0.02f;
+        if (Physics.CheckCapsule(dest + Vector3.up * (r + 0.02f),
+                                 dest + Vector3.up * (sittingColliderHeight - r - 0.02f), r, ~0, QueryTriggerInteraction.Ignore))
+            return false;
+
+        StartCoroutine(VaultTo(dest));
+        return true;
+    }
+
+    private IEnumerator VaultTo(Vector3 dest)
+    {
+        vaulting = true;
+        bool wasSitting = currentState.Type == PlayerStateType.Sitting;
+        Controller.enabled = false; // 컨트롤러가 이동과 싸우지 않게
+        SetSittingCollider(true);   // 창 개구부를 지나려면 판정을 낮춰야 한다
+        Vector3 from = transform.position;
+        float peak = Mathf.Max(from.y, dest.y) + 0.25f;
+        for (float t = 0f; t < vaultSeconds; t += Time.deltaTime)
+        {
+            float k = Mathf.Clamp01(t / vaultSeconds);
+            // 손을 짚고 올라타는 느낌: 먼저 뜨고 나중에 앞으로 넘어간다.
+            Vector3 p = Vector3.Lerp(from, dest, k * k * (3f - 2f * k));
+            p.y = Mathf.Lerp(Mathf.Lerp(from.y, peak, Mathf.Clamp01(k / 0.5f)),
+                             dest.y, Mathf.Clamp01((k - 0.5f) / 0.5f));
+            transform.position = p;
+            yield return null;
+        }
+        transform.position = dest;
+        Controller.enabled = true;
+        vaulting = false;
+
+        // 웅크림은 넘는 동안만이다. 원래 앉아있지 않았으면 도로 세운다. 착지 직후엔
+        // 아직 창틀 밑이라 머리가 걸릴 수 있으므로, 설 자리가 날 때까지 잠깐 재시도한다.
+        // 끝내 안 되면 웅크린 채로 두고 플레이어가 Ctrl로 편다.
+        if (!wasSitting)
+        {
+            for (float t = 0f; t < 1.2f; t += Time.deltaTime)
+            {
+                if (CanStandUp())
+                {
+                    SetSittingCollider(false);
+                    break;
+                }
+                yield return null;
+            }
+        }
+    }
+
+    private bool CanStandUp()
+    {
+        float radius = Controller.radius;
+        Vector3 foot = transform.position + Vector3.up * (radius + 0.02f);
+        Vector3 head = transform.position + Vector3.up * (standingColliderHeight - radius - 0.02f);
+        int count = Physics.OverlapCapsuleNonAlloc(foot, head, radius - 0.02f, headroom,
+            ~0, QueryTriggerInteraction.Ignore);
+        for (int i = 0; i < count; i++)
+        {
+            // 스윕이 지금 서 있는 자리에서 이뤄지므로 자기 자신의 컨트롤러가 항상 잡힌다 - 그건 장애물이 아니다.
+            if (headroom[i] != null && headroom[i] != Controller) return false;
+        }
+        return true;
     }
 
     public void SetGaspingModelTilt(bool active)
