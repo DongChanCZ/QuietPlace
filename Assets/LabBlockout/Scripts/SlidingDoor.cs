@@ -25,6 +25,8 @@ public sealed class SlidingDoor : Interactable
     [SerializeField] Access access = Access.Unlocked;
     [SerializeField] string label = "문";
 
+    [SerializeField] bool startOpen;
+
     Vector3 shutA, shutB;
     float t;                 // 0 shut, 1 open
     int direction;           // -1 closing, 0 idle, +1 opening
@@ -38,7 +40,11 @@ public sealed class SlidingDoor : Interactable
     {
         if (leafA != null) shutA = leafA.position;
         if (leafB != null) shutB = leafB.position;
-        t = 0f;
+        // 1F, 2F 는 대부분 구간에서 전력이 없다. 거기서 키를 눌러야 열리는 문은
+        // 앞뒤가 안 맞으므로 처음부터 열린 채로 둔다. 문짝은 프리팹에 닫힌 위치
+        // 그대로 두고 Awake 에서 한 번만 옮긴다 - 프리팹 구조는 건드리지 않는다.
+        if (startOpen && access != Access.Sealed) { open = true; t = 1f; Apply(); }
+        else t = 0f;
     }
 
     void Update()
