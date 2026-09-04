@@ -375,11 +375,11 @@ public static class BlockoutWalkCheck
             new Vector3(-9.2f, 3.2f, -1.2f), new Vector3(-9.2f, 3.2f, -2.6f),
             new Vector3(-10.8f, 3.2f, -2.65f),
             new Vector3(-10.8f, 4.8f, -6.12f), new Vector3(-9.2f, 4.8f, -6.12f),
-            // z=-3.0, not -2.6: the 2F/3F corridor was widened to y -1.40..2.60
-            // in Blender, which put the old waypoint inside the corridor's north
-            // wall. -3.0 sits in the stair-room door band (Blender y 2.00..3.30)
-            // and clear of the wall, which is what this leg always meant.
-            new Vector3(-9.2f, 6.4f, -3.0f), new Vector3(-6.5f, 6.4f, -3.0f)
+            // z=-1.2, not -3.0: the 2F and 3F stair-room doors were removed and
+            // walled in, so the old waypoint now sits inside solid wall. -1.2 is
+            // the wide doorless opening beside it - the same band the 2F leg
+            // above already uses.
+            new Vector3(-9.2f, 6.4f, -1.2f), new Vector3(-6.5f, 6.4f, -1.2f)
         };
         var route = new List<Vector3>(points);
         for (int i = points.Length - 2; i >= 0; i--) route.Add(points[i]);
