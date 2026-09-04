@@ -77476,9 +77476,9 @@ Light:
   m_Enabled: 1
   serializedVersion: 12
   m_Type: 2
-  m_Color: {r: 0.72, g: 0.8, b: 0.95, a: 1}
-  m_Intensity: 6
-  m_Range: 11
+  m_Color: {r: 0.48, g: 0.6, b: 0.92, a: 1}
+  m_Intensity: 1.15
+  m_Range: 12
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
