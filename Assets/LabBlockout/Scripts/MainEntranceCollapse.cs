@@ -10,6 +10,16 @@ public sealed class MainEntranceCollapse : MonoBehaviour
     public Collider permanentBlocker;
     public ParticleSystem dust;
 
+    // Opening the front door is what brings the entrance down. The walk-in
+    // trigger stays as a fallback for the real game scene, where the player may
+    // never press E on anything.
+    [SerializeField] SlidingDoor triggerDoor;
+
+    // 문을 열면 무너지는 것으로 충분하다. 가까이 걸어가기만 해도 무너지면
+    // 플레이어가 문을 열어볼 기회 자체가 없다. 실제 게임 씬에서 E 를 쓰지
+    // 않는 구성이면 이걸 켜서 걷기 트리거를 되살릴 수 있다.
+    [SerializeField] bool collapseOnWalkIn;
+
     bool triggered;
     public bool Triggered => triggered;
     public bool IsConfigured => intactPieces != null && intactPieces.Length > 0 &&
@@ -23,8 +33,19 @@ public sealed class MainEntranceCollapse : MonoBehaviour
         permanentBlocker.enabled = false;
     }
 
+    void OnEnable()
+    {
+        if (triggerDoor != null) triggerDoor.Opened += TriggerCollapse;
+    }
+
+    void OnDisable()
+    {
+        if (triggerDoor != null) triggerDoor.Opened -= TriggerCollapse;
+    }
+
     void OnTriggerEnter(Collider other)
     {
+        if (!collapseOnWalkIn) return;
         // BlockoutWalkPlayer for the blockout walk-test scene, PlayerController for the real game -
         // a given scene only ever has one of the two.
         if (other.GetComponentInParent<BlockoutWalkPlayer>() != null ||

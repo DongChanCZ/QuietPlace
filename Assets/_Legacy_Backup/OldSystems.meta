@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/_Legacy_Backup/OldSystems.meta
 guid: 9e4fadb1c09786a468c1d34f937aa9fd
+========
+guid: 8aeeca2fd9369d44c92609b3cad312a9
+>>>>>>>> origin/hsw:Assets/_Legacy_Backup.meta
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}

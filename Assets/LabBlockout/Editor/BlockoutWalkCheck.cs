@@ -156,6 +156,11 @@ public static class BlockoutWalkCheck
         Vector3 eye = Vector3.up * Vt(1.0f);
         RaycastHit hit;
         if (!Physics.Linecast(from + eye, to + eye, out hit)) return null;
+        // A door leaf is gameplay state wherever it sits in the hierarchy. The map
+        // moved into the blockout prefab, so doors now live under the blockout root
+        // too - the root name alone can no longer tell structure from door.
+        var door = hit.collider.GetComponentInParent<SlidingDoor>();
+        if (door != null) return hit.collider.name + " (door '" + door.Label + "', " + door.Locking + ")";
         Transform root = hit.collider.transform;
         while (root.parent != null) root = root.parent;
         if (root.name.StartsWith("LabHorror_Blockout")) return null;   // structure: not forgivable
@@ -370,11 +375,11 @@ public static class BlockoutWalkCheck
             new Vector3(-9.2f, 3.2f, -1.2f), new Vector3(-9.2f, 3.2f, -2.6f),
             new Vector3(-10.8f, 3.2f, -2.65f),
             new Vector3(-10.8f, 4.8f, -6.12f), new Vector3(-9.2f, 4.8f, -6.12f),
-            // z=-3.0, not -2.6: the 2F/3F corridor was widened to y -1.40..2.60
-            // in Blender, which put the old waypoint inside the corridor's north
-            // wall. -3.0 sits in the stair-room door band (Blender y 2.00..3.30)
-            // and clear of the wall, which is what this leg always meant.
-            new Vector3(-9.2f, 6.4f, -3.0f), new Vector3(-6.5f, 6.4f, -3.0f)
+            // z=-1.2, not -3.0: the 2F and 3F stair-room doors were removed and
+            // walled in, so the old waypoint now sits inside solid wall. -1.2 is
+            // the wide doorless opening beside it - the same band the 2F leg
+            // above already uses.
+            new Vector3(-9.2f, 6.4f, -1.2f), new Vector3(-6.5f, 6.4f, -1.2f)
         };
         var route = new List<Vector3>(points);
         for (int i = points.Length - 2; i >= 0; i--) route.Add(points[i]);
@@ -443,7 +448,10 @@ public static class BlockoutWalkCheck
         var opened = new List<SlidingDoor>();
         foreach (var door in UnityEngine.Object.FindObjectsByType<SlidingDoor>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
-            if (door.Locking != SlidingDoor.Access.Unlocked) continue;
+            // Keycard doors open too. This check validates geometry, not gating -
+            // the player does hold a card by the time the route reaches one, and
+            // leaving it shut would make the 3F route untestable.
+            if (door.Locking == SlidingDoor.Access.Sealed) continue;
             // Force the leaves, never trust IsOpen. A door told to open one frame
             // ago reads as open while its leaves are still shut - the slide takes
             // most of a second - and skipping it there leaves the way blocked.
@@ -535,22 +543,28 @@ public static class BlockoutWalkCheck
             Vector3 local = player.transform.InverseTransformDirection(Vector3.left);
             var input = new Vector2(local.x, local.z);
             for (int i = 0; i < 300; i++) player.Move(input, 1f / 60f);
-            float rampTop = player.transform.position.y;
-            if (rampTop < 1.45f)
-                throw new Exception("Ramp did not reach the sill; stopped at " + player.transform.position.ToString("F2"));
+            // 발판은 두툼한 박스 하나라 걸어 올라갈 수 없다. 짚고 올라가는
+            // 동작을 두 번 쓴다 - 땅에서 박스로, 박스에서 창턱으로.
+            // 볼트는 바라보는 방향을 쓰는데 여기까지 회전을 준 적이 없으므로
+            // 창을 마주보게 먼저 돌린다.
+            player.transform.rotation = Quaternion.LookRotation(Vector3.left);
+            for (int i = 0; i < 5; i++) player.Move(Vector2.zero, 1f / 60f);
+            if (!player.TryVault(true))
+                throw new Exception("Vault onto the crate refused at " + player.transform.position.ToString("F2"));
+            for (int i = 0; i < 60; i++) player.Move(Vector2.zero, 1f / 60f);
+            float crateTop = player.transform.position.y;
+            if (crateTop < 0.85f)
+                throw new Exception("Did not land on the crate; at " + player.transform.position.ToString("F2"));
 
-            player.SetCrouch(true);
-            if (!player.IsCrouching) throw new Exception("Crouch refused at the window.");
-            for (int i = 0; i < 480; i++)
-            {
-                player.Move(input, 1f / 60f);
-                if (player.transform.position.x < 14.4f) break;
-            }
+            Vector3 toWindow = player.transform.InverseTransformDirection(Vector3.left);
+            for (int i = 0; i < 60; i++) player.Move(new Vector2(toWindow.x, toWindow.z), 1f / 60f);
+            if (!player.TryVault(true))
+                throw new Exception("Vault through the window refused at " + player.transform.position.ToString("F2"));
+
+            for (int i = 0; i < 150; i++) player.Move(Vector2.zero, 1f / 60f);
             if (player.transform.position.x > 14.8f)
-                throw new Exception("Could not get through the window; stopped at "
+                throw new Exception("Vault did not clear the window; ended at "
                                     + player.transform.position.ToString("F2"));
-
-            for (int i = 0; i < 90; i++) player.Move(Vector2.zero, 1f / 60f);
             player.SetCrouch(false);
             for (int i = 0; i < 30; i++) player.Move(Vector2.zero, 1f / 60f);
             if (player.IsCrouching)
@@ -559,8 +573,8 @@ public static class BlockoutWalkCheck
             if (end.x > 15f || end.x < 7.5f || end.z < -10.5f || end.z > -3f || end.y > 0.5f)
                 throw new Exception("Ended outside the guard room at " + end.ToString("F2"));
 
-            return "PASS: climbed the rubble ramp to y " + rampTop.ToString("F2")
-                 + ", crouched through the window clear of the mullion, landed in the guard room at "
+            return "PASS: vaulted onto the crate at y " + crateTop.ToString("F2")
+                 + ", vaulted through the window clear of the mullion, landed in the guard room at "
                  + end.ToString("F2") + " and stood back up.";
         }
         finally

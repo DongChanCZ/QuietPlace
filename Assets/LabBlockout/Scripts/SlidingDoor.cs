@@ -25,6 +25,8 @@ public sealed class SlidingDoor : Interactable
     [SerializeField] Access access = Access.Unlocked;
     [SerializeField] string label = "문";
 
+    [SerializeField] bool startOpen;
+
     Vector3 shutA, shutB;
     float t;                 // 0 shut, 1 open
     int direction;           // -1 closing, 0 idle, +1 opening
@@ -34,11 +36,19 @@ public sealed class SlidingDoor : Interactable
     public bool IsOpen => open;
     public string Label => label;
 
+    /// Raised when the player opens this door. The main entrance subscribes so
+    /// that opening it brings the doorway down.
+    public event System.Action Opened;
+
     void Awake()
     {
         if (leafA != null) shutA = leafA.position;
         if (leafB != null) shutB = leafB.position;
-        t = 0f;
+        // 1F, 2F 는 대부분 구간에서 전력이 없다. 거기서 키를 눌러야 열리는 문은
+        // 앞뒤가 안 맞으므로 처음부터 열린 채로 둔다. 문짝은 프리팹에 닫힌 위치
+        // 그대로 두고 Awake 에서 한 번만 옮긴다 - 프리팹 구조는 건드리지 않는다.
+        if (startOpen && access != Access.Sealed) { open = true; t = 1f; Apply(); }
+        else t = 0f;
     }
 
     void Update()
@@ -69,6 +79,11 @@ public sealed class SlidingDoor : Interactable
                     ? "E  " + label + " " + (open ? "닫기" : "열기")
                     : label + " · 카드키 필요";
             default:
+                // Past the guard room every 1F and 2F door stands open, so a
+                // "close the door" prompt on each doorway is noise. Carrying the
+                // torch is the signal that the guard room is done - it is the
+                // one thing the player can only have picked up in there.
+                if (player != null && player.HasFlashlight) return null;
                 return "E  " + label + " " + (open ? "닫기" : "열기");
         }
     }
@@ -88,6 +103,7 @@ public sealed class SlidingDoor : Interactable
         open = !open;
         direction = open ? 1 : -1;
         player.ShowNotice(label + (open ? " 열림" : " 닫힘"));
+        if (open) { var handler = Opened; if (handler != null) handler(); }
     }
 
     /// Used by the play-mode checks, which cannot wait for Update to run.
