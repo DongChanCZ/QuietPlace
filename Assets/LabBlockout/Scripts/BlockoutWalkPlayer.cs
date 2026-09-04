@@ -273,10 +273,13 @@ public sealed class BlockoutWalkPlayer : MonoBehaviour, IInteractor
 
         if (instant)
         {
+            bool wasCrouching = crouching;
             body.enabled = false;
             transform.position = dest;
             body.enabled = true;
             verticalSpeed = 0f;
+            // 넘는 동안에만 웅크린다. 서 있었으면 도로 세운다.
+            if (!wasCrouching) SetCrouch(false);
         }
         else StartCoroutine(VaultTo(dest));
         return true;
@@ -285,8 +288,9 @@ public sealed class BlockoutWalkPlayer : MonoBehaviour, IInteractor
     IEnumerator VaultTo(Vector3 dest)
     {
         vaulting = true;
+        bool wasCrouching = crouching;
         body.enabled = false;                 // 컨트롤러가 이동과 싸우지 않게
-        SetCrouch(true);
+        SetCrouch(true);                      // 창 개구부를 지나려면 낮춰야 한다
         Vector3 from = transform.position;
         float peak = Mathf.Max(from.y, dest.y) + 0.25f;
         for (float t = 0f; t < vaultSeconds; t += Time.deltaTime)
@@ -303,6 +307,17 @@ public sealed class BlockoutWalkPlayer : MonoBehaviour, IInteractor
         body.enabled = true;
         verticalSpeed = 0f;
         vaulting = false;
+
+        // 웅크림은 넘는 동안만이다. 원래 서 있었으면 도로 세운다. 착지 직후에는
+        // 아직 창틀 밑이라 머리가 걸릴 수 있으므로, 설 자리가 날 때까지 잠깐
+        // 다시 시도한다. 끝내 안 되면 웅크린 채로 두고 플레이어가 C 로 편다.
+        if (!wasCrouching)
+            for (float t = 0f; t < 1.2f && crouching; t += Time.deltaTime)
+            {
+                SetCrouch(false);
+                if (!crouching) break;
+                yield return null;
+            }
     }
 
     public void ResetToStart()
