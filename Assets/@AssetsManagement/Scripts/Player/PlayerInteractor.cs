@@ -10,6 +10,11 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
 {
     public float interactionDistance = 3f;
 
+    [Header("Battery")]
+    public float batteryLevel = 100f;
+    public float batteryDrainInterval = 3f; // 이 초마다 1씩 소모 (불 켜져 있을 때만)
+    float batteryDrainTimer;
+
     Camera eyes;
     Light playerFlashlight;
     bool hasFlashlight;
@@ -18,6 +23,7 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
     public bool HasFlashlight => hasFlashlight;
     public bool FlashlightEnabled => playerFlashlight != null && playerFlashlight.enabled;
     public bool HasKeycard => hasKeycard;
+    public float BatteryLevel => batteryLevel;
 
     public event Action<string> OnNotice;
 
@@ -26,6 +32,28 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         eyes = GetComponentInChildren<Camera>();
         CreatePlayerFlashlight();
     }
+
+    void OnEnable()
+    {
+        if (QuickSlotManager.Instance != null) QuickSlotManager.Instance.OnSlotsChanged += HandleQuickSlotChanged;
+    }
+
+    void OnDisable()
+    {
+        if (QuickSlotManager.Instance != null) QuickSlotManager.Instance.OnSlotsChanged -= HandleQuickSlotChanged;
+    }
+
+    // 퀵슬롯에서 손전등이 선택 해제되면(다른 슬롯 선택/빈 슬롯 선택) 켜져 있던 불도 꺼야 한다.
+    void HandleQuickSlotChanged()
+    {
+        if (!IsFlashlightSelected && playerFlashlight != null && playerFlashlight.enabled)
+            playerFlashlight.enabled = false;
+    }
+
+    bool IsFlashlightSelected =>
+        QuickSlotManager.Instance != null &&
+        QuickSlotManager.Instance.TryGetSelectedItem(out ItemType item) &&
+        item == ItemType.Flashlight;
 
     void Update()
     {
@@ -37,6 +65,18 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
             if (target != null) target.Interact(this);
         }
         if (keyboard.fKey.wasPressedThisFrame) ToggleFlashlight();
+        DrainBattery();
+    }
+
+    void DrainBattery()
+    {
+        if (playerFlashlight == null || !playerFlashlight.enabled) return;
+        if (batteryLevel <= 0f) { playerFlashlight.enabled = false; return; }
+        batteryDrainTimer += Time.deltaTime;
+        if (batteryDrainTimer < batteryDrainInterval) return;
+        batteryDrainTimer -= batteryDrainInterval;
+        batteryLevel = Mathf.Max(0f, batteryLevel - 1f);
+        if (batteryLevel <= 0f) playerFlashlight.enabled = false;
     }
 
     // BlockoutWalkPlayer와 동일한 값 - 블록아웃 인스턴스의 (1.5, 1.3, 1.5) 스케일 배율 기준으로 맞춰진 값.
@@ -61,7 +101,7 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
 
     public void ToggleFlashlight()
     {
-        if (!hasFlashlight || playerFlashlight == null) return;
+        if (!hasFlashlight || playerFlashlight == null || !IsFlashlightSelected || batteryLevel <= 0f) return;
         playerFlashlight.enabled = !playerFlashlight.enabled;
     }
 
@@ -84,7 +124,12 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         return nearest;
     }
 
-    public void GiveFlashlight() => hasFlashlight = true;
+    public void GiveFlashlight()
+    {
+        hasFlashlight = true;
+        QuickSlotManager.Instance?.AddItem(ItemType.Flashlight);
+    }
+
     public void GiveKeycard() => hasKeycard = true;
     public void ShowNotice(string text) => OnNotice?.Invoke(text);
 }
