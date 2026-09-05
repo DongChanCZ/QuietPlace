@@ -18,6 +18,7 @@ public class HeartBeatUI : MonoBehaviour
 
     [Header("Colors")]
     public Color normalColor = Color.white;
+    public Color cautionColor = new Color(1f, 0.55f, 0f); // Stopping 아니지만 산소 50% 미만
     public Color warningColor = Color.red;
 
     private RectTransform rt;
@@ -43,7 +44,9 @@ public class HeartBeatUI : MonoBehaviour
 
         // Stopping/Gasping 둘 다 이동이 불가능한 상태라, 다시 움직일 수 있는 상태로 돌아갈 때까지 빨간색 유지
         bool warning = (isStopping && belowGaspingThreshold) || isGasping;
-        heartImage.color = warning ? warningColor : normalColor;
+        // 아직 움직일 수 있는 상태인데 산소가 50% 밑으로 떨어진 경우 - 위험 전 단계 경고
+        bool caution = !isStopping && !isGasping && belowGaspingThreshold;
+        heartImage.color = warning ? warningColor : caution ? cautionColor : normalColor;
 
         if (isStopping)
         {

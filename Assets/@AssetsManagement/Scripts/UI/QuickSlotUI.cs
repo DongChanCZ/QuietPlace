@@ -11,11 +11,12 @@ public struct ItemIcon
 
 // QuickSlotManager의 상태를 6개 슬롯 아이콘에 그대로 반영한다.
 // 아이템이 없는 슬롯은 아이콘을 꺼두고(Image.enabled=false), 있는 슬롯은
-// 선택 여부에 따라 흐리게/진하게만 다르게 보여준다.
+// 선택 여부에 따라 흐리게/작게 또는 진하게/크게 보여준다.
 public class QuickSlotUI : MonoBehaviour
 {
     [SerializeField] ItemIcon[] itemIcons;
     [Range(0f, 1f)][SerializeField] float unselectedAlpha = 0.35f;
+    [SerializeField] float selectedScale = 1.95f;
 
     Image[] icons;
 
@@ -48,11 +49,13 @@ public class QuickSlotUI : MonoBehaviour
                 continue;
             }
 
+            bool selected = manager.SelectedIndex == i;
             icons[i].enabled = true;
             icons[i].sprite = FindSprite(slotItem);
             Color c = icons[i].color;
-            c.a = manager.SelectedIndex == i ? 1f : unselectedAlpha;
+            c.a = selected ? 1f : unselectedAlpha;
             icons[i].color = c;
+            icons[i].rectTransform.localScale = selected ? Vector3.one * selectedScale : Vector3.one;
         }
     }
 
