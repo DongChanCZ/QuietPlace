@@ -260,6 +260,104 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 39260107}
   m_CullTransparentMesh: 1
+--- !u!1 &97856520
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 97856521}
+  - component: {fileID: 97856524}
+  - component: {fileID: 97856523}
+  - component: {fileID: 97856522}
+  m_Layer: 0
+  m_Name: BatteryUI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &97856521
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 97856520}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2145814665}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: -20, y: 20}
+  m_SizeDelta: {x: 128, y: 64}
+  m_Pivot: {x: 1, y: 0}
+--- !u!114 &97856522
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 97856520}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36fabc1ea2cef5a4ca33bf1142744712, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BatteryUI
+  player: {fileID: 808745195}
+  batterySprites:
+  - {fileID: 21300000, guid: 091ff06bfc8fd364c8327d31a172d83f, type: 3}
+  - {fileID: 21300000, guid: 7cfd2315552e5214282857ca3dcc17e2, type: 3}
+  - {fileID: 21300000, guid: 710c8a6c4422d014f9fa931b456c5df9, type: 3}
+  - {fileID: 21300000, guid: 800c215ed1866ee4caee362f6a869cc4, type: 3}
+  - {fileID: 21300000, guid: c486205f940afa443bcf21ccbad9046e, type: 3}
+  flickerSpeed: 2
+  minAlpha: 0
+  maxAlpha: 1
+--- !u!114 &97856523
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 97856520}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &97856524
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 97856520}
+  m_CullTransparentMesh: 1
 --- !u!1 &120186881
 GameObject:
   m_ObjectHideFlags: 0
@@ -1756,6 +1854,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInteractor
   interactionDistance: 3
+  batteryLevel: 100
+  batteryDrainInterval: 3
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -2313,7 +2413,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 140, y: 20}
+  m_AnchoredPosition: {x: 60, y: 45}
   m_SizeDelta: {x: 848, y: 128}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &1401358794
@@ -2338,7 +2438,7 @@ MonoBehaviour:
   - type: 5
     sprite: {fileID: 21300000, guid: b284cdcca74a87e4c815bd99f2caa7b6, type: 3}
   unselectedAlpha: 0.35
-  selectedScale: 1.5
+  selectedScale: 2.1
 --- !u!1 &1414163771
 GameObject:
   m_ObjectHideFlags: 0
@@ -3290,6 +3390,7 @@ RectTransform:
   - {fileID: 551070025}
   - {fileID: 1401358793}
   - {fileID: 455295453}
+  - {fileID: 97856521}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}

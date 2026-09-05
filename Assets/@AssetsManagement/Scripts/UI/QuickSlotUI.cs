@@ -16,7 +16,7 @@ public class QuickSlotUI : MonoBehaviour
 {
     [SerializeField] ItemIcon[] itemIcons;
     [Range(0f, 1f)][SerializeField] float unselectedAlpha = 0.35f;
-    [SerializeField] float selectedScale = 1.95f;
+    [SerializeField] float selectedScale = 2.1f;
 
     Image[] icons;
 
