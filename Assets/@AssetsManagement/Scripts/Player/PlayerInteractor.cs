@@ -27,6 +27,28 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         CreatePlayerFlashlight();
     }
 
+    void OnEnable()
+    {
+        if (QuickSlotManager.Instance != null) QuickSlotManager.Instance.OnSlotsChanged += HandleQuickSlotChanged;
+    }
+
+    void OnDisable()
+    {
+        if (QuickSlotManager.Instance != null) QuickSlotManager.Instance.OnSlotsChanged -= HandleQuickSlotChanged;
+    }
+
+    // 퀵슬롯에서 손전등이 선택 해제되면(다른 슬롯 선택/빈 슬롯 선택) 켜져 있던 불도 꺼야 한다.
+    void HandleQuickSlotChanged()
+    {
+        if (!IsFlashlightSelected && playerFlashlight != null && playerFlashlight.enabled)
+            playerFlashlight.enabled = false;
+    }
+
+    bool IsFlashlightSelected =>
+        QuickSlotManager.Instance != null &&
+        QuickSlotManager.Instance.TryGetSelectedItem(out ItemType item) &&
+        item == ItemType.Flashlight;
+
     void Update()
     {
         var keyboard = Keyboard.current;
@@ -61,7 +83,7 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
 
     public void ToggleFlashlight()
     {
-        if (!hasFlashlight || playerFlashlight == null) return;
+        if (!hasFlashlight || playerFlashlight == null || !IsFlashlightSelected) return;
         playerFlashlight.enabled = !playerFlashlight.enabled;
     }
 
@@ -84,7 +106,12 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         return nearest;
     }
 
-    public void GiveFlashlight() => hasFlashlight = true;
+    public void GiveFlashlight()
+    {
+        hasFlashlight = true;
+        QuickSlotManager.Instance?.AddItem(ItemType.Flashlight);
+    }
+
     public void GiveKeycard() => hasKeycard = true;
     public void ShowNotice(string text) => OnNotice?.Invoke(text);
 }
