@@ -127,6 +127,30 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 293253699922534696, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 2.6255867
+      objectReference: {fileID: 0}
+    - target: {fileID: 293253699922534696, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 3.1472988
+      objectReference: {fileID: 0}
+    - target: {fileID: 293253699922534696, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -12.4334
+      objectReference: {fileID: 0}
+    - target: {fileID: 293253699922534696, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 2.3623
+      objectReference: {fileID: 0}
+    - target: {fileID: 2688431226287611317, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 13.717
+      objectReference: {fileID: 0}
+    - target: {fileID: 2688431226287611317, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -7.299
+      objectReference: {fileID: 0}
     - target: {fileID: 2905508328416319362, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -167,9 +191,57 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4836403763047356954, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 2.2477412
+      objectReference: {fileID: 0}
+    - target: {fileID: 4836403763047356954, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 3.1219883
+      objectReference: {fileID: 0}
+    - target: {fileID: 4836403763047356954, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -6.0243
+      objectReference: {fileID: 0}
+    - target: {fileID: 4836403763047356954, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 2.2478
+      objectReference: {fileID: 0}
+    - target: {fileID: 5243866199214402163, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 2.808874
+      objectReference: {fileID: 0}
+    - target: {fileID: 5243866199214402163, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 3.2328343
+      objectReference: {fileID: 0}
+    - target: {fileID: 5243866199214402163, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -10.2021
+      objectReference: {fileID: 0}
+    - target: {fileID: 5243866199214402163, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 2.3618
+      objectReference: {fileID: 0}
     - target: {fileID: 7161807316732062362, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
       propertyPath: m_Name
       value: LabHorror_Blockout_Step7_3F_Floor
+      objectReference: {fileID: 0}
+    - target: {fileID: 9092322516507540267, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 2.509654
+      objectReference: {fileID: 0}
+    - target: {fileID: 9092322516507540267, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 3.0890076
+      objectReference: {fileID: 0}
+    - target: {fileID: 9092322516507540267, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -8.0896
+      objectReference: {fileID: 0}
+    - target: {fileID: 9092322516507540267, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 2.3083
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
