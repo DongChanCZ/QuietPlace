@@ -15,11 +15,15 @@ public class QuickSlotManager : MonoBehaviour
     public static QuickSlotManager Instance { get; private set; }
 
     public event Action OnSlotsChanged;
+    public event Action<ItemType, string, int> OnItemAcquired; // (아이템, 표시 이름, 0-based 슬롯 인덱스)
 
     readonly List<ItemType> items = new List<ItemType>();
     int selectedIndex = -1;
 
     public int SelectedIndex => selectedIndex;
+
+    // F로 실제 사용 가능한 아이템인지 - 습득 메시지 문구 분기에 쓰인다.
+    public static bool IsUsable(ItemType type) => type == ItemType.Flashlight || type == ItemType.Medicine;
 
     void Awake()
     {
@@ -51,11 +55,13 @@ public class QuickSlotManager : MonoBehaviour
         OnSlotsChanged?.Invoke();
     }
 
-    public void AddItem(ItemType item)
+    public void AddItem(ItemType item, string displayName)
     {
         if (items.Count >= SlotCount || items.Contains(item)) return;
         items.Add(item);
+        int index = items.Count - 1;
         OnSlotsChanged?.Invoke();
+        OnItemAcquired?.Invoke(item, displayName, index);
     }
 
     public bool TryGetItem(int index, out ItemType item)

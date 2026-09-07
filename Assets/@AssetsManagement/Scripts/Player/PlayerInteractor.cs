@@ -35,12 +35,20 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
 
     void OnEnable()
     {
-        if (QuickSlotManager.Instance != null) QuickSlotManager.Instance.OnSlotsChanged += HandleQuickSlotChanged;
+        if (QuickSlotManager.Instance != null)
+        {
+            QuickSlotManager.Instance.OnSlotsChanged += HandleQuickSlotChanged;
+            QuickSlotManager.Instance.OnItemAcquired += HandleItemAcquired;
+        }
     }
 
     void OnDisable()
     {
-        if (QuickSlotManager.Instance != null) QuickSlotManager.Instance.OnSlotsChanged -= HandleQuickSlotChanged;
+        if (QuickSlotManager.Instance != null)
+        {
+            QuickSlotManager.Instance.OnSlotsChanged -= HandleQuickSlotChanged;
+            QuickSlotManager.Instance.OnItemAcquired -= HandleItemAcquired;
+        }
     }
 
     // 퀵슬롯에서 손전등이 선택 해제되면(다른 슬롯 선택/빈 슬롯 선택) 켜져 있던 불도 꺼야 한다.
@@ -48,6 +56,24 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
     {
         if (!IsFlashlightSelected && playerFlashlight != null && playerFlashlight.enabled)
             playerFlashlight.enabled = false;
+    }
+
+    void HandleItemAcquired(ItemType item, string displayName, int slotIndex)
+    {
+        int slotNumber = slotIndex + 1;
+        string usageText = QuickSlotManager.IsUsable(item)
+            ? slotNumber + "번을 눌러 선택 후 F를 눌러 사용 가능합니다."
+            : slotNumber + "번을 눌러 선택할 수 있습니다.";
+        ShowNotice(displayName + ObjectParticle(displayName) + " 습득하였습니다. " + usageText);
+    }
+
+    // 마지막 글자 받침 유무로 을/를 결정 (한글 음절 U+AC00~U+D7A3, 종성 인덱스 = (코드 - AC00) % 28, 0이면 받침 없음)
+    static string ObjectParticle(string word)
+    {
+        if (string.IsNullOrEmpty(word)) return "를";
+        char last = word[word.Length - 1];
+        if (last < '가' || last > '힣') return "를";
+        return (last - '가') % 28 != 0 ? "을" : "를";
     }
 
     bool IsFlashlightSelected =>
@@ -61,7 +87,7 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         if (keyboard == null) return;
         if (keyboard.eKey.wasPressedThisFrame)
         {
-            Interactable target = AimedInteractable();
+            Interactable target = Aimed;
             if (target != null) target.Interact(this);
         }
         if (keyboard.fKey.wasPressedThisFrame) ToggleFlashlight();
@@ -107,6 +133,24 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
 
     readonly RaycastHit[] reach = new RaycastHit[16];
 
+    int aimedFrame = -1;
+    Interactable aimed;
+
+    /// 조준 중인 Interactable. 프레임당 한 번만 스윕한다 - Update(E키)와 프롬프트 UI가
+    /// 같은 프레임에 둘 다 물어봐도 레이캐스트는 한 번만 돈다.
+    public Interactable Aimed
+    {
+        get
+        {
+            if (aimedFrame != Time.frameCount)
+            {
+                aimedFrame = Time.frameCount;
+                aimed = AimedInteractable();
+            }
+            return aimed;
+        }
+    }
+
     Interactable AimedInteractable()
     {
         if (eyes == null) return null;
@@ -127,7 +171,7 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
     public void GiveFlashlight()
     {
         hasFlashlight = true;
-        QuickSlotManager.Instance?.AddItem(ItemType.Flashlight);
+        QuickSlotManager.Instance?.AddItem(ItemType.Flashlight, "손전등");
     }
 
     public void GiveKeycard() => hasKeycard = true;
