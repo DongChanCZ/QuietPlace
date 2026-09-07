@@ -815,6 +815,7 @@ MonoBehaviour:
   leafB: {fileID: 4361281939765337854}
   slideAxis: {x: 1, y: 0, z: 0}
   slideDistance: 0.9375
+  swingDegrees: 0
   seconds: 0.85
   access: 2
   label: "\uC81C\uD55C \uAD6C\uC5ED"
@@ -7006,6 +7007,7 @@ MonoBehaviour:
   leafB: {fileID: 2916598059589770133}
   slideAxis: {x: 1, y: 0, z: 0}
   slideDistance: 0.7975001
+  swingDegrees: 0
   seconds: 0.85
   access: 0
   label: "\uCC3D\uACE0"
@@ -7745,7 +7747,7 @@ Transform:
   m_GameObject: {fileID: 515453008127381869}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.57, z: 0.028}
+  m_LocalPosition: {x: -0.285, y: 0.57, z: 0.028}
   m_LocalScale: {x: 0.4, y: 0.022, z: 0.018}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -12228,7 +12230,7 @@ Transform:
   m_GameObject: {fileID: 782840721369707036}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.915, y: 9.3499975, z: -9.4299965}
+  m_LocalPosition: {x: 2.6299999, y: 9.3499975, z: -9.4299965}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -19099,7 +19101,7 @@ Transform:
   m_GameObject: {fileID: 1210383830017310070}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 3.4850001, y: 9.3499975, z: -9.4299965}
+  m_LocalPosition: {x: 3.7700002, y: 9.3499975, z: -9.4299965}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -22128,7 +22130,7 @@ Transform:
   m_GameObject: {fileID: 1421441072520809878}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.278, y: 0, z: 0.027}
+  m_LocalPosition: {x: 0.56299996, y: 0, z: 0.027}
   m_LocalScale: {x: 0.014, y: 1.96, z: 0.02}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -24134,6 +24136,7 @@ MonoBehaviour:
   leafB: {fileID: 4893597445655067761}
   slideAxis: {x: 0, y: 0, z: 1}
   slideDistance: 1.0500001
+  swingDegrees: 0
   seconds: 0.85
   access: 0
   label: "\uACC4\uB2E8\uC2E4 \uBB38"
@@ -24552,7 +24555,8 @@ MonoBehaviour:
   leafB: {fileID: 1567028050116666143}
   slideAxis: {x: 1, y: 0, z: 0}
   slideDistance: 0.55
-  seconds: 0.85
+  swingDegrees: 105
+  seconds: 0.55
   access: 0
   label: "\uCE90\uBE44\uB2DB"
   startOpen: 0
@@ -25592,6 +25596,7 @@ MonoBehaviour:
   leafB: {fileID: 1881289492890134798}
   slideAxis: {x: 1, y: 0, z: 0}
   slideDistance: 0.9375
+  swingDegrees: 0
   seconds: 0.85
   access: 2
   label: "\uC81C\uD55C \uAD6C\uC5ED"
@@ -32156,7 +32161,7 @@ Transform:
   m_GameObject: {fileID: 2120611810034150494}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.24, y: -0.05, z: 0.044}
+  m_LocalPosition: {x: -0.525, y: -0.05, z: 0.044}
   m_LocalScale: {x: 0.03, y: 0.34, z: 0.045}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -34200,6 +34205,7 @@ MonoBehaviour:
   leafB: {fileID: 8003071374684257586}
   slideAxis: {x: 0, y: 0, z: 1}
   slideDistance: 0.90999997
+  swingDegrees: 0
   seconds: 0.85
   access: 2
   label: "\uC678\uBD80 \uCD9C\uAD6C"
@@ -38002,6 +38008,7 @@ MonoBehaviour:
   leafB: {fileID: 1725009006728146929}
   slideAxis: {x: 1, y: 0, z: 0}
   slideDistance: 0.9375
+  swingDegrees: 0
   seconds: 0.85
   access: 0
   label: "\uBC30\uC804\uBC18\uC2E4"
@@ -38144,7 +38151,7 @@ Transform:
   m_GameObject: {fileID: 2649665627722025982}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.41, z: 0.028}
+  m_LocalPosition: {x: -0.285, y: 0.41, z: 0.028}
   m_LocalScale: {x: 0.4, y: 0.022, z: 0.018}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -43116,7 +43123,7 @@ Transform:
   m_GameObject: {fileID: 2927100519142942633}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.41, z: 0.028}
+  m_LocalPosition: {x: 0.285, y: 0.41, z: 0.028}
   m_LocalScale: {x: 0.4, y: 0.022, z: 0.018}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -51602,6 +51609,7 @@ MonoBehaviour:
   leafB: {fileID: 8750795451237947739}
   slideAxis: {x: 1, y: 0, z: 0}
   slideDistance: 0.9375
+  swingDegrees: 0
   seconds: 0.85
   access: 2
   label: "\uC81C\uD55C \uAD6C\uC5ED"
@@ -51856,7 +51864,7 @@ Transform:
   m_GameObject: {fileID: 3562953496474554988}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.65, z: 0.028}
+  m_LocalPosition: {x: -0.285, y: 0.65, z: 0.028}
   m_LocalScale: {x: 0.4, y: 0.022, z: 0.018}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -54115,6 +54123,7 @@ MonoBehaviour:
   leafB: {fileID: 5875649474526982930}
   slideAxis: {x: 0, y: 0, z: 1}
   slideDistance: 0.98499984
+  swingDegrees: 0
   seconds: 0.85
   access: 0
   label: "\uACBD\uBE44\uC2E4"
@@ -56219,6 +56228,7 @@ MonoBehaviour:
   leafB: {fileID: 6959783470265495291}
   slideAxis: {x: 1, y: 0, z: 0}
   slideDistance: 0.97499996
+  swingDegrees: 0
   seconds: 0.85
   access: 2
   label: "\uC81C\uD55C \uAD6C\uC5ED"
@@ -63547,7 +63557,7 @@ Transform:
   m_GameObject: {fileID: 4224558348034937635}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.49, z: 0.028}
+  m_LocalPosition: {x: 0.285, y: 0.49, z: 0.028}
   m_LocalScale: {x: 0.4, y: 0.022, z: 0.018}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -65488,7 +65498,7 @@ Transform:
   m_GameObject: {fileID: 4351392402315410026}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.49, z: 0.028}
+  m_LocalPosition: {x: -0.285, y: 0.49, z: 0.028}
   m_LocalScale: {x: 0.4, y: 0.022, z: 0.018}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -67939,7 +67949,7 @@ Transform:
   m_GameObject: {fileID: 4505643919448201888}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.278, y: 0, z: 0.027}
+  m_LocalPosition: {x: -0.56299996, y: 0, z: 0.027}
   m_LocalScale: {x: 0.014, y: 1.96, z: 0.02}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -69381,7 +69391,7 @@ Transform:
   m_GameObject: {fileID: 4613454044577611756}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.65, z: 0.028}
+  m_LocalPosition: {x: 0.285, y: 0.65, z: 0.028}
   m_LocalScale: {x: 0.4, y: 0.022, z: 0.018}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -69945,6 +69955,7 @@ MonoBehaviour:
   leafB: {fileID: 6786072197368121204}
   slideAxis: {x: 1, y: 0, z: 0}
   slideDistance: 0.9375
+  swingDegrees: 0
   seconds: 0.85
   access: 2
   label: "\uC81C\uD55C \uAD6C\uC5ED"
@@ -70289,7 +70300,7 @@ Transform:
   m_GameObject: {fileID: 4676082075025837136}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.24, y: -0.05, z: 0.044}
+  m_LocalPosition: {x: 0.525, y: -0.05, z: 0.044}
   m_LocalScale: {x: 0.03, y: 0.34, z: 0.045}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -88802,7 +88813,7 @@ Transform:
   m_GameObject: {fileID: 5860864542369890907}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0.285, y: 0, z: 0}
   m_LocalScale: {x: 0.57, y: 2, z: 0.05}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -94850,6 +94861,7 @@ MonoBehaviour:
   leafB: {fileID: 4988608688916977823}
   slideAxis: {x: 0, y: 0, z: 1}
   slideDistance: 1.125
+  swingDegrees: 0
   seconds: 0.85
   access: 2
   label: "\uC81C\uD55C \uAD6C\uC5ED"
@@ -95846,6 +95858,7 @@ MonoBehaviour:
   leafB: {fileID: 4061064849917729034}
   slideAxis: {x: 1, y: 0, z: 0}
   slideDistance: 0.9375
+  swingDegrees: 0
   seconds: 0.85
   access: 2
   label: "\uC81C\uD55C \uAD6C\uC5ED"
@@ -103933,6 +103946,7 @@ MonoBehaviour:
   leafB: {fileID: 7638023615140723432}
   slideAxis: {x: 1, y: 0, z: 0}
   slideDistance: 0.97499996
+  swingDegrees: 0
   seconds: 0.85
   access: 2
   label: "\uC81C\uD55C \uAD6C\uC5ED"
@@ -105085,6 +105099,7 @@ MonoBehaviour:
   leafB: {fileID: 4988101854228954905}
   slideAxis: {x: 1, y: 0, z: 0}
   slideDistance: 0.7975003
+  swingDegrees: 0
   seconds: 0.85
   access: 2
   label: "\uC81C\uD55C \uAD6C\uC5ED"
@@ -110473,7 +110488,7 @@ Transform:
   m_GameObject: {fileID: 7108263874759347069}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.57, z: 0.028}
+  m_LocalPosition: {x: 0.285, y: 0.57, z: 0.028}
   m_LocalScale: {x: 0.4, y: 0.022, z: 0.018}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -111936,6 +111951,7 @@ MonoBehaviour:
   leafB: {fileID: 29156189254162144}
   slideAxis: {x: 1, y: 0, z: 0}
   slideDistance: 1.05
+  swingDegrees: 0
   seconds: 0.85
   access: 0
   label: "B1 \uD1B5\uB85C"
@@ -114781,6 +114797,7 @@ MonoBehaviour:
   leafB: {fileID: 4622667029530832005}
   slideAxis: {x: 1, y: 0, z: 0}
   slideDistance: 1.2
+  swingDegrees: 0
   seconds: 0.85
   access: 0
   label: "\uBC29\uC1A1 \uD1B5\uC81C\uC2E4"
@@ -115350,6 +115367,7 @@ MonoBehaviour:
   leafB: {fileID: 5235869323736420841}
   slideAxis: {x: 1, y: 0, z: 0}
   slideDistance: 1.78
+  swingDegrees: 0
   seconds: 0.85
   access: 0
   label: "\uC815\uBB38"
@@ -125639,6 +125657,7 @@ MonoBehaviour:
   leafB: {fileID: 6782759530412305845}
   slideAxis: {x: 1, y: 0, z: 0}
   slideDistance: 0.9375
+  swingDegrees: 0
   seconds: 0.85
   access: 0
   label: "\uBC1C\uC804\uAE30\uC2E4"
@@ -138981,6 +139000,7 @@ MonoBehaviour:
   leafB: {fileID: 7622858073449329980}
   slideAxis: {x: 0, y: 0, z: 1}
   slideDistance: 0.97499996
+  swingDegrees: 0
   seconds: 0.85
   access: 2
   label: "\uC81C\uD55C \uAD6C\uC5ED"
@@ -141065,7 +141085,7 @@ Transform:
   m_GameObject: {fileID: 8743253706968064509}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -0.285, y: 0, z: 0}
   m_LocalScale: {x: 0.57, y: 2, z: 0.05}
   m_ConstrainProportionsScale: 0
   m_Children: []
