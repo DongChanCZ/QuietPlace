@@ -11,7 +11,7 @@ public sealed class TestItemPickup : Interactable
 
     public override void Interact(IInteractor player)
     {
-        QuickSlotManager.Instance?.AddItem(itemType);
+        QuickSlotManager.Instance?.AddItem(itemType, displayName);
         gameObject.SetActive(false);
     }
 }

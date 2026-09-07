@@ -26,7 +26,8 @@ public class ScreamFearUI : MonoBehaviour
 
         if (fearText != null)
         {
-            fearText.text = "Fear: " + Mathf.RoundToInt(player.stats.fear);
+            // 반올림하면 99.6도 100으로 보여서 Fearing 진입 문턱(fear>=fearMax)과 화면 표기가 어긋난다 - 버림으로 통일.
+            fearText.text = "Fear " + Mathf.FloorToInt(player.stats.fear);
         }
 
         bool shaking = player.stats.fear >= fearShakeThreshold;
