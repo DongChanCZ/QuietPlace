@@ -28,6 +28,12 @@ public class FuseBoxRepairSequence : MonoBehaviour
         if (fuseInsert != null) fuseInsert.onInserted.AddListener(OnFuseDone);
         if (breakerUp != null) breakerUp.onComplete.AddListener(OnBreakerUpDone);
 
+        Begin();
+    }
+
+    /// <summary>1단계부터 다시 시작한다. 재시도할 때 Start 가 두 번 돌지 않으므로 외부에서 불러준다.</summary>
+    public void Begin()
+    {
         SetOnly(breakerDownRoot);
     }
 
