@@ -75,6 +75,8 @@ public class PlayerController : MonoBehaviour
     public float sittingLookLerpSpeed = 6f;
     private float sittingLookOffset;
     private float sittingEyeOffset;
+    private float carryLookOffset;   // 무거운 물건을 들었을 때 고개 숙임
+    private float carryEyeOffset;    // 무거운 물건을 들었을 때 시점 하강
 
     [Header("Sitting Collider")]
     public float sittingColliderHeight = 1.05f; // 실제로 쪼그려 앉은 것처럼 Y축 판정만 줄임
@@ -225,11 +227,18 @@ public class PlayerController : MonoBehaviour
         bool sitting = currentState.Type == PlayerStateType.Sitting;
         sittingLookOffset = Mathf.Lerp(sittingLookOffset, sitting ? sittingLookDownPitch : 0f, dt * sittingLookLerpSpeed);
         sittingEyeOffset = Mathf.Lerp(sittingEyeOffset, sitting ? sittingEyeDropOffset : 0f, dt * sittingLookLerpSpeed);
+
+        // 무거운 물건을 들면 고개가 숙여지고 시점이 내려간다. 앉기와 같은 방식으로 lerp 해서
+        // 들었다 놓을 때 화면이 끊기지 않고 부드럽게 오간다.
+        float targetLook = HeldItem != null ? HeldItem.CarryLookDownPitch : 0f;
+        float targetEye = HeldItem != null ? HeldItem.CarryEyeDrop : 0f;
+        carryLookOffset = Mathf.Lerp(carryLookOffset, targetLook, dt * sittingLookLerpSpeed);
+        carryEyeOffset = Mathf.Lerp(carryEyeOffset, targetEye, dt * sittingLookLerpSpeed);
     }
 
     // pitch(마우스 시야)+sittingLookOffset 합이 90도를 넘으면 카메라 forward 벡터의 좌우 성분이 뒤집혀
     // 화면이 홱 돌아가 보이는 버그가 있었음 — 합산값을 안전 범위(minPitch~maxPitch)로 clamp.
-    private float EffectivePitch => Mathf.Clamp(pitch + sittingLookOffset, minPitch, maxPitch);
+    private float EffectivePitch => Mathf.Clamp(pitch + sittingLookOffset + carryLookOffset, minPitch, maxPitch);
 
     void UpdateCameraView(bool wantThirdPerson)
     {
@@ -290,7 +299,7 @@ public class PlayerController : MonoBehaviour
         else
         {
             Vector3 pos = cameraBaseLocalPosition;
-            pos.y -= sittingEyeOffset;
+            pos.y -= sittingEyeOffset + carryEyeOffset;
             playerCamera.transform.localPosition = pos;
             playerCamera.transform.localEulerAngles = new Vector3(EffectivePitch, 0f, 0f);
         }

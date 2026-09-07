@@ -294,7 +294,9 @@ public class HoldingState : IPlayerState
             {
                 animating = false;
                 RestoreNormalNoise(ctx);
-                ctx.stats.currentMoveSpeed = ctx.stats.moveSpeed;
+                // 무거운 물건일수록 느리게 걷는다. 배율은 물건이 들고 있다(IHoldable).
+                float weightFactor = ctx.HeldItem != null ? ctx.HeldItem.MoveSpeedMultiplier : 1f;
+                ctx.stats.currentMoveSpeed = ctx.stats.moveSpeed * weightFactor;
             }
             return;
         }
@@ -310,7 +312,8 @@ public class HoldingState : IPlayerState
             return;
         }
 
-        Vector3 dir = ctx.HasMoveInput ? ctx.MoveDirectionWorld() * ctx.stats.moveSpeed : Vector3.zero;
+        // currentMoveSpeed 를 쓴다. moveSpeed 를 직접 쓰면 위에서 계산한 무게 배율이 무시된다.
+        Vector3 dir = ctx.HasMoveInput ? ctx.MoveDirectionWorld() * ctx.stats.currentMoveSpeed : Vector3.zero;
         ctx.Move(dir);
     }
 

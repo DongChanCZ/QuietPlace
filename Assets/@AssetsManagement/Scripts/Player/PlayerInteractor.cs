@@ -116,10 +116,21 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         if (keyboard.eKey.wasPressedThisFrame)
         {
             Interactable target = Aimed;
-            if (target != null) target.Interact(this);
+            if (target != null && CanInteractWith(target)) target.Interact(this);
         }
         if (keyboard.fKey.wasPressedThisFrame) UseSelectedItem();
         DrainBattery();
+    }
+
+    // 두 손으로 무거운 물건을 들고 있으면 새로 뭔가를 집을 수 없다.
+    // 설치 슬롯이나 문처럼 손을 비우지 않아도 되는 것만 AllowedWhileHandsFull 로 통과시킨다.
+    bool CanInteractWith(Interactable target)
+    {
+        bool handsFull = playerController != null && playerController.HeldItem != null;
+        if (!handsFull || target.AllowedWhileHandsFull) return true;
+
+        ShowNotice("양손이 차 있습니다. 먼저 내려놓으세요.");
+        return false;
     }
 
     // F는 손전등이면 토글, 약이면 그 자리에서 소비 - 그 외(빈 슬롯/사용 불가 아이템)엔 아무 반응 없음.

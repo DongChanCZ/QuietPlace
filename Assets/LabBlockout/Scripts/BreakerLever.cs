@@ -33,6 +33,9 @@ public sealed class BreakerLever : Interactable
         if (lever != null) lever.localRotation = Quaternion.Euler(downEuler);
     }
 
+    // 레버는 팔꿈치로도 내릴 수 있다
+    public override bool AllowedWhileHandsFull => true;
+
     public override string Prompt(IInteractor player)
     {
         return "E  " + displayName + " " + (On ? "내리기" : "올리기");

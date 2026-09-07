@@ -89,6 +89,9 @@ public sealed class SlidingDoor : Interactable
         if (leafB != null) leafB.position = shutB + offset;
     }
 
+    // 손이 차 있어도 문은 열 수 있어야 한다 - 어깨로 밀거나 팔꿈치로 누르는 식
+    public override bool AllowedWhileHandsFull => true;
+
     public override string Prompt(IInteractor player)
     {
         switch (access)

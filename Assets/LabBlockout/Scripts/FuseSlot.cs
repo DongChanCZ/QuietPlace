@@ -19,10 +19,9 @@ public sealed class FuseSlot : Interactable
     /// has nothing to do with how it seats in the slot.
     [SerializeField] Vector3 installEuler = new Vector3(0f, 90f, 0f);
 
-    /// 켜면 곧바로 꽂히지 않고 배전반 수리 미니게임(차단기 내리기 -> 잔류전하 방전 ->
-    /// 각도 맞춰 삽입 -> 차단기 올리기)을 먼저 통과해야 설치된다.
-    /// 끄면 기존과 동일하게 즉시 설치된다.
-    [SerializeField] bool requiresRepair;
+    /// 부품을 꽂기 전에 거쳐야 하는 수리 미니게임. None 이면 기존처럼 즉시 설치된다.
+    /// 슬롯마다 다른 미니게임을 붙일 수 있어야 해서 bool 이 아니라 종류로 둔다.
+    [SerializeField] RepairKind requiresRepair = RepairKind.None;
 
     /// Whether the bay is seated. The breaker reads this - it trips back down
     /// on an empty bay - and this is the only thing outside needs to know.
@@ -37,6 +36,9 @@ public sealed class FuseSlot : Interactable
     {
         Debug.Assert(part && anchor, "FuseSlot is missing its part or anchor.");
     }
+
+    // 들고 온 부품을 꽂는 곳이라 손이 차 있는 상태로 써야 한다
+    public override bool AllowedWhileHandsFull => true;
 
     public override string Prompt(IInteractor player)
     {
@@ -59,10 +61,17 @@ public sealed class FuseSlot : Interactable
             return;
         }
 
-        if (requiresRepair && FuseRepairManager.Instance != null)
+        // 설치는 미니게임을 통과한 뒤 CompleteInstall 에서 이뤄진다.
+        // 매니저가 씬에 없으면(프리뷰 씬 등) 게이트를 건너뛰고 그냥 설치한다.
+        switch (requiresRepair)
         {
-            FuseRepairManager.Instance.Begin(this, player);
-            return; // 설치는 미니게임을 통과한 뒤 CompleteInstall 에서 이뤄진다
+            case RepairKind.TransformerModule when TransformerRepairManager.Instance != null:
+                TransformerRepairManager.Instance.Begin(this, player);
+                return;
+
+            case RepairKind.SwitchboardFuse when FuseRepairManager.Instance != null:
+                FuseRepairManager.Instance.Begin(this, player);
+                return;
         }
 
         CompleteInstall(player);
@@ -73,6 +82,12 @@ public sealed class FuseSlot : Interactable
     public void CompleteInstall(IInteractor player)
     {
         if (part == null || anchor == null || part.Installed) return;
+
+        // 두 손으로 들고 온 부품이면 먼저 손에서 놓는다. 그러지 않으면 HeldItem 이 이미
+        // 꽂힌 물건을 계속 가리키고, 무게로 인한 속도/시야 보정도 풀리지 않는다.
+        PlayerController controller = (player as MonoBehaviour)?.GetComponent<PlayerController>();
+        if (controller != null && ReferenceEquals(controller.HeldItem, part)) controller.DropHeldItem();
+
         part.InstallAt(anchor, Quaternion.Euler(installEuler));
         if (player != null) player.ShowNotice(itemName + "를 설치했습니다.");
     }
