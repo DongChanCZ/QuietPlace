@@ -19,6 +19,15 @@ public sealed class FuseSlot : Interactable
     /// has nothing to do with how it seats in the slot.
     [SerializeField] Vector3 installEuler = new Vector3(0f, 90f, 0f);
 
+    /// Whether the bay is seated. The breaker reads this - it trips back down
+    /// on an empty bay - and this is the only thing outside needs to know.
+    public bool Filled { get { return part != null && part.Installed; } }
+
+    /// The plate bolted over the bay, if there is one. Nothing can be seated
+    /// through it, so the prompt has to say that rather than silently doing
+    /// nothing when the player presses E on a covered slot.
+    [SerializeField] BoltedPanel cover;
+
     void Awake()
     {
         Debug.Assert(part && anchor, "FuseSlot is missing its part or anchor.");
@@ -27,12 +36,18 @@ public sealed class FuseSlot : Interactable
     public override string Prompt(IInteractor player)
     {
         if (part == null || anchor == null || part.Installed) return null;
+        if (cover != null && !cover.Open) return null;   // 고정판이 자기 안내문을 낸다
         return part.Taken ? "E  " + itemName + " 설치" : displayName + " · " + itemName + " 없음";
     }
 
     public override void Interact(IInteractor player)
     {
         if (part == null || anchor == null || part.Installed) return;
+        if (cover != null && !cover.Open)
+        {
+            if (player != null) player.ShowNotice("고정판을 먼저 떼어내야 합니다.");
+            return;
+        }
         if (!part.Taken)
         {
             if (player != null) player.ShowNotice("빈 슬롯입니다. " + itemName + "를 찾아오세요.");
