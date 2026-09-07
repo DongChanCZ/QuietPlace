@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering;
 
 /// Lets the real player trigger LabBlockout's Interactable objects (doors,
 /// flashlight/keycard pickups) with E, the same way BlockoutWalkPlayer does
@@ -16,9 +17,18 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
     float batteryDrainTimer;
 
     Camera eyes;
+    PlayerController playerController;
     Light playerFlashlight;
     bool hasFlashlight;
     bool hasKeycard;
+
+    [Header("Held Item Models")]
+    [SerializeField] GameObject flashlightModelPrefab;
+
+    Transform heldItemAnchor;
+    GameObject brickHeldModel;
+    GameObject bottleHeldModel;
+    GameObject flashlightHeldModel;
 
     public bool HasFlashlight => hasFlashlight;
     public bool FlashlightEnabled => playerFlashlight != null && playerFlashlight.enabled;
@@ -30,7 +40,9 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
     void Awake()
     {
         eyes = GetComponentInChildren<Camera>();
+        playerController = GetComponent<PlayerController>();
         CreatePlayerFlashlight();
+        CreateHeldItemModels();
     }
 
     void OnEnable()
@@ -56,6 +68,22 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
     {
         if (!IsFlashlightSelected && playerFlashlight != null && playerFlashlight.enabled)
             playerFlashlight.enabled = false;
+        RefreshHeldItemModel();
+    }
+
+    // 던질 수 있는(CanThrow) 아이템이 선택되어 있으면 카메라 앞에 실제 오브젝트로 보여준다.
+    // UI가 아니라 진짜 월드 오브젝트라서, 나중에 던질 때 이 오브젝트를 그대로 부모에서 떼어내
+    // 물리를 붙이면 된다(현재는 시각 표시까지만 - 던지기 자체는 별도 작업).
+    void RefreshHeldItemModel()
+    {
+        QuickSlotManager manager = QuickSlotManager.Instance;
+        ItemType item = default;
+        bool hasSelection = manager != null && manager.TryGetSelectedItem(out item);
+        bool canThrow = hasSelection && QuickSlotManager.CanThrow(item, batteryLevel);
+
+        if (brickHeldModel != null) brickHeldModel.SetActive(canThrow && item == ItemType.Brick);
+        if (bottleHeldModel != null) bottleHeldModel.SetActive(canThrow && item == ItemType.Bottle);
+        if (flashlightHeldModel != null) flashlightHeldModel.SetActive(canThrow && item == ItemType.Flashlight);
     }
 
     void HandleItemAcquired(ItemType item, string displayName, int slotIndex)
@@ -90,8 +118,25 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
             Interactable target = Aimed;
             if (target != null) target.Interact(this);
         }
-        if (keyboard.fKey.wasPressedThisFrame) ToggleFlashlight();
+        if (keyboard.fKey.wasPressedThisFrame) UseSelectedItem();
         DrainBattery();
+    }
+
+    // F는 손전등이면 토글, 약이면 그 자리에서 소비 - 그 외(빈 슬롯/사용 불가 아이템)엔 아무 반응 없음.
+    void UseSelectedItem()
+    {
+        if (QuickSlotManager.Instance == null || !QuickSlotManager.Instance.TryGetSelectedItem(out ItemType item)) return;
+        if (item == ItemType.Flashlight) ToggleFlashlight();
+        else if (item == ItemType.Medicine) UseMedicine();
+    }
+
+    void UseMedicine()
+    {
+        // 공포에 질려 이성적인 조작이 안 되는 상태 - 약을 꺼내 먹는 행동 자체가 불가능해야 한다.
+        if (playerController != null && playerController.CurrentStateType == PlayerStateType.Fearing) return;
+        if (playerController != null) playerController.stats.UseSedative();
+        ShowNotice("\"조금 진정되는 것 같아\"");
+        QuickSlotManager.Instance.RemoveItem(QuickSlotManager.Instance.SelectedIndex);
     }
 
     void DrainBattery()
@@ -102,27 +147,85 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         if (batteryDrainTimer < batteryDrainInterval) return;
         batteryDrainTimer -= batteryDrainInterval;
         batteryLevel = Mathf.Max(0f, batteryLevel - 1f);
-        if (batteryLevel <= 0f) playerFlashlight.enabled = false;
+        if (batteryLevel <= 0f)
+        {
+            playerFlashlight.enabled = false;
+            // 배터리가 다 되면 손에서 놓친 것처럼 선택도 풀린다 - 다시 숫자를 눌러야 재선택되고,
+            // 그때는 CanThrow가 true라 던질 수 있는 물건으로 취급된다.
+            QuickSlotManager.Instance?.ClearSelection();
+        }
     }
 
-    // BlockoutWalkPlayer와 동일한 값 - 블록아웃 인스턴스의 (1.5, 1.3, 1.5) 스케일 배율 기준으로 맞춰진 값.
+    // 위치는 BlockoutWalkPlayer와 동일(블록아웃 인스턴스의 (1.5, 1.3, 1.5) 스케일 배율 기준),
+    // 방향/각도는 크로스헤어 수렴 보정 때문에 이후 별도로 조정됨(아래 CreatePlayerFlashlight 참고).
     void CreatePlayerFlashlight()
     {
         if (eyes == null) return;
         GameObject lightObject = new GameObject("PLAYER_FLASHLIGHT");
         lightObject.transform.SetParent(eyes.transform, false);
-        lightObject.transform.localPosition = new Vector3(0.16f, -0.12f, 0.08f);
-        lightObject.transform.localRotation = Quaternion.identity;
+        Vector3 localPos = new Vector3(0.16f, -0.12f, 0.08f);
+        lightObject.transform.localPosition = localPos;
+        // 카메라와 평행하게 두면 손전등이 카메라 옆에 오프셋되어 있는 만큼 크로스헤어와 어긋나 보인다.
+        // 정면 10m 지점(카메라 축 위의 한 점)을 바라보게 해서 그 근방 거리에서 크로스헤어와 수렴하게 한다.
+        lightObject.transform.localRotation = Quaternion.LookRotation(new Vector3(0f, 0f, 10f) - localPos);
         playerFlashlight = lightObject.AddComponent<Light>();
         playerFlashlight.type = LightType.Spot;
         playerFlashlight.color = new Color(0.78f, 0.88f, 1f);
         playerFlashlight.intensity = 25f;
         playerFlashlight.range = 26f;
-        playerFlashlight.spotAngle = 48f;
-        playerFlashlight.innerSpotAngle = 28f;
+        playerFlashlight.spotAngle = 57.6f; // 48 * 1.2 - 반경 20% 확장
+        playerFlashlight.innerSpotAngle = 33.6f; // 28 * 1.2 - 같은 비율 유지
         playerFlashlight.shadows = LightShadows.Soft;
         playerFlashlight.shadowStrength = 0.85f;
         playerFlashlight.enabled = false;
+    }
+
+    // ponytail: 벽돌/유리병 대신 임시 도형(Cube/Sphere)을 카메라 자식으로 붙여서 "손에 든" 위치에 둔다.
+    // 실제 모델 들어오면 이 두 오브젝트만 교체하면 됨 - 앵커/토글 구조는 그대로.
+    void CreateHeldItemModels()
+    {
+        if (eyes == null) return;
+        GameObject anchorGO = new GameObject("HeldItemAnchor");
+        anchorGO.transform.SetParent(eyes.transform, false);
+        anchorGO.transform.localPosition = new Vector3(0.32f, -0.28f, 0.55f);
+        anchorGO.transform.localRotation = Quaternion.Euler(-10f, -25f, 0f);
+        heldItemAnchor = anchorGO.transform;
+
+        brickHeldModel = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        brickHeldModel.name = "HeldBrick";
+        brickHeldModel.transform.SetParent(heldItemAnchor, false);
+        brickHeldModel.transform.localScale = Vector3.one * 0.22f;
+        Destroy(brickHeldModel.GetComponent<Collider>());
+        DisableShadows(brickHeldModel);
+        brickHeldModel.SetActive(false);
+
+        bottleHeldModel = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        bottleHeldModel.name = "HeldBottle";
+        bottleHeldModel.transform.SetParent(heldItemAnchor, false);
+        bottleHeldModel.transform.localScale = Vector3.one * 0.16f;
+        Destroy(bottleHeldModel.GetComponent<Collider>());
+        DisableShadows(bottleHeldModel);
+        bottleHeldModel.SetActive(false);
+
+        if (flashlightModelPrefab != null)
+        {
+            flashlightHeldModel = Instantiate(flashlightModelPrefab, heldItemAnchor);
+            flashlightHeldModel.name = "HeldFlashlight";
+            flashlightHeldModel.transform.localPosition = Vector3.zero;
+            flashlightHeldModel.transform.localRotation = Quaternion.identity;
+            flashlightHeldModel.transform.localScale = Vector3.one;
+            foreach (Collider col in flashlightHeldModel.GetComponentsInChildren<Collider>())
+                Destroy(col);
+            DisableShadows(flashlightHeldModel);
+            flashlightHeldModel.SetActive(false);
+        }
+    }
+
+    // 카메라 바로 앞이라 그림자를 드리우면 화면 구석에 어색한 그림자가 생긴다 - 손에 든 모델은 그림자 없이.
+    static void DisableShadows(GameObject go)
+    {
+        foreach (MeshRenderer renderer in go.GetComponentsInChildren<MeshRenderer>())
+            renderer.shadowCastingMode = ShadowCastingMode.Off;
     }
 
     public void ToggleFlashlight()
