@@ -19,6 +19,11 @@ public sealed class FuseSlot : Interactable
     /// has nothing to do with how it seats in the slot.
     [SerializeField] Vector3 installEuler = new Vector3(0f, 90f, 0f);
 
+    /// 켜면 곧바로 꽂히지 않고 배전반 수리 미니게임(차단기 내리기 -> 잔류전하 방전 ->
+    /// 각도 맞춰 삽입 -> 차단기 올리기)을 먼저 통과해야 설치된다.
+    /// 끄면 기존과 동일하게 즉시 설치된다.
+    [SerializeField] bool requiresRepair;
+
     void Awake()
     {
         Debug.Assert(part && anchor, "FuseSlot is missing its part or anchor.");
@@ -38,6 +43,21 @@ public sealed class FuseSlot : Interactable
             if (player != null) player.ShowNotice("빈 슬롯입니다. " + itemName + "를 찾아오세요.");
             return;
         }
+
+        if (requiresRepair && FuseRepairManager.Instance != null)
+        {
+            FuseRepairManager.Instance.Begin(this, player);
+            return; // 설치는 미니게임을 통과한 뒤 CompleteInstall 에서 이뤄진다
+        }
+
+        CompleteInstall(player);
+    }
+
+    /// 실제로 부품을 꽂는다. 미니게임을 쓰지 않으면 Interact 가 바로 부르고,
+    /// 쓰면 FuseRepairManager 가 4단계를 통과한 뒤에 부른다.
+    public void CompleteInstall(IInteractor player)
+    {
+        if (part == null || anchor == null || part.Installed) return;
         part.InstallAt(anchor, Quaternion.Euler(installEuler));
         if (player != null) player.ShowNotice(itemName + "를 설치했습니다.");
     }
