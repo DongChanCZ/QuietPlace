@@ -17,6 +17,8 @@ public class QuickSlotUI : MonoBehaviour
     [SerializeField] ItemIcon[] itemIcons;
     [Range(0f, 1f)][SerializeField] float unselectedAlpha = 0.35f;
     [SerializeField] float selectedScale = 2.1f;
+    [SerializeField] Color lastSelectedColor = new Color(1f, 0.72f, 0f); // 순수 노랑보다 진한 금색 - 밝은 색 아이콘에서도 구분되게
+    [Range(0f, 1f)][SerializeField] float lastSelectedAlpha = 0.7f; // 일반 흐림(unselectedAlpha)보다 진하게 - 그래야 선택 여부가 확실히 구분됨
 
     Image[] icons;
 
@@ -50,10 +52,11 @@ public class QuickSlotUI : MonoBehaviour
             }
 
             bool selected = manager.SelectedIndex == i;
+            bool putAwayButLastSelected = !selected && manager.LastSelectedIndex == i;
             icons[i].enabled = true;
             icons[i].sprite = FindSprite(slotItem);
-            Color c = icons[i].color;
-            c.a = selected ? 1f : unselectedAlpha;
+            Color c = putAwayButLastSelected ? lastSelectedColor : Color.white;
+            c.a = selected ? 1f : putAwayButLastSelected ? lastSelectedAlpha : unselectedAlpha;
             icons[i].color = c;
             icons[i].rectTransform.localScale = selected ? Vector3.one * selectedScale : Vector3.one;
         }

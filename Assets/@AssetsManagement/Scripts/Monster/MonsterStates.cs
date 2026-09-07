@@ -253,25 +253,44 @@ public class MonsterAttackState : IMonsterState
 {
     public MonsterStateType Type => MonsterStateType.Attack;
     private const float Duration = 2.13f; // Death_Angel_Attack 클립 실제 길이에 맞춤 (예전엔 애니메이션이 없어서 1초 placeholder였음)
+    private const float FaceDuration = 0.5f; // 이 시간 동안만 플레이어 쪽으로 계속 회전 보정
+    private const float FaceTurnSpeed = 720f; // 도/초 - 0.5초면 180도 어긋나 있어도 충분히 다 돈다
     private float timer;
 
     public void Enter(MonsterController ctx)
     {
         timer = 0f;
         ctx.Agent.ResetPath();
+        ctx.Agent.velocity = Vector3.zero; // 잔여 속도 제거 - 안 지우면 에이전트가 이 방향으로 회전을 되돌림
+        ctx.Agent.updateRotation = false; // 공격 중엔 회전을 이 상태가 전적으로 담당 (에이전트가 다시 못 덮어쓰게)
         ctx.SetAnimState("Attack");
     }
 
     public void Tick(MonsterController ctx, float dt)
     {
         timer += dt;
+
+        if (timer <= FaceDuration)
+        {
+            Vector3 toPlayer = ctx.player.transform.position - ctx.transform.position;
+            toPlayer.y = 0f;
+            if (toPlayer.sqrMagnitude > 0.001f)
+            {
+                Quaternion target = Quaternion.LookRotation(toPlayer);
+                ctx.transform.rotation = Quaternion.RotateTowards(ctx.transform.rotation, target, FaceTurnSpeed * dt);
+            }
+        }
+
         if (timer >= Duration)
         {
             ctx.GoToIdleFrom(MonsterStateType.FinalDetection);
         }
     }
 
-    public void Exit(MonsterController ctx) { }
+    public void Exit(MonsterController ctx)
+    {
+        ctx.Agent.updateRotation = true; // 다음 상태(추적/순찰)에서 다시 에이전트가 회전을 담당하도록 복구
+    }
 }
 
 public class MonsterNeutralizationState : IMonsterState

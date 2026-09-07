@@ -3,6 +3,11 @@ using UnityEngine;
 /// A bi-parting facility door. The two leaves slide apart along the opening and
 /// their colliders travel with them, so a shut door really blocks and an open
 /// one really lets you through.
+///
+/// Set swingDegrees and the leaves hinge instead of sliding - a cabinet whose
+/// doors slid sideways into nothing looked wrong. It is the same door otherwise:
+/// the locking, the prompt, the immediate-open the checks use. Splitting a
+/// second script off for one prop would have duplicated all of that.
 [DisallowMultipleComponent]
 public sealed class SlidingDoor : Interactable
 {
@@ -21,6 +26,12 @@ public sealed class SlidingDoor : Interactable
     [SerializeField] Transform leafB;
     [SerializeField] Vector3 slideAxis = Vector3.forward;   // world axis the leaves part along
     [SerializeField] float slideDistance = 0.95f;
+
+    /// Leave at 0 to slide. Anything else hinges the leaves that many degrees
+    /// about their own pivot, so the pivot has to sit on the hinge edge rather
+    /// than in the middle of the leaf.
+    [SerializeField] float swingDegrees;
+
     [SerializeField] float seconds = 0.85f;
     [SerializeField] Access access = Access.Unlocked;
     [SerializeField] string label = "문";
@@ -28,6 +39,7 @@ public sealed class SlidingDoor : Interactable
     [SerializeField] bool startOpen;
 
     Vector3 shutA, shutB;
+    Quaternion shutRotA = Quaternion.identity, shutRotB = Quaternion.identity;
     float t;                 // 0 shut, 1 open
     int direction;           // -1 closing, 0 idle, +1 opening
     bool open;
@@ -42,8 +54,8 @@ public sealed class SlidingDoor : Interactable
 
     void Awake()
     {
-        if (leafA != null) shutA = leafA.position;
-        if (leafB != null) shutB = leafB.position;
+        if (leafA != null) { shutA = leafA.position; shutRotA = leafA.localRotation; }
+        if (leafB != null) { shutB = leafB.position; shutRotB = leafB.localRotation; }
         // 1F, 2F 는 대부분 구간에서 전력이 없다. 거기서 키를 눌러야 열리는 문은
         // 앞뒤가 안 맞으므로 처음부터 열린 채로 둔다. 문짝은 프리팹에 닫힌 위치
         // 그대로 두고 Awake 에서 한 번만 옮긴다 - 프리팹 구조는 건드리지 않는다.
@@ -63,6 +75,15 @@ public sealed class SlidingDoor : Interactable
     {
         // Smoothstep so the leaves ease rather than snapping at both ends.
         float e = t * t * (3f - 2f * t);
+        if (swingDegrees != 0f)
+        {
+            // About each leaf's own up, so a hinged door on a tilted parent still
+            // swings around a vertical edge rather than tipping over.
+            float a = swingDegrees * e;
+            if (leafA != null) leafA.localRotation = shutRotA * Quaternion.Euler(0f, -a, 0f);
+            if (leafB != null) leafB.localRotation = shutRotB * Quaternion.Euler(0f, a, 0f);
+            return;
+        }
         Vector3 offset = slideAxis.normalized * (slideDistance * e);
         if (leafA != null) leafA.position = shutA - offset;
         if (leafB != null) leafB.position = shutB + offset;
