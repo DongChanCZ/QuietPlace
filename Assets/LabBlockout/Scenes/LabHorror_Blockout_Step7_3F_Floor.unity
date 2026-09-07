@@ -309,7 +309,7 @@ MonoBehaviour:
   interactionDistance: 3
   crouchSpeed: 1.4
   vaultMaxRise: 1.3
-  vaultForward: 1.5
+  vaultForward: 0.6
   vaultSeconds: 0.38
 --- !u!143 &1088852859
 CharacterController:

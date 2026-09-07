@@ -531,8 +531,9 @@ public static class BlockoutWalkCheck
         try
         {
             const float lane = -7.60f;          // clear of the mullion
+            const float parked = -9.55f;        // where the dumpster starts, left of the window
             body.enabled = false;
-            player.transform.SetPositionAndRotation(new Vector3(23f, 1.2f, lane), Quaternion.identity);
+            player.transform.SetPositionAndRotation(new Vector3(23f, 1.2f, parked), Quaternion.identity);
             body.enabled = true;
             Physics.SyncTransforms();
             for (int i = 0; i < 20; i++) player.Move(Vector2.zero, 1f / 60f);
@@ -540,30 +541,59 @@ public static class BlockoutWalkCheck
                 throw new Exception("No ground outside the guard-room window; the player fell to "
                                     + player.transform.position.ToString("F2"));
 
+            // 쓰레기통은 창 왼쪽 끝을 지난 막힌 벽 앞에 서 있다. 밀어 오기
+            // 전에는 창에 손이 닿지 않아야 한다. 이걸 먼저 확인해 두지 않으면
+            // 미는 동작이 슬그머니 있으나 마나 한 것이 돼도 아무도 모른다.
+            var skid = UnityEngine.Object.FindFirstObjectByType<PushProp>();
+            if (skid == null) throw new Exception("No PushProp in the scene; the dumpster cannot be moved.");
+            Vector3 parkedAt = skid.transform.position;
+
+            body.enabled = false;
+            player.transform.SetPositionAndRotation(new Vector3(16.2f, 1.2f, lane), Quaternion.LookRotation(Vector3.left));
+            body.enabled = true;
+            Physics.SyncTransforms();
+            for (int i = 0; i < 30; i++) player.Move(Vector2.zero, 1f / 60f);
+            if (player.TryVault(true))
+                throw new Exception("Climbed in without moving the dumpster; the window is reachable from bare ground at "
+                                    + player.transform.position.ToString("F2"));
+
+            skid.MoveNow();
+            if ((skid.transform.position - parkedAt).magnitude < 0.5f)
+                throw new Exception("The dumpster did not move; still at " + skid.transform.position.ToString("F2"));
+
+            // 제자리에 왔으니 이제 바깥에서 걸어 들어온다.
+            body.enabled = false;
+            player.transform.SetPositionAndRotation(new Vector3(23f, 1.2f, lane), Quaternion.identity);
+            body.enabled = true;
+            Physics.SyncTransforms();
+            for (int i = 0; i < 20; i++) player.Move(Vector2.zero, 1f / 60f);
+
             Vector3 local = player.transform.InverseTransformDirection(Vector3.left);
             var input = new Vector2(local.x, local.z);
             for (int i = 0; i < 300; i++) player.Move(input, 1f / 60f);
-            // 발판은 두툼한 박스 하나라 걸어 올라갈 수 없다. 짚고 올라가는
-            // 동작을 두 번 쓴다 - 땅에서 박스로, 박스에서 창턱으로.
-            // 볼트는 바라보는 방향을 쓰는데 여기까지 회전을 준 적이 없으므로
-            // 창을 마주보게 먼저 돌린다.
+            // 통은 걸어 올라갈 수 없는 높이라 짚고 올라탄다. 볼트는 바라보는
+            // 방향을 쓰는데 여기까지 회전을 준 적이 없으므로 먼저 창을 본다.
             player.transform.rotation = Quaternion.LookRotation(Vector3.left);
             for (int i = 0; i < 5; i++) player.Move(Vector2.zero, 1f / 60f);
             if (!player.TryVault(true))
-                throw new Exception("Vault onto the crate refused at " + player.transform.position.ToString("F2"));
+                throw new Exception("Vault onto the dumpster refused at " + player.transform.position.ToString("F2"));
             for (int i = 0; i < 60; i++) player.Move(Vector2.zero, 1f / 60f);
             float crateTop = player.transform.position.y;
-            if (crateTop < 0.85f)
-                throw new Exception("Did not land on the crate; at " + player.transform.position.ToString("F2"));
+            if (crateTop < 1.20f)
+                throw new Exception("Did not land on the dumpster; at " + player.transform.position.ToString("F2"));
 
+            // 통 위에서는 창이 볼트가 아니라 한 걸음이다. 개구부 아래턱이 1.55,
+            // 뚜껑이 1.30 이라 stepOffset(0.30) 안에 들어온다. 볼트는 짚을 턱이
+            // 있어야 하는데 유리는 깨져 없고 창틀은 발밑이라 잡히지 않는다.
+            // 그러니 1.32m 개구부 아래로 웅크려서 걸어 들어간다.
+            player.SetCrouch(true);
+            for (int i = 0; i < 20; i++) player.Move(Vector2.zero, 1f / 60f);
+            if (!player.IsCrouching)
+                throw new Exception("Could not crouch on the dumpster at " + player.transform.position.ToString("F2"));
             Vector3 toWindow = player.transform.InverseTransformDirection(Vector3.left);
-            for (int i = 0; i < 60; i++) player.Move(new Vector2(toWindow.x, toWindow.z), 1f / 60f);
-            if (!player.TryVault(true))
-                throw new Exception("Vault through the window refused at " + player.transform.position.ToString("F2"));
-
-            for (int i = 0; i < 150; i++) player.Move(Vector2.zero, 1f / 60f);
+            for (int i = 0; i < 200; i++) player.Move(new Vector2(toWindow.x, toWindow.z), 1f / 60f);
             if (player.transform.position.x > 14.8f)
-                throw new Exception("Vault did not clear the window; ended at "
+                throw new Exception("Did not get through the window; stopped at "
                                     + player.transform.position.ToString("F2"));
             player.SetCrouch(false);
             for (int i = 0; i < 30; i++) player.Move(Vector2.zero, 1f / 60f);
@@ -573,8 +603,9 @@ public static class BlockoutWalkCheck
             if (end.x > 15f || end.x < 7.5f || end.z < -10.5f || end.z > -3f || end.y > 0.5f)
                 throw new Exception("Ended outside the guard room at " + end.ToString("F2"));
 
-            return "PASS: vaulted onto the crate at y " + crateTop.ToString("F2")
-                 + ", vaulted through the window clear of the mullion, landed in the guard room at "
+            return "PASS: window unreachable until the dumpster was pushed, vaulted onto it at y "
+                 + crateTop.ToString("F2")
+                 + ", crouched through the window clear of the mullion, landed in the guard room at "
                  + end.ToString("F2") + " and stood back up.";
         }
         finally

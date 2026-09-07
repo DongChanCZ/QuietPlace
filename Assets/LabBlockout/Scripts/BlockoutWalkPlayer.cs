@@ -228,7 +228,7 @@ public sealed class BlockoutWalkPlayer : MonoBehaviour, IInteractor
     // 넘어가기. 창턱이나 낮은 턱을 짚고 넘는 동작이다. 걸어 올라갈 수 없는
     // 높이(stepOffset 0.30 초과)를 이걸로 통과한다.
     public float vaultMaxRise = 1.30f;      // 발 기준 올라탈 수 있는 최대 높이
-    public float vaultForward = 1.50f;      // 넘어간 뒤 앞으로 나아가는 거리
+    public float vaultForward = 0.60f;      // 넘어간 뒤 앞으로 나아가는 거리
     public float vaultSeconds = 0.38f;
     bool vaulting;
 
