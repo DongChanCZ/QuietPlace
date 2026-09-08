@@ -140,7 +140,7 @@ public class MonsterFirstDetectionState : IMonsterState
     private void EndPause(MonsterController ctx)
     {
         isPaused = false;
-        ctx.SetAnimState("Walking");
+        ctx.SetAnimState("Chasing");
         ctx.Agent.SetDestination(ctx.GetHeardPositionWithError()); // 정확한 좌표가 아니라 대충 그 근처
     }
 }
@@ -319,7 +319,8 @@ public class MonsterAttackState : IMonsterState
 
         if (timer >= Duration)
         {
-            ctx.GoToIdleFrom(MonsterStateType.FinalDetection);
+            // 공격이 닿으면 그대로 게임오버 - 살아서 순찰/추적으로 돌아가지 않는다.
+            GameManager.Instance?.TriggerGameOver();
         }
     }
 

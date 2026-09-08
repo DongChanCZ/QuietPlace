@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -30,6 +31,7 @@ public class MonsterController : MonoBehaviour
     public float soundPositionError = 2f; // NoiseLevel 0 기준 오차 반경
     public float minSoundPositionError = 1.2f; // loudNoiseCommitThreshold 이상이어도 이 아래로는 안 줄어듦 - 오브젝트에 완전히 달라붙는 것 방지
     public float heardPositionSampleRadius = 3f; // 소리 위치를 NavMesh 위로 스냅할 때 허용 거리 - 벽/물체 표면에 맞아 NavMesh 밖에 찍히는 경우 대비
+    public float patrolRelocateSpread = 4f; // loudNoiseCommitThreshold 이상 소리 들으면 패트롤 지점들을 그 근원지 주변 이 반경 안으로 재배치
 
     public NavMeshAgent Agent { get; private set; }
     public MonsterStateType CurrentStateType => currentState != null ? currentState.Type : MonsterStateType.Idle;
@@ -93,6 +95,31 @@ public class MonsterController : MonoBehaviour
         return LastHeardPosition;
     }
 
+    // ponytail: 정교한 방/구역 인식 없이, 앵커 주변을 방사형으로 훑어서 서로 도달 가능한(PathComplete)
+    // 지점만 채택하는 단순한 방식 - 몹이 늘어나거나 더 정교한 구역 배치가 필요해지면 교체.
+    private void RelocatePatrolNear(Vector3 source)
+    {
+        if (patrolPoints == null || patrolPoints.Length == 0) return;
+        if (!NavMesh.SamplePosition(source, out NavMeshHit anchorHit, heardPositionSampleRadius, NavMesh.AllAreas)) return;
+        Vector3 anchor = anchorHit.position;
+
+        List<Vector3> candidates = new List<Vector3> { anchor };
+        int attempts = patrolPoints.Length * 4;
+        for (int i = 0; i < attempts && candidates.Count < patrolPoints.Length; i++)
+        {
+            float angle = i * (360f / attempts) * Mathf.Deg2Rad;
+            Vector3 offset = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * patrolRelocateSpread;
+            if (!NavMesh.SamplePosition(anchor + offset, out NavMeshHit hit, patrolRelocateSpread * 0.6f, NavMesh.AllAreas)) continue;
+
+            NavMeshPath path = new NavMeshPath();
+            NavMesh.CalculatePath(anchor, hit.position, NavMesh.AllAreas, path);
+            if (path.status == NavMeshPathStatus.PathComplete) candidates.Add(hit.position);
+        }
+
+        for (int i = 0; i < patrolPoints.Length; i++)
+            if (patrolPoints[i] != null) patrolPoints[i].position = candidates[i % candidates.Count];
+    }
+
     public void OnNoiseHeard(NoiseTier tier, Vector3 position, float loudness)
     {
         if (tier == NoiseTier.None) return;
@@ -109,6 +136,10 @@ public class MonsterController : MonoBehaviour
         // 몇 프레임 만에 사라져버리는 문제가 있었음.
         LastHeardLoudness = currentState == patrolState ? loudness : Mathf.Max(LastHeardLoudness, loudness);
         lastHeardTime = Time.time;
+
+        // 8단계(loudNoiseCommitThreshold) 이상의 큰 소리는 그냥 쫓아가는 걸로 안 끝난다 - 이후
+        // 순찰 구역 자체를 그 근원지 근처로 옮겨서, 놓치더라도 그 주변을 계속 맴돌게 한다.
+        if (loudness >= loudNoiseCommitThreshold) RelocatePatrolNear(LastHeardPosition);
 
         MonsterStateType target = tier == NoiseTier.Final ? MonsterStateType.FinalDetection
                                  : tier == NoiseTier.Second ? MonsterStateType.SecondDetection

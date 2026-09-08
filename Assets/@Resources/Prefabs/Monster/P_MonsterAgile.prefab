@@ -31,7 +31,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 1, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.2, y: 1.2, z: 1.2}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 623799152949040132}
@@ -96,11 +96,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MonsterController
   player: {fileID: 0}
   animator: {fileID: 2379639784814445812}
-  patrolSpeed: 2
+  patrolSpeed: 1
   firstChaseSpeed: 3
-  secondChaseSpeed: 6
-  attackRange: 1.5
-  touchAttackRange: 1.2
+  secondChaseSpeed: 8
+  attackRange: 2
+  touchAttackRange: 1.5
   destinationUpdateThreshold: 0.8
   patrolPoints:
   - {fileID: 0}
@@ -113,6 +113,7 @@ MonoBehaviour:
   investigateLingerTime: 1.2
   soundPositionError: 1.5
   minSoundPositionError: 1.2
+  heardPositionSampleRadius: 3
 --- !u!114 &7826251467520733573
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -138,9 +139,9 @@ MonoBehaviour:
   baseHearingRange: 6
   verticalTolerance: 3
   verticalDistanceWeight: 3
-  tier1Threshold: 0.15
-  tier2Threshold: 0.4
-  tier3Threshold: 0.7
+  tier1Threshold: 0.3
+  tier2Threshold: 0.7
+  tier3Threshold: 3
   showDebugGizmos: 1
   debugDrawRuntimeRays: 0
   rangeGizmoGroundOffset: -1
