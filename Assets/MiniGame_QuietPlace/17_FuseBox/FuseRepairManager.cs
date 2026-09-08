@@ -20,6 +20,9 @@ public class FuseRepairManager : MonoBehaviour
     [Header("4단계를 진행시키는 시퀀서")]
     [SerializeField] private FuseBoxRepairSequence sequence;
 
+    [Header("실물 차단기 레버 - 화면 게이지에 맞춰 같이 움직인다")]
+    [SerializeField] private BreakerLever breakerLever;
+
     [Header("미니게임 중 플레이어 시야를 잠글지")]
     [SerializeField] private bool lockPlayerLook = true;
 
@@ -67,6 +70,18 @@ public class FuseRepairManager : MonoBehaviour
 
         SuppressPlayer(player);
 
+        // 프리팹은 씬 오브젝트를 담을 수 없으므로 시작할 때 실물 레버를 넣어준다.
+        if (sequence.breakerDownHold != null)
+        {
+            sequence.breakerDownHold.lever = breakerLever;
+            sequence.breakerDownHold.leverGoesUp = false;   // 내리기
+        }
+        if (sequence.breakerUpHold != null)
+        {
+            sequence.breakerUpHold.lever = breakerLever;
+            sequence.breakerUpHold.leverGoesUp = true;      // 올리기
+        }
+
         minigameRoot.SetActive(true);
         sequence.onPowerRestored.AddListener(HandlePowerRestored);
         sequence.Begin(); // 재시도 시에도 1단계부터 다시 시작하도록 명시적으로 초기화
@@ -82,8 +97,9 @@ public class FuseRepairManager : MonoBehaviour
 
         if (slot != null) slot.CompleteInstall(player);
 
-        // 퓨즈가 꽂혔으니 건물에 전원이 들어온다. 조명/차단기 레버는 BuildingPower 가 들고 있다.
-        if (BuildingPower.Instance != null) BuildingPower.Instance.Restore();
+        // 퓨즈 쪽이 끝났다고만 알린다. 발전기실(변압기)까지 끝났을 때 BuildingPower 가
+        // 스스로 전원을 넣는다 - 한쪽만 고쳤을 때 불이 켜지면 스토리가 무너진다.
+        if (BuildingPower.Instance != null) BuildingPower.Instance.MarkFuseInstalled();
     }
 
     /// <summary>중간에 그만둘 때. 설치는 하지 않는다.</summary>

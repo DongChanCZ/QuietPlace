@@ -20,15 +20,30 @@ public class InteractableGlow : MonoBehaviour
     [SerializeField] private Renderer[] targetRenderers;
 
     [Header("색과 세기")]
-    [SerializeField] private Color glowColor = new Color(0.45f, 0.8f, 1f);
-    [SerializeField] private float intensity = 1.4f;
+    [SerializeField] private Color glowColor = new Color(0.35f, 0.72f, 1f);
+    [SerializeField] private float intensity = 0.85f;
 
-    [Header("맥박 - 초당 몇 번 밝아지는가")]
-    [SerializeField] private float pulseSpeed = 1.1f;
+    /// 계속 밝게 맥박치면 하얗게 떠 보인다. 평소에는 거의 안 보일 만큼 어둡게 두고,
+    /// 일정 간격마다 짧게 한 번 반짝이게 한다. 그 사이에만 아주 느린 숨쉬기를 얹는다.
+    [Header("평소 밝기 비율 (거의 안 보이는 정도)")]
+    [Range(0f, 0.5f)]
+    [SerializeField] private float idleLevel = 0.1f;
 
-    [Header("가장 어두울 때의 비율")]
+    [Header("느린 숨쉬기 - 초당 몇 번 (낮을수록 천천히)")]
+    [SerializeField] private float breathSpeed = 0.22f;
+    [Range(0f, 0.6f)]
+    [SerializeField] private float breathAmount = 0.14f;
+
+    [Header("반짝임 - 이 간격마다 한 번 (초)")]
+    [SerializeField] private float twinkleInterval = 3.6f;
+    [SerializeField] private float twinkleIntervalJitter = 1.6f;
+
+    [Header("반짝임이 지속되는 시간(초) - 짧게")]
+    [SerializeField] private float twinkleDuration = 0.32f;
+
+    [Header("반짝일 때의 밝기 비율")]
     [Range(0f, 1f)]
-    [SerializeField] private float minPulse = 0.3f;
+    [SerializeField] private float twinklePeak = 1f;
 
     [Header("이 거리 안에서만 보인다 (0 이면 항상)")]
     [SerializeField] private float visibleDistance = 12f;
@@ -45,7 +60,9 @@ public class InteractableGlow : MonoBehaviour
     private Material[] _materials;      // 인스턴스 사본. 공유 머티리얼을 건드리면 다른 오브젝트까지 빛난다
     private Transform _sparkle;
     private Material _sparkleMaterial;
-    private float _phase;
+    private float _breathPhase;
+    private float _nextTwinkleAt;
+    private float _twinkleEndsAt;
 
     void OnEnable()
     {
@@ -88,7 +105,9 @@ public class InteractableGlow : MonoBehaviour
             _materials[i] = m;
         }
 
-        _phase = Random.Range(0f, 10f);   // 전부 같은 박자로 깜빡이면 인공적으로 보인다
+        // 전부 같은 박자로 반짝이면 인공적으로 보인다. 시작 시점을 흩어놓는다.
+        _breathPhase = Random.Range(0f, 10f);
+        _nextTwinkleAt = Time.time + Random.Range(0f, twinkleInterval);
     }
 
     /// <summary>매니저가 프레임마다 부른다.</summary>
@@ -103,15 +122,35 @@ public class InteractableGlow : MonoBehaviour
             visibility = 1f - Mathf.InverseLerp(visibleDistance, visibleDistance + fadeMargin, d);
         }
 
-        float pulse = minPulse + (1f - minPulse) * (0.5f + 0.5f * Mathf.Sin((time + _phase) * pulseSpeed * Mathf.PI * 2f));
-        Apply(visibility, pulse);
+        // Brightness 는 반짝임 타이머를 진행시키므로 프레임당 한 번만 부른다.
+        float level = Brightness(time);
+        Apply(visibility, level);
 
         if (_sparkle == null || eyes == null) return;
 
         // 항상 카메라를 마주보게 세운다
         _sparkle.rotation = Quaternion.LookRotation(_sparkle.position - eyes.position, eyes.up);
-        float s = sparkleSize * (0.7f + 0.6f * pulse) * visibility;
+        float s = sparkleSize * (0.55f + 0.9f * level) * visibility;
         _sparkle.localScale = new Vector3(s, s, s);
+    }
+
+    /// 평소에는 idleLevel 근처에서 아주 느리게 숨쉬고, 가끔 짧게 확 반짝인다.
+    private float Brightness(float time)
+    {
+        if (time >= _nextTwinkleAt && time >= _twinkleEndsAt)
+        {
+            _twinkleEndsAt = time + twinkleDuration;
+            _nextTwinkleAt = time + Mathf.Max(0.5f, twinkleInterval + Random.Range(-twinkleIntervalJitter, twinkleIntervalJitter));
+        }
+
+        float breath = idleLevel + breathAmount * (0.5f + 0.5f * Mathf.Sin((time + _breathPhase) * breathSpeed * Mathf.PI * 2f));
+
+        if (time >= _twinkleEndsAt) return breath;
+
+        // 반짝임은 확 올라갔다 부드럽게 떨어진다
+        float k = 1f - (_twinkleEndsAt - time) / Mathf.Max(0.01f, twinkleDuration);   // 0 -> 1
+        float flash = Mathf.Sin(k * Mathf.PI);                                        // 0 -> 1 -> 0
+        return Mathf.Max(breath, twinklePeak * flash);
     }
 
     private void Apply(float visibility, float pulse)

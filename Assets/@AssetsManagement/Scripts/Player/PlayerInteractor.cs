@@ -133,8 +133,35 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
             }
         }
         if (keyboard.fKey.wasPressedThisFrame) UseSelectedItem();
-        if (keyboard.qKey.wasPressedThisFrame) ThrowSelectedItem();
+        // Q 는 숨기와 던지기가 같이 쓴다. 숨을 수 있는 상황이면 숨기가 먼저다.
+        if (keyboard.qKey.wasPressedThisFrame && !TryToggleHide()) ThrowSelectedItem();
         DrainBattery();
+    }
+
+    /// Q 를 눌렀을 때 숨기/나오기를 처리한다. 처리했으면 true - 그럼 던지지 않는다.
+    ///
+    /// 숨은 상태에서는 무조건 나오기가 먼저다. 안 그러면 캐비닛 안에서 물건을 던지게 된다.
+    bool TryToggleHide()
+    {
+        if (playerController == null) return false;
+
+        if (playerController.ActiveHidingSpot != null)
+        {
+            playerController.LeaveHiding();
+            return true;
+        }
+
+        HidingSpot spot = AimedHidingSpot();
+        if (spot == null || spot.Occupied) return false;
+
+        if (playerController.HeldItem != null)
+        {
+            ShowNotice("양손이 차 있습니다. 먼저 내려놓으세요.");
+            return true;   // 던지기로 넘기지 않는다 - 숨으려던 조작이니까
+        }
+
+        playerController.EnterHiding(spot);
+        return true;
     }
 
     // 두 손으로 무거운 물건을 들고 있으면 새로 뭔가를 집을 수 없다.
@@ -333,6 +360,34 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
             }
             return aimed;
         }
+    }
+
+    /// 조준선에 걸린 숨을 곳.
+    ///
+    /// Aimed 를 그대로 쓸 수 없다. 3층 숨기 캐비닛처럼 한 오브젝트에 Interactable 이
+    /// 둘(SlidingDoor + HidingSpot) 붙어 있으면 GetComponentInParent 가 어느 쪽을
+    /// 돌려줄지 알 수 없어서, 문이 잡히면 Q 가 먹지 않는다. 그래서 타입을 지정해 따로 찾는다.
+    HidingSpot AimedHidingSpot()
+    {
+        if (eyes == null) return null;
+
+        int count = Physics.SphereCastNonAlloc(eyes.transform.position, 0.08f,
+            eyes.transform.forward, reach, interactionDistance, ~0, QueryTriggerInteraction.Collide);
+
+        HidingSpot nearest = null;
+        float nearestDistance = float.PositiveInfinity;
+
+        for (int i = 0; i < count; i++)
+        {
+            HidingSpot candidate = reach[i].collider.GetComponentInParent<HidingSpot>();
+            if (candidate == null || !candidate.enabled) continue;
+            if (reach[i].distance >= nearestDistance) continue;
+
+            nearest = candidate;
+            nearestDistance = reach[i].distance;
+        }
+
+        return nearest;
     }
 
     Interactable AimedInteractable()

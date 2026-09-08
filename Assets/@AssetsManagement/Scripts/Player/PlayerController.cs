@@ -413,6 +413,14 @@ public class PlayerController : MonoBehaviour
 
     public void Move(Vector3 horizontalWorldVelocity)
     {
+        // 숨어 있는 동안은 CharacterController 를 꺼둔다(안 그러면 캐비닛 판에 밀려 나온다).
+        // 꺼진 컨트롤러에 Move 를 걸면 경고만 쏟아지므로 여기서 막는다.
+        if (Controller == null || !Controller.enabled)
+        {
+            verticalVelocity = 0f;
+            return;
+        }
+
         if (Controller.isGrounded)
         {
             verticalVelocity = 0f;
@@ -606,14 +614,36 @@ public class PlayerController : MonoBehaviour
 
     public void EnterHiding(IHidingSpot spot)
     {
-        if (spot == null) return;
+        if (spot == null || ActiveHidingSpot != null) return;
+
         ActiveHidingSpot = spot;
+        spot.OnHideEnter(this);      // 플레이어를 숨을 곳 안으로 옮긴다
         ChangeState(hidingState);
     }
 
     public void ExitHidingInternal()
     {
+        IHidingSpot spot = ActiveHidingSpot;
         ActiveHidingSpot = null;
+        if (spot != null) spot.OnHideExit(this);   // 원래 서 있던 자리로 돌려놓는다
+    }
+
+    /// 숨은 상태에서 밖으로 나온다. Q 를 다시 누르거나 이동 입력이 들어오면 불린다.
+    public void LeaveHiding()
+    {
+        if (ActiveHidingSpot == null) return;
+        GoToIdleOrWalking();   // HidingState.Exit -> ExitHidingInternal 이 이어서 돈다
+    }
+
+    /// CharacterController 를 켠 채로 위치를 바꾸면 무시된다. 잠깐 끄고 옮긴다.
+    public void TeleportTo(Vector3 position, Quaternion rotation)
+    {
+        bool had = Controller != null && Controller.enabled;
+        if (had) Controller.enabled = false;
+
+        transform.SetPositionAndRotation(position, rotation);
+
+        if (had) Controller.enabled = true;
     }
 
     public void EnterHolding(IHoldable item)

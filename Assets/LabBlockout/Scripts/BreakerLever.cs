@@ -75,6 +75,21 @@ public sealed class BreakerLever : Interactable
         Swing(upEuler);
     }
 
+    /// 미니게임 게이지에 맞춰 레버를 직접 세운다. 0 = 내려간 상태, 1 = 올라간 상태.
+    /// 화면에서 게이지가 차오르는 동안 실물 레버도 같이 움직이게 하려고 쓴다.
+    public void SetLeverProgress(float t01)
+    {
+        if (lever == null) return;
+
+        // 진행 중인 스윙/튕김이 있으면 취소한다. 두 개가 같이 돌면 레버가 떨린다.
+        t = -1f;
+        tripAt = -1f;
+
+        t01 = Mathf.Clamp01(t01);
+        lever.localRotation = Quaternion.Slerp(Quaternion.Euler(downEuler), Quaternion.Euler(upEuler), t01);
+        On = t01 > 0.5f;
+    }
+
     void Swing(Vector3 target)
     {
         if (lever == null) return;

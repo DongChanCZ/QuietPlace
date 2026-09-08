@@ -42,10 +42,17 @@ public class MainMenuController : MonoBehaviour
         if (optionsCloseButton != null) optionsCloseButton.onClick.AddListener(() => optionsPanel.SetActive(false));
         if (difficultyCloseButton != null) difficultyCloseButton.onClick.AddListener(() => difficultyPanel.SetActive(false));
 
-        // Easy / Expert는 아직 미구현 - Normal만 선택 가능
+        // 보통 / 어려움 둘 다 구현됐다. 미니게임 구성은 MinigameTuning 이 난이도별로 갈라준다.
+        //   보통  : 볼트 2바퀴, 색선 생략, 방전 Space 2번, 차단기 올리기만, 키패드 NCAIBusan(대소문자 무시), 컴퓨터 비밀번호 없음
+        //   어려움: 볼트 3바퀴, 색선 4개, 방전 R/S/T 3번, 차단기 내리기+올리기, NCAIVibeCodingBusan(대소문자 구분), 비밀번호 있음
+        // 쉬움은 아직 별도 구성이 없어 낙하 속도만 느려진다.
         if (easyButton != null) easyButton.interactable = false;
-        if (expertButton != null) expertButton.interactable = false;
         if (normalButton != null) normalButton.onClick.AddListener(() => SetDifficulty(Difficulty.Normal));
+        if (expertButton != null)
+        {
+            expertButton.interactable = true;
+            expertButton.onClick.AddListener(() => SetDifficulty(Difficulty.Expert));
+        }
 
         if (volumeSlider != null)
         {
@@ -110,7 +117,10 @@ public class MainMenuController : MonoBehaviour
 
     void UpdateDifficultyLabel()
     {
-        if (difficultyLabel != null) difficultyLabel.text = "현재 난이도: " + GameSettings.Difficulty;
+        if (difficultyLabel == null) return;
+
+        // 영어 enum 이름 대신 한글로 보여준다.
+        difficultyLabel.text = "현재 난이도: " + MinigameTuning.Label;
     }
 
     void OnExit()

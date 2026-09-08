@@ -3,9 +3,12 @@ using UnityEngine.Events;
 
 public class FuseBoxRepairSequence : MonoBehaviour
 {
-    [Header("1. 차단기 내리기 (E 연타)")]
-    public MashToComplete breakerDown;
+    [Header("1. 차단기 내리기 (E 꾹 누르기)")]
     public GameObject breakerDownRoot;
+
+    /// 옛 연타 방식. 지금은 꾹 누르기(HoldToComplete)를 쓴다. 필드는 호환용으로 남긴다.
+    public MashToComplete breakerDown;
+    public HoldToComplete breakerDownHold;
 
     [Header("2. 잔류전하 방전 (R/S/T 스킬체크 3번)")]
     public SkillCheckMinigame dischargeCheck;
@@ -15,18 +18,22 @@ public class FuseBoxRepairSequence : MonoBehaviour
     public FuseAngleInsert fuseInsert;
     public GameObject fuseRoot;
 
-    [Header("4. 차단기 올리기 (E 연타)")]
-    public MashToComplete breakerUp;
+    [Header("4. 차단기 올리기 (E 꾹 누르기)")]
     public GameObject breakerUpRoot;
+
+    public MashToComplete breakerUp;
+    public HoldToComplete breakerUpHold;
 
     public UnityEvent onPowerRestored; // 건물 전원 들어옴(불 켜짐 등)에 연결
 
     void Start()
     {
         if (breakerDown != null) breakerDown.onComplete.AddListener(OnBreakerDownDone);
+        if (breakerDownHold != null) breakerDownHold.onComplete.AddListener(OnBreakerDownDone);
         if (dischargeCheck != null) dischargeCheck.onAllHits.AddListener(OnDischargeDone);
         if (fuseInsert != null) fuseInsert.onInserted.AddListener(OnFuseDone);
         if (breakerUp != null) breakerUp.onComplete.AddListener(OnBreakerUpDone);
+        if (breakerUpHold != null) breakerUpHold.onComplete.AddListener(OnBreakerUpDone);
 
         Begin();
     }
@@ -34,7 +41,8 @@ public class FuseBoxRepairSequence : MonoBehaviour
     /// <summary>1단계부터 다시 시작한다. 재시도할 때 Start 가 두 번 돌지 않으므로 외부에서 불러준다.</summary>
     public void Begin()
     {
-        SetOnly(breakerDownRoot);
+        // 보통 난이도는 차단기 내리기를 생략하고 방전부터 시작한다.
+        SetOnly(MinigameTuning.UseBreakerDownStage ? breakerDownRoot : dischargeRoot);
     }
 
     void OnBreakerDownDone()

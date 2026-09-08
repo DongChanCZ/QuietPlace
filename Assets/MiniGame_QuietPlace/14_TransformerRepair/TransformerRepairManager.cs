@@ -102,6 +102,9 @@ public class TransformerRepairManager : MonoBehaviour
 
         // 선 4개까지 다 연결된 뒤에야 패널 등이 빨강에서 초록으로 바뀐다
         if (successLed != null) successLed.TurnOn();
+
+        // 발전기실 쪽이 끝났다고 알린다. 배전반 퓨즈까지 끝나면 건물 전원이 들어온다.
+        if (BuildingPower.Instance != null) BuildingPower.Instance.MarkTransformerFixed();
     }
 
     /// <summary>중간에 그만둘 때. 진행한 단계는 그대로 남는다(볼트는 이미 빠져 있는 등).</summary>

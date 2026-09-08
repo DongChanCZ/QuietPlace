@@ -20,7 +20,14 @@ public class FrequencyMatchingPuzzle : MonoBehaviour
     public AudioSource audioSource;
     public AudioClip frequencySound; // 확성기에서 나가는 주파수 소리
 
-    public UnityEvent onFullyCharged; // 몬스터 무력화 트리거용
+    public UnityEvent onFullyCharged; // 충전까지 다 끝났을 때
+
+    /// 네 대역이 처음으로 다 맞은 순간. 충전을 컴퓨터 앞에서 기다리지 않고
+    /// 숨어서 기다리는 구성에서는 이 시점에 미니게임을 닫는다.
+    public UnityEvent onAllBandsMatched;
+
+    [Header("대역을 다 맞추면 그 자리에서 끝낸다 (충전은 월드에서)")]
+    public bool finishOnMatch = true;
 
     private float chargeTimer;
     private bool completed;
@@ -44,6 +51,16 @@ public class FrequencyMatchingPuzzle : MonoBehaviour
         if (completed) return;
 
         bool allMatched = AllBandsMatched();
+
+        // 맞춘 순간 끝내는 구성이면 충전을 돌리지 않고 바로 알린다.
+        if (allMatched && finishOnMatch)
+        {
+            completed = true;
+            if (loadingIndicator != null) loadingIndicator.SetActive(false);
+            if (audioSource != null && frequencySound != null) audioSource.PlayOneShot(frequencySound);
+            onAllBandsMatched?.Invoke();
+            return;
+        }
 
         if (loadingIndicator != null) loadingIndicator.SetActive(allMatched);
 

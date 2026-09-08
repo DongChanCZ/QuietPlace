@@ -87,6 +87,8 @@ public class BoltTurnPuzzle : MonoBehaviour
 
     void OnEnable()
     {
+        degreesPerTurn = MinigameTuning.BoltDegreesPerTurn;
+
         dragging = false;
         completed = false;
         turningLastFrame = false;

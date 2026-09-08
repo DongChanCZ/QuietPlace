@@ -70,7 +70,9 @@ public class FrequencyHackManager : MonoBehaviour
         minigameRoot.SetActive(true);
 
         // 비밀번호를 이미 통과했으면 다시 묻지 않는다.
-        bool needPassword = passwordEntry != null && passwordRoot != null && !computer.PasswordSolved;
+        // 보통 난이도는 비밀번호를 묻지 않고 바로 주파수 맞추기로 간다.
+        bool needPassword = MinigameTuning.UsePasswordStage
+                            && passwordEntry != null && passwordRoot != null && !computer.PasswordSolved;
         if (needPassword)
         {
             if (puzzleRoot != null) puzzleRoot.SetActive(false);
@@ -96,6 +98,22 @@ public class FrequencyHackManager : MonoBehaviour
         if (puzzleRoot != null) puzzleRoot.SetActive(true);
 
         puzzle.onFullyCharged.AddListener(HandleCharged);
+        puzzle.onAllBandsMatched.AddListener(HandleMatched);
+    }
+
+    /// 네 대역을 다 맞춘 순간. 미니게임을 닫아 조작을 돌려주고, 송출은 월드에서
+    /// 혼자 차오르게 한다. 플레이어는 그동안 숨어서 버틴다.
+    private void HandleMatched()
+    {
+        ComputerTerminal computer = pendingComputer;
+        IInteractor player = pendingPlayer;
+
+        Finish();
+
+        if (computer != null) computer.OnFrequencySet(player);
+
+        if (FrequencyBroadcast.Instance != null) FrequencyBroadcast.Instance.Begin(computer, player);
+        else if (computer != null) computer.OnSolved(player);   // 송출 매니저가 없으면 바로 완료 처리
     }
 
     private void HandleCharged()
@@ -116,7 +134,11 @@ public class FrequencyHackManager : MonoBehaviour
 
     private void Finish()
     {
-        if (puzzle != null) puzzle.onFullyCharged.RemoveListener(HandleCharged);
+        if (puzzle != null)
+        {
+            puzzle.onFullyCharged.RemoveListener(HandleCharged);
+            puzzle.onAllBandsMatched.RemoveListener(HandleMatched);
+        }
         if (passwordEntry != null) passwordEntry.onCorrect.RemoveListener(HandlePasswordCorrect);
         if (minigameRoot != null) minigameRoot.SetActive(false);
 

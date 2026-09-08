@@ -38,6 +38,11 @@ public class SkillCheckMinigame : MonoBehaviour
 
     void OnEnable()
     {
+        // 보통은 스페이스바 2번, 어려움은 R/S/T 3번.
+        keySequence = MinigameTuning.DischargeKeys;
+        rotationSpeed = MinigameTuning.DischargeSpeed;
+        hitZoneWidth = MinigameTuning.DischargeZoneWidth;
+
         hitCount = 0;
         completed = false;
         currentAngle = 0f;
@@ -72,6 +77,8 @@ public class SkillCheckMinigame : MonoBehaviour
             return;
         }
 
+        // 보통 난이도는 같은 키(Space)가 두 번이라 "다른 키" 검사가 자기 자신을 잡는다.
+        // 순서에 서로 다른 키가 섞여 있을 때만 오타 판정을 한다.
         for (int i = 0; i < keySequence.Length; i++)
         {
             if (keySequence[i] == expected) continue;

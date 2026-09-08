@@ -52,6 +52,9 @@ public sealed class BoltedPanel : Interactable
     void Awake()
     {
         Debug.Assert(tool, "BoltedPanel is missing the tool it waits for.");
+
+        // 난이도에 따라 바퀴 수가 다르다(보통 2, 어려움 3).
+        requiredTurns = MinigameTuning.BoltTurns;
     }
 
     public override string Prompt(IInteractor player)

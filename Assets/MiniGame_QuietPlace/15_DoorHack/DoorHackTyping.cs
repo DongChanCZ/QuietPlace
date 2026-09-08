@@ -23,13 +23,31 @@ public class DoorHackTyping : MonoBehaviour
     [Header("대소문자 구분 (끄면 N 키만 눌러도 N 으로 인정)")]
     public bool caseSensitive = false;
 
+    /// 난이도는 옵션(GameSettings.Difficulty)을 따른다. 인스펙터에서 시험해보려면
+    /// overrideDifficulty 를 켜고 testDifficulty 를 바꾸면 된다.
+    [Header("난이도를 인스펙터 값으로 강제할지 (테스트용)")]
+    public bool overrideDifficulty;
+    public Difficulty testDifficulty = Difficulty.Normal;
+
+    [Header("보통 - 천천히 떨어진다")]
+    public float normalFallSpeed = 260f;
+    public float normalRampPerHit = 0f;
+
+    [Header("어려움 - 빠르고 갈수록 더 빨라진다")]
+    public float expertFallSpeed = 700f;
+    public float expertRampPerHit = 26f;
+
+    [Header("쉬움")]
+    public float easyFallSpeed = 180f;
+    public float easyRampPerHit = 0f;
+
     [Header("낙하 글자")]
     public RectTransform lettersArea;
     public GameObject letterPrefab;
-    public float fallSpeed = 700f;
 
-    [Header("한 글자 맞출 때마다 빨라지는 양")]
-    public float fallSpeedRampPerHit = 26f;
+    /// 난이도에 따라 OnEnable 에서 채워진다. 인스펙터 값은 참고용이다.
+    [HideInInspector] public float fallSpeed = 260f;
+    [HideInInspector] public float fallSpeedRampPerHit;
 
     public float topY = 450f;
     public float bottomY = -450f;
@@ -44,6 +62,9 @@ public class DoorHackTyping : MonoBehaviour
 
     [Header("진행 표시 (몇 글자째인지만 - 정답은 보여주지 않는다)")]
     public TMP_Text progressLabel;
+
+    [Header("난이도 표시")]
+    public TMP_Text difficultyLabel;
 
     [Header("사운드")]
     public AudioSource audioSource;
@@ -61,6 +82,8 @@ public class DoorHackTyping : MonoBehaviour
 
     void OnEnable()
     {
+        ApplyDifficulty();
+
         currentIndex = 0;
         completed = false;
         baseFallSpeed = fallSpeed;
@@ -79,6 +102,20 @@ public class DoorHackTyping : MonoBehaviour
         currentLetterRect = null;
         currentLetterText = null;
         fallSpeed = baseFallSpeed > 0f ? baseFallSpeed : fallSpeed;
+    }
+
+    /// 옵션의 난이도에 맞춰 낙하 속도를 정한다.
+    void ApplyDifficulty()
+    {
+        // 비밀번호 길이와 대소문자 구분까지 난이도에서 가져온다.
+        targetPassword = MinigameTuning.DoorPassword;
+        caseSensitive = MinigameTuning.DoorCaseSensitive;
+        fallSpeed = MinigameTuning.DoorFallSpeed;
+        fallSpeedRampPerHit = MinigameTuning.DoorFallRamp;
+
+        if (difficultyLabel != null)
+            difficultyLabel.text = "난이도: " + MinigameTuning.Label
+                + (caseSensitive ? " · 대소문자 구분(Shift)" : " · 대소문자 무시");
     }
 
     void Update()

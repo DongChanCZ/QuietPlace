@@ -61,7 +61,22 @@ public class TransformerRepairSequence : MonoBehaviour
 
     void OnModuleSeated()
     {
+        // 보통 난이도는 색선 연결을 생략한다 - 미니게임이 너무 길어진다.
+        if (!MinigameTuning.UseWireStage)
+        {
+            StartCoroutine(FinishWithoutWires());
+            return;
+        }
+
         StartCoroutine(Handoff(wireStageRoot));
+    }
+
+    /// 색선 단계를 건너뛰고 바로 수리 완료로 넘긴다.
+    IEnumerator FinishWithoutWires()
+    {
+        if (handoffDelay > 0f) yield return new WaitForSeconds(handoffDelay);
+        SetOnly(null);
+        onTransformerFixed?.Invoke();
     }
 
     /// 성공 문구를 잠깐 보여준 뒤 다음 단계만 남긴다.

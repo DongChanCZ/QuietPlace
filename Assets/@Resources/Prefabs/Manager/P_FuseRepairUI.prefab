@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7634862062087031794}
-  - component: {fileID: 7729893515734959712}
+  - component: {fileID: 8785059688338796676}
   m_Layer: 0
   m_Name: Stage4_BreakerUp
   m_TagString: Untagged
@@ -40,7 +40,7 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &7729893515734959712
+--- !u!114 &8785059688338796676
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -49,13 +49,18 @@ MonoBehaviour:
   m_GameObject: {fileID: 598862301272733979}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 256c20953af49b74a985bc31af13a48d, type: 3}
+  m_Script: {fileID: 11500000, guid: d31d4a32b60c7ac4bb5b997ba7927bec, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MashToComplete
-  requiredPresses: 15
-  progressPerPress: 1
-  decayPerSecond: 0.6
+  m_EditorClassIdentifier: Assembly-CSharp::HoldToComplete
+  holdKey: 19
+  requiredSeconds: 2.4
+  startSpeed: 0.22
+  accelSeconds: 1.3
+  decayPerSecond: 0.5
   progressFill: {fileID: 7875605937199664901}
+  hintLabel: {fileID: 5798667518749022332}
+  lever: {fileID: 0}
+  leverGoesUp: 1
   onComplete:
     m_PersistentCalls:
       m_Calls: []
@@ -790,7 +795,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "E \uC5F0\uD0C0"
+  m_text: "E \uB97C \uAFB9 \uB204\uB978\uB2E4"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 16550c05cb6491b49be8b59b1bbd9560, type: 2}
   m_sharedMaterial: {fileID: -2287058760040969196, guid: 16550c05cb6491b49be8b59b1bbd9560, type: 2}
@@ -1522,7 +1527,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1906461856708878284}
-  - component: {fileID: 1785691401778749952}
+  - component: {fileID: 3286328731728121476}
   m_Layer: 0
   m_Name: Stage1_BreakerDown
   m_TagString: Untagged
@@ -1553,7 +1558,7 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1785691401778749952
+--- !u!114 &3286328731728121476
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1562,13 +1567,18 @@ MonoBehaviour:
   m_GameObject: {fileID: 5466289184972444006}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 256c20953af49b74a985bc31af13a48d, type: 3}
+  m_Script: {fileID: 11500000, guid: d31d4a32b60c7ac4bb5b997ba7927bec, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MashToComplete
-  requiredPresses: 15
-  progressPerPress: 1
-  decayPerSecond: 0.6
+  m_EditorClassIdentifier: Assembly-CSharp::HoldToComplete
+  holdKey: 19
+  requiredSeconds: 2.4
+  startSpeed: 0.22
+  accelSeconds: 1.3
+  decayPerSecond: 0.5
   progressFill: {fileID: 2183698032800451044}
+  hintLabel: {fileID: 6167092723745016787}
+  lever: {fileID: 0}
+  leverGoesUp: 0
   onComplete:
     m_PersistentCalls:
       m_Calls: []
@@ -1865,14 +1875,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e61d85902829414da15ee80a2b3a523, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FuseBoxRepairSequence
-  breakerDown: {fileID: 1785691401778749952}
   breakerDownRoot: {fileID: 5466289184972444006}
+  breakerDown: {fileID: 0}
+  breakerDownHold: {fileID: 3286328731728121476}
   dischargeCheck: {fileID: 5749180675202882788}
   dischargeRoot: {fileID: 1837175845432074087}
   fuseInsert: {fileID: 1147203668877328288}
   fuseRoot: {fileID: 3694562163692083397}
-  breakerUp: {fileID: 7729893515734959712}
   breakerUpRoot: {fileID: 598862301272733979}
+  breakerUp: {fileID: 0}
+  breakerUpHold: {fileID: 8785059688338796676}
   onPowerRestored:
     m_PersistentCalls:
       m_Calls: []
@@ -1890,6 +1902,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FuseRepairManager
   minigameRoot: {fileID: 6128421424202136984}
   sequence: {fileID: 2241462569294748080}
+  breakerLever: {fileID: 0}
   lockPlayerLook: 1
 --- !u!1 &7700258432574202749
 GameObject:
@@ -2305,7 +2318,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "E \uC5F0\uD0C0"
+  m_text: "E \uB97C \uAFB9 \uB204\uB978\uB2E4"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 16550c05cb6491b49be8b59b1bbd9560, type: 2}
   m_sharedMaterial: {fileID: -2287058760040969196, guid: 16550c05cb6491b49be8b59b1bbd9560, type: 2}
