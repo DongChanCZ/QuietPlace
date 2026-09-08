@@ -109,18 +109,24 @@ public class FuseRepairManager : MonoBehaviour
     private void SuppressPlayer(IInteractor player)
     {
         suppressedInteractor = player as MonoBehaviour;
-        if (suppressedInteractor != null) suppressedInteractor.enabled = false;
+        if (suppressedInteractor == null) return;
 
-        if (!lockPlayerLook || suppressedInteractor == null) return;
+        suppressedInteractor.enabled = false;
 
         lockedPlayer = suppressedInteractor.GetComponent<PlayerController>();
-        if (lockedPlayer != null) lockedPlayer.CameraLocked = true;
+        if (lockedPlayer == null) return;
+
+        // 3단계는 A/D 로 퓨즈를 돌리고 2단계는 R/S/T 를 쓴다. A/D/S 가 전부 이동 키라서
+        // 입력을 막지 않으면 퓨즈를 돌리는 동안 플레이어 몸도 같이 움직인다.
+        lockedPlayer.InputLocked = true;
+        if (lockPlayerLook) lockedPlayer.CameraLocked = true;
     }
 
     private void RestorePlayer()
     {
         if (lockedPlayer != null)
         {
+            lockedPlayer.InputLocked = false;
             lockedPlayer.CameraLocked = false;
             lockedPlayer = null;
         }

@@ -4,9 +4,9 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// 3층 키패드 해킹(주파수 맞추기) UI 를 조립하고 프리팹으로 저장한다.
-/// 대역 4개(슬라이더+색 게이지+LOCK 램프), 충전 게이지, "불러오는 중" 표시를 만들고
-/// FrequencyMatchingPuzzle / FrequencyHackManager 참조를 전부 배선한다.
+/// 3층 컴퓨터 UI 를 조립하고 프리팹으로 저장한다.
+/// 1단계 비밀번호 입력, 2단계 주파수 맞추기(대역 4개 슬라이더 + 충전 게이지)를 만들고
+/// PasswordEntry / FrequencyMatchingPuzzle / FrequencyHackManager 참조를 전부 배선한다.
 /// </summary>
 public static class FrequencyHackUIBuilder
 {
@@ -26,7 +26,7 @@ public static class FrequencyHackUIBuilder
         new Color(0.92f, 0.92f, 0.92f),
     };
 
-    [MenuItem("Tools/QuietPlace/키패드 해킹 UI 만들기")]
+    [MenuItem("Tools/QuietPlace/컴퓨터(비밀번호+주파수) UI 만들기")]
     public static void Build()
     {
         GameObject existing = GameObject.Find(RootName);
@@ -55,29 +55,56 @@ public static class FrequencyHackUIBuilder
         Image dim = Img(panel.transform, "Dim", new Color(0f, 0.02f, 0.04f, 0.86f));
         Stretch(dim.rectTransform);
 
-        Label(panel.transform, "Title", "주파수 정합", 52f, new Vector2(0f, 330f), new Color(0.5f, 0.95f, 0.8f));
-        Label(panel.transform, "Hint", "슬라이더를 움직여 네 대역을 모두 맞추고 5초간 유지", 28f,
+        // ---------- 1단계: 비밀번호 ----------
+        GameObject passwordStage = Empty(panel.transform, "Stage_Password");
+        Stretch((RectTransform)passwordStage.transform);
+
+        Label(passwordStage.transform, "Title", "방송 제어 콘솔", 52f, new Vector2(0f, 180f), new Color(0.5f, 0.95f, 0.8f));
+        Label(passwordStage.transform, "Prompt", "PASSWORD", 26f, new Vector2(0f, 110f), new Color(0.6f, 0.7f, 0.75f));
+
+        Img(passwordStage.transform, "EntryBG", new Color(1f, 1f, 1f, 0.10f), new Vector2(0f, 40f), new Vector2(560f, 88f));
+        TMP_Text entry = Label(passwordStage.transform, "Entry", "", 56f, new Vector2(0f, 40f), new Color(0.95f, 0.98f, 1f));
+        TMP_Text message = Label(passwordStage.transform, "Message", "비밀번호를 입력하고 Enter", 26f,
+            new Vector2(0f, -40f), new Color(0.75f, 0.85f, 0.9f));
+
+        Label(passwordStage.transform, "Escape", "Esc  그만두기", 22f, new Vector2(0f, -110f), new Color(0.5f, 0.55f, 0.6f));
+
+        PasswordEntry password = Undo.AddComponent<PasswordEntry>(passwordStage);
+        password.entryLabel = entry;
+        password.messageLabel = message;
+
+        // 2층 힌트가 마지막 자리를 3인지 8인지 알기 어렵게 되어 있다. 둘 중 하나를
+        // 판당 한 번 뽑으므로 플레이어는 한쪽을 걸어봐야 한다.
+        password.candidates = new[] { "2023", "2028" };
+        password.password = "2023";   // candidates 가 비었을 때의 대비값
+        passwordStage.SetActive(false);
+
+        // ---------- 2단계: 주파수 ----------
+        GameObject puzzleStage = Empty(panel.transform, "Stage_Frequency");
+        Stretch((RectTransform)puzzleStage.transform);
+
+        Label(puzzleStage.transform, "Title", "주파수 정합", 52f, new Vector2(0f, 330f), new Color(0.5f, 0.95f, 0.8f));
+        Label(puzzleStage.transform, "Hint", "슬라이더를 움직여 네 대역을 모두 맞추고 5초간 유지", 28f,
             new Vector2(0f, 272f), new Color(0.75f, 0.85f, 0.9f));
 
-        // ---------- 대역 4개 ----------
         FrequencyBand[] bands = new FrequencyBand[BandLabels.Length];
 
         for (int i = 0; i < BandLabels.Length; i++)
         {
             float y = 150f - i * 90f;
-            bands[i] = BuildBand(panel.transform, BandLabels[i], BandColors[i], y);
+            bands[i] = BuildBand(puzzleStage.transform, BandLabels[i], BandColors[i], y);
         }
 
         // ---------- 충전 게이지 ----------
-        Img(panel.transform, "ChargeBG", new Color(1f, 1f, 1f, 0.14f), new Vector2(0f, -240f), new Vector2(700f, 30f));
-        Image charge = Img(panel.transform, "ChargeFill", new Color(0.45f, 0.95f, 0.7f, 0.95f),
+        Img(puzzleStage.transform, "ChargeBG", new Color(1f, 1f, 1f, 0.14f), new Vector2(0f, -240f), new Vector2(700f, 30f));
+        Image charge = Img(puzzleStage.transform, "ChargeFill", new Color(0.45f, 0.95f, 0.7f, 0.95f),
             new Vector2(0f, -240f), new Vector2(700f, 30f));
         charge.type = Image.Type.Filled;
         charge.fillMethod = Image.FillMethod.Horizontal;
         charge.fillOrigin = 0;
         charge.fillAmount = 0f;
 
-        GameObject loading = Empty(panel.transform, "LoadingIndicator");
+        GameObject loading = Empty(puzzleStage.transform, "LoadingIndicator");
         SetBox((RectTransform)loading.transform, new Vector2(0f, -292f), new Vector2(700f, 40f));
         Label(loading.transform, "Text", "불러오는 중...", 30f, Vector2.zero, new Color(0.55f, 0.95f, 0.75f));
         loading.SetActive(false);
@@ -92,6 +119,9 @@ public static class FrequencyHackUIBuilder
         FrequencyHackManager manager = Undo.AddComponent<FrequencyHackManager>(root);
         SerializedObject so = new SerializedObject(manager);
         so.FindProperty("minigameRoot").objectReferenceValue = panel;
+        so.FindProperty("passwordRoot").objectReferenceValue = passwordStage;
+        so.FindProperty("passwordEntry").objectReferenceValue = password;
+        so.FindProperty("puzzleRoot").objectReferenceValue = puzzleStage;
         so.FindProperty("puzzle").objectReferenceValue = puzzle;
         so.ApplyModifiedPropertiesWithoutUndo();
 
@@ -101,8 +131,9 @@ public static class FrequencyHackUIBuilder
 
         Selection.activeGameObject = root;
         Debug.Log($"[FrequencyHackUIBuilder] 조립 완료 -> {PrefabPath}\n" +
-                  $"  대역 {bands.Length}개 (R/S/T/N), 충전 {puzzle.chargeDuration}초\n" +
-                  "  키패드의 KeypadTerminal 에 문을 물리면 연결된다.", saved);
+                  $"  비밀번호 후보 {string.Join(" / ", password.candidates)} (판당 50% 무작위) -> " +
+                  $"대역 {bands.Length}개 (R/S/T/N), 충전 {puzzle.chargeDuration}초\n" +
+                  "  컴퓨터의 ComputerTerminal 이 이 매니저를 부른다.", saved);
     }
 
     static FrequencyBand BuildBand(Transform parent, string label, Color color, float y)
@@ -183,7 +214,7 @@ public static class FrequencyHackUIBuilder
 
     static TMP_FontAsset koreanFont;
 
-    static void Label(Transform parent, string name, string text, float size, Vector2 pos, Color color)
+    static TMP_Text Label(Transform parent, string name, string text, float size, Vector2 pos, Color color)
     {
         GameObject go = Empty(parent, name);
         TextMeshProUGUI tmp = Undo.AddComponent<TextMeshProUGUI>(go);
@@ -197,6 +228,7 @@ public static class FrequencyHackUIBuilder
         tmp.alignment = TextAlignmentOptions.Center;
         tmp.raycastTarget = false;
         SetBox(tmp.rectTransform, pos, new Vector2(900f, size * 1.7f));
+        return tmp;
     }
 
     static void Stretch(RectTransform rt)

@@ -38,8 +38,14 @@ public sealed class BoltedPanel : Interactable
 
     public bool Open { get; private set; }
 
-    /// 지금까지 돌린 횟수. UI 나 다른 연출에서 참고할 수 있다.
+    /// 지금까지 돌린 횟수. 미니게임이 중간에 취소되면 여기까지가 남는다.
     public int Turns => turns;
+
+    /// 총 몇 바퀴가 필요한가. 미니게임이 남은 바퀴를 계산할 때 쓴다.
+    public int RequiredTurns => requiredTurns;
+
+    /// 몽키스패너를 챙겼는가.
+    public bool HasTool => tool != null && tool.Taken;
 
     private int turns;
 
@@ -59,21 +65,41 @@ public sealed class BoltedPanel : Interactable
     {
         if (Open) return;
 
-        if (tool == null || !tool.Taken)
+        if (!HasTool)
         {
             if (player != null) player.ShowNotice(toolName + "가 있어야 육각 볼트를 풀 수 있습니다.");
             return;
         }
 
+        // 실제로 돌리는 조작은 미니게임에서 한다. 매니저가 없는 씬(프리뷰 등)에서는
+        // 진행이 막히지 않게 그냥 떼어낸다.
+        if (BoltRepairManager.Instance == null)
+        {
+            Debug.LogWarning($"[{nameof(BoltedPanel)}] BoltRepairManager 가 없어 미니게임 없이 떼어낸다.", this);
+            CompleteOpen(player);
+            return;
+        }
+
+        BoltRepairManager.Instance.Begin(this, player);
+    }
+
+    /// 미니게임에서 한 바퀴 돌 때마다 매니저가 부른다. 월드의 볼트 메시가 같이 돌아간다.
+    public void RegisterTurn()
+    {
+        if (Open || turns >= requiredTurns) return;
+
         turns++;
         TurnBolt();
         Play(turnSound);
+    }
 
-        if (turns < requiredTurns)
-        {
-            if (player != null) player.ShowNotice($"볼트를 돌렸습니다. ({turns}/{requiredTurns})");
-            return;
-        }
+    /// 필요한 바퀴를 다 돌렸을 때. 하나를 다 풀면 나머지도 같이 풀리는 연출이라
+    /// 홀더(고정판 + 볼트 전체)를 한 번에 끈다.
+    public void CompleteOpen(IInteractor player)
+    {
+        if (Open) return;
+
+        while (turns < requiredTurns) RegisterTurn();
 
         Open = true;
         Play(openSound);

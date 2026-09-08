@@ -41,6 +41,9 @@ public sealed class FusePickup : Interactable, IHoldable
     private Rigidbody body;
     private Transform originalParent;
 
+    /// 상호작용 가능 표시. 집으면 끄고 내려놓으면 되살린다.
+    private InteractableGlow glow;
+
     /// 처음 크기. 플레이어/카메라에 스케일이 걸려 있으면 부모를 바꿀 때마다
     /// world<->local 환산이 누적되어 물건이 점점 커진다. 매번 이 값으로 되돌린다.
     private Vector3 originalLocalScale;
@@ -58,6 +61,7 @@ public sealed class FusePickup : Interactable, IHoldable
     void Awake()
     {
         body = GetComponent<Rigidbody>();
+        glow = GetComponent<InteractableGlow>();
         originalParent = transform.parent;
         originalLocalScale = transform.localScale;
     }
@@ -82,6 +86,7 @@ public sealed class FusePickup : Interactable, IHoldable
         {
             Taken = true;
             EverTaken = true;
+            if (glow != null) glow.Consume();
             gameObject.SetActive(false);
             if (player != null) player.ShowNotice(displayName + "를 챙겼습니다.");
             return;
@@ -102,6 +107,7 @@ public sealed class FusePickup : Interactable, IHoldable
 
         Taken = true;
         EverTaken = true;
+        if (glow != null) glow.Consume();
         controller.EnterHolding(this);
         if (player != null) player.ShowNotice(displayName + "를 들었습니다.");
     }
@@ -143,7 +149,10 @@ public sealed class FusePickup : Interactable, IHoldable
         transform.SetParent(originalParent, true); // 월드 위치 유지
         transform.localScale = originalLocalScale; // 스케일 누적 방지
         SetPhysicsFrozen(false);
-        if (!Installed) Taken = false;
+        if (Installed) return;
+
+        Taken = false;
+        if (glow != null) glow.Restore();   // 다시 집을 수 있으니 표시도 되살린다
     }
 
     private void SetPhysicsFrozen(bool frozen)
@@ -161,6 +170,7 @@ public sealed class FusePickup : Interactable, IHoldable
         Installed = true;
         Taken = true;
         EverTaken = true;
+        if (glow != null) glow.Consume();
 
         // 손에 들려 있었다면 FuseSlot 이 먼저 DropHeldItem 으로 놓아주므로 부모는 이미 원복돼 있다.
         transform.SetParent(originalParent, true);

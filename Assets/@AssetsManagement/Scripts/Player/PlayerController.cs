@@ -47,6 +47,11 @@ public class PlayerController : MonoBehaviour
     public CharacterController Controller { get; private set; }
     public PlayerStateType CurrentStateType => currentState != null ? currentState.Type : PlayerStateType.Idle;
     public bool CameraLocked { get; set; }
+
+    /// 미니게임 중처럼 조작을 전부 막아야 할 때. 시야만 잠그는 CameraLocked 와 달리
+    /// 이동/앉기/던지기 입력 자체를 읽지 않는다. 퓨즈 각도를 A/D 로 맞추는 동안 몸이
+    /// 같이 돌아가거나, 스킬체크의 S 키로 뒤로 걸어가는 문제를 막는다.
+    public bool InputLocked { get; set; }
     public IHidingSpot ActiveHidingSpot { get; private set; }
     public IHoldable HeldItem { get; private set; }
 
@@ -100,9 +105,6 @@ public class PlayerController : MonoBehaviour
     private bool lowerBodyLocked;
     private Transform[] lowerBodyBones;
 
-    // player.fbx 바인드 포즈 버그 보정용 (본 자체 회전은 정상인데 메시의 스키닝 바인드포즈만 잘못 기록됨)
-    private Transform leftHandBone;
-    private Transform rightHandBone;
     private Quaternion[] lowerBodyLocalRotations;
     private Vector3 hipsFrozenLocalPosition;
     private Quaternion modelBaseLocalRotation;
@@ -171,10 +173,6 @@ public class PlayerController : MonoBehaviour
                 lowerBodyBones[i] = animator.GetBoneTransform(LowerBodyBoneIds[i]);
             }
             lowerBodyLocalRotations = new Quaternion[LowerBodyBoneIds.Length];
-
-            leftHandBone = animator.GetBoneTransform(HumanBodyBones.LeftHand);
-            rightHandBone = animator.GetBoneTransform(HumanBodyBones.RightHand);
-            FixHandBindPoseBug();
         }
 
         noiseRangeDisc = RangeGizmo.CreateDisc(transform, "NoiseRange_Gizmo", new Color(0.2f, 0.5f, 1f, 0.05f));
@@ -336,29 +334,30 @@ public class PlayerController : MonoBehaviour
     void ReadInput()
     {
         Keyboard kb = Keyboard.current;
-        if (kb == null)
+        if (kb == null || InputLocked)
         {
             MoveAxis = Vector2.zero;
             SitTogglePressed = false;
             StopHeld = false;
             InteractPressed = false;
             DropPressed = false;
+            SpacePressed = false;
+            ThrowPressed = false;
+            return;
         }
-        else
-        {
-            float x = 0f, y = 0f;
-            if (kb.wKey.isPressed) y += 1f;
-            if (kb.sKey.isPressed) y -= 1f;
-            if (kb.dKey.isPressed) x += 1f;
-            if (kb.aKey.isPressed) x -= 1f;
-            MoveAxis = Vector2.ClampMagnitude(new Vector2(x, y), 1f);
 
-            SitTogglePressed = kb.leftCtrlKey.wasPressedThisFrame;
-            StopHeld = kb.leftShiftKey.isPressed;
-            InteractPressed = kb.fKey.wasPressedThisFrame;
-            DropPressed = kb.gKey.wasPressedThisFrame;
-            SpacePressed = kb.spaceKey.wasPressedThisFrame;
-        }
+        float x = 0f, y = 0f;
+        if (kb.wKey.isPressed) y += 1f;
+        if (kb.sKey.isPressed) y -= 1f;
+        if (kb.dKey.isPressed) x += 1f;
+        if (kb.aKey.isPressed) x -= 1f;
+        MoveAxis = Vector2.ClampMagnitude(new Vector2(x, y), 1f);
+
+        SitTogglePressed = kb.leftCtrlKey.wasPressedThisFrame;
+        StopHeld = kb.leftShiftKey.isPressed;
+        InteractPressed = kb.fKey.wasPressedThisFrame;
+        DropPressed = kb.gKey.wasPressedThisFrame;
+        SpacePressed = kb.spaceKey.wasPressedThisFrame;
 
         ThrowPressed = Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
     }
@@ -563,28 +562,6 @@ public class PlayerController : MonoBehaviour
         else
         {
             lowerBodyLocked = false;
-        }
-    }
-
-    // player.fbx의 LeftHand/RightHand 메시 바인드포즈가 실제 스켈레톤 회전과 어긋나 있어
-    // 손목이 뒤틀려 보이는 버그. 본 자체는 정상이므로, 현재(애니메이션 재생 전) 본 위치를
-    // 기준으로 바인드포즈를 다시 계산해서 메시 쪽을 고친다 — 포즈에 상관없이 한 번만 수정하면 됨.
-    private void FixHandBindPoseBug()
-    {
-        if (leftHandBone == null && rightHandBone == null) return;
-        foreach (var smr in animator.GetComponentsInChildren<SkinnedMeshRenderer>())
-        {
-            var bones = smr.bones;
-            int li = leftHandBone != null ? Array.IndexOf(bones, leftHandBone) : -1;
-            int ri = rightHandBone != null ? Array.IndexOf(bones, rightHandBone) : -1;
-            if (li < 0 && ri < 0) continue;
-
-            var mesh = Instantiate(smr.sharedMesh); // 원본 에셋을 안 건드리도록 복사본에만 적용
-            var bindposes = mesh.bindposes;
-            if (li >= 0) bindposes[li] = leftHandBone.worldToLocalMatrix * smr.transform.localToWorldMatrix;
-            if (ri >= 0) bindposes[ri] = rightHandBone.worldToLocalMatrix * smr.transform.localToWorldMatrix;
-            mesh.bindposes = bindposes;
-            smr.sharedMesh = mesh;
         }
     }
 

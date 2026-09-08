@@ -29,6 +29,7 @@ public class MonsterController : MonoBehaviour
     public float investigateLingerTime = 1.2f; // 소리 지점 도착 후 두리번거리는 시간
     public float soundPositionError = 2f; // NoiseLevel 0 기준 오차 반경
     public float minSoundPositionError = 1.2f; // loudNoiseCommitThreshold 이상이어도 이 아래로는 안 줄어듦 - 오브젝트에 완전히 달라붙는 것 방지
+    public float heardPositionSampleRadius = 3f; // 소리 위치를 NavMesh 위로 스냅할 때 허용 거리 - 벽/물체 표면에 맞아 NavMesh 밖에 찍히는 경우 대비
 
     public NavMeshAgent Agent { get; private set; }
     public MonsterStateType CurrentStateType => currentState != null ? currentState.Type : MonsterStateType.Idle;
@@ -97,7 +98,11 @@ public class MonsterController : MonoBehaviour
         if (tier == NoiseTier.None) return;
         if (currentState.Type == MonsterStateType.Attack || currentState.Type == MonsterStateType.Neutralization) return;
 
-        LastHeardPosition = position;
+        // 던진 오브젝트가 벽/물체 옆면에 맞으면 소리 위치 자체가 NavMesh 밖에 찍힌다 - Second/Final이
+        // 이 좌표를 그대로 목적지로 쓰면 영원히 도달 못 해 Analyzing 전환 없이 청각 타임아웃까지 가버림.
+        // 저장 시점에 NavMesh로 스냅해서 이후 모든 소비처가 항상 도달 가능한 좌표만 쓰게 한다.
+        LastHeardPosition = NavMesh.SamplePosition(position, out NavMeshHit navHit, heardPositionSampleRadius, NavMesh.AllAreas)
+            ? navHit.position : position;
         // Patrol(완전히 잊은 상태)에서 새로 듣기 시작하면 이번 소리 크기로 새로 잡는다.
         // 이미 추적 중이면 더 큰 값만 반영 - 큰 소리 듣고 쫓아가는 도중 플레이어의 조용한 발소리가
         // 계속 들어와서 LastHeardLoudness를 깎아버리면, 시끄러운 소리로 얻은 "끝까지 쫓아갈 시간"이
