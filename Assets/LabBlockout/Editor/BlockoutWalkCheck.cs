@@ -628,12 +628,19 @@ public static class BlockoutWalkCheck
         var body = player.GetComponent<CharacterController>();
         var route = new[]
         {
+            // B1 을 5.67m 정사각형 방 세 개로 다시 잡으면서 경로도 옮겼다. 예전 좌표는
+            // 남쪽 벽 바깥(z 3.5~4.0)이거나 새 칸막이 한가운데를 지난다. 두 칸막이의
+            // 문은 월드 z 1.75~4.25 = 설계 z 1.17~2.83 이라 전부 z 2.0 으로 통과한다.
             new Vector3(-2.3f, Basement, -0.6f),    // stair foot, in the alcove
             new Vector3(-2.5f, Basement, 0.6f),     // through the alcove door
-            new Vector3(-4.5f, Basement, 3.5f),     // 비밀 생체실험실 centre
-            new Vector3(-8.0f, Basement, 3.5f),     // its east end
-            new Vector3(-9.0f, Basement, 4.0f),     // the arch
-            new Vector3(-10.5f, Basement, 3.5f),    // 진화된 알
+            new Vector3(-2.5f, Basement, 2.0f),     // 동편 방
+            new Vector3(-4.0f, Basement, 2.0f),     // 칸막이 2 의 문
+            new Vector3(-6.0f, Basement, 2.0f),     // 비밀 생체실험실 centre
+            new Vector3(-8.0f, Basement, 2.0f),     // 칸막이 1 의 문
+            // 알 방 한가운데는 배양 포드가 차지한다(콜라이더 월드 x -15.73~-14.28,
+            // z 2.28~3.73). 방 중심으로 직진하면 처박히므로 옆으로 돌아 선다.
+            new Vector3(-9.0f, Basement, 2.6f),     // 포드를 끼고
+            new Vector3(-10.0f, Basement, 3.1f),    // 진화된 알 - 포드 옆
         };
         var legs = new List<Vector3>(route);
         for (int i = route.Length - 2; i >= 0; i--) legs.Add(route[i]);
@@ -681,7 +688,7 @@ public static class BlockoutWalkCheck
 
             // 봉쇄문 is drawn padlocked and nothing is built past it, so it has to
             // stop the player rather than let them walk into the void.
-            Place(player, body, W(-2.0f, Basement, 4.0f));
+            Place(player, body, W(-2.0f, Basement, 2.3f));
             Push(player, Vector3.right, Ticks(90));
             float lockdownX = W(-0.11f, 0, 0).x;
             if (player.transform.position.x > lockdownX)
