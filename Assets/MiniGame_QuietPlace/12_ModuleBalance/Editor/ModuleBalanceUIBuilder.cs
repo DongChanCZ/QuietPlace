@@ -104,7 +104,7 @@ public static class ModuleBalanceUIBuilder
             gauge.fillOrigin = 0;
             gauge.fillAmount = 0f;
 
-            Label(uiRoot.transform, "Escape", "Esc  그만두기", 22f, new Vector2(0f, -440f), new Color(0.55f, 0.58f, 0.62f));
+            Label(uiRoot.transform, "Escape", "X  그만두기", 22f, new Vector2(0f, -440f), new Color(0.55f, 0.58f, 0.62f));
 
             // ---------- 컴포넌트 ----------
             ModuleBalanceUI balance = stage.GetComponent<ModuleBalanceUI>();

@@ -52,6 +52,9 @@ public sealed class BoltedPanel : Interactable
     void Awake()
     {
         Debug.Assert(tool, "BoltedPanel is missing the tool it waits for.");
+
+        // 난이도에 따라 바퀴 수가 다르다(보통 2, 어려움 3).
+        requiredTurns = MinigameTuning.BoltTurns;
     }
 
     public override string Prompt(IInteractor player)
@@ -81,6 +84,22 @@ public sealed class BoltedPanel : Interactable
         }
 
         BoltRepairManager.Instance.Begin(this, player);
+    }
+
+    /// 돌린 바퀴를 처음으로 되돌린다. 공포로 손을 놓쳤을 때 쓴다.
+    /// 볼트 메시는 돌아간 만큼 되돌려 처음 모습으로 만든다.
+    public void ResetTurns()
+    {
+        if (Open) return;
+
+        for (int i = 0; i < turns; i++)
+        {
+            if (boltToTurn == null) break;
+            boltToTurn.Translate(0f, 0f, popOutPerTurn, Space.Self);
+            boltToTurn.Rotate(0f, 0f, -rotationPerTurn, Space.Self);
+        }
+
+        turns = 0;
     }
 
     /// 미니게임에서 한 바퀴 돌 때마다 매니저가 부른다. 월드의 볼트 메시가 같이 돌아간다.

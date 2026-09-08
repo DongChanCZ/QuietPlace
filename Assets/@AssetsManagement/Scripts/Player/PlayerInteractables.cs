@@ -6,6 +6,12 @@ public interface IHidingSpot
     float NoiseLevelBump { get; }
     float NoiseRangeBump { get; }
     Transform HiddenViewPoint { get; }
+
+    /// 숨기 시작할 때. 플레이어를 안으로 옮기고 문을 닫는 등의 처리를 여기서 한다.
+    void OnHideEnter(PlayerController player);
+
+    /// 나올 때. 플레이어를 원래 서 있던 자리로 돌려놓는다.
+    void OnHideExit(PlayerController player);
 }
 
 public interface IHoldable

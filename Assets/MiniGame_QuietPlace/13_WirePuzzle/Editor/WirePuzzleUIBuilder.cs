@@ -134,7 +134,7 @@ public static class WirePuzzleUIBuilder
 
             TMP_Text counter = Label(uiRoot.transform, "Counter", "연결 0 / 4", 32f,
                 new Vector2(0f, -390f), new Color(0.95f, 0.95f, 0.95f));
-            Label(uiRoot.transform, "Escape", "Esc  그만두기", 22f, new Vector2(0f, -440f), new Color(0.55f, 0.58f, 0.62f));
+            Label(uiRoot.transform, "Escape", "X  그만두기", 22f, new Vector2(0f, -440f), new Color(0.55f, 0.58f, 0.62f));
 
             WirePuzzleUI puzzle = stage.GetComponent<WirePuzzleUI>();
             if (puzzle == null) puzzle = stage.gameObject.AddComponent<WirePuzzleUI>();

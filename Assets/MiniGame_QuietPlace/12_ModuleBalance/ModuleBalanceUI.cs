@@ -102,6 +102,9 @@ public class ModuleBalanceUI : MonoBehaviour
 
     void OnEnable()
     {
+        requiredHoldTime = MinigameTuning.BalanceHoldSeconds;
+        toleranceRadius = MinigameTuning.BalanceTolerance;
+
         seated = false;
         dragging = false;
         holdTimer = 0f;

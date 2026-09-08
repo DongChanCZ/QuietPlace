@@ -23,6 +23,9 @@ public class SkillCheckMinigame : MonoBehaviour
     [Header("지금 눌러야 하는 키를 보여주는 표시")]
     public TMP_Text currentKeyLabel;
 
+    [Header("2단계 안내 문구 (난이도에 따라 바뀐다)")]
+    public TMP_Text hintLabel;
+
     [Header("사운드")]
     public AudioSource audioSource;
     public AudioClip hitSound;
@@ -38,12 +41,18 @@ public class SkillCheckMinigame : MonoBehaviour
 
     void OnEnable()
     {
+        // 보통은 스페이스바 2번, 어려움은 R/S/T 3번.
+        keySequence = MinigameTuning.DischargeKeys;
+        rotationSpeed = MinigameTuning.DischargeSpeed;
+        hitZoneWidth = MinigameTuning.DischargeZoneWidth;
+
         hitCount = 0;
         completed = false;
         currentAngle = 0f;
         baseSpeed = rotationSpeed;
         RandomizeHitZone();
         RefreshKeyLabel();
+        RefreshHint();
     }
 
     void OnDisable()
@@ -72,11 +81,27 @@ public class SkillCheckMinigame : MonoBehaviour
             return;
         }
 
+        // 보통 난이도는 같은 키(Space)가 두 번이라 "다른 키" 검사가 자기 자신을 잡는다.
+        // 순서에 서로 다른 키가 섞여 있을 때만 오타 판정을 한다.
         for (int i = 0; i < keySequence.Length; i++)
         {
             if (keySequence[i] == expected) continue;
             if (keyboard[keySequence[i]].wasPressedThisFrame) { Miss(); return; }
         }
+    }
+
+    /// 2단계 안내 문구를 난이도에 맞춘다.
+    void RefreshHint()
+    {
+        if (hintLabel == null) return;
+
+        bool multiKey = false;
+        for (int i = 1; i < keySequence.Length; i++)
+            if (keySequence[i] != keySequence[0]) { multiKey = true; break; }
+
+        hintLabel.text = multiKey
+            ? "바늘이 밝은 구간에 올 때 해당 상(相) 키 · R → S → T"
+            : "바늘이 밝은 구간에 올 때 Space · " + RequiredHits() + "회";
     }
 
     Key ExpectedKey()
@@ -127,7 +152,14 @@ public class SkillCheckMinigame : MonoBehaviour
     void RefreshKeyLabel()
     {
         if (currentKeyLabel == null) return;
-        currentKeyLabel.text = ExpectedKey().ToString() + "  상 방전  (" + hitCount + "/" + RequiredHits() + ")";
+
+        // R/S/T 는 3상을 뜻하지만 Space 는 그냥 키다. 문구를 나눈다.
+        UnityEngine.InputSystem.Key k = ExpectedKey();
+        string what = k == UnityEngine.InputSystem.Key.Space
+            ? "Space 로 방전"
+            : k.ToString() + " 상 방전";
+
+        currentKeyLabel.text = what + "  (" + hitCount + "/" + RequiredHits() + ")";
     }
 
     void PlaySound(AudioClip clip)

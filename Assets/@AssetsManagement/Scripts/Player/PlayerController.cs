@@ -83,6 +83,10 @@ public class PlayerController : MonoBehaviour
     private float carryLookOffset;   // 무거운 물건을 들었을 때 고개 숙임
     private float carryEyeOffset;    // 무거운 물건을 들었을 때 시점 하강
 
+    /// 숨었을 때 시점 하강. 테이블 밑처럼 낮은 곳에 숨으면 카메라가 천판 위로 튀어나오므로
+    /// 플레이어를 땅에 묻지 않고 카메라만 내린다. HidingSpot 이 값을 넣는다.
+    public float HiddenEyeDrop { get; set; }
+
     [Header("Sitting Collider")]
     public float sittingColliderHeight = 1.05f; // 실제로 쪼그려 앉은 것처럼 Y축 판정만 줄임
     private float standingColliderHeight;
@@ -196,6 +200,10 @@ public class PlayerController : MonoBehaviour
         // 전역 인터럽트: Fear가 최대치에 도달하면 어떤 상태든 즉시 Fearing으로 전환
         if (stats.IsFearMaxed && currentState.Type != PlayerStateType.Fearing)
         {
+            // 미니게임 중이었다면 손을 놓친다. 진행도가 되돌아가 처음부터 다시 해야 한다.
+            // 전체 게임이 끝나는 게 아니라 그 미니게임만 중단된다.
+            MinigameAbort.AbortAll("공포에 질려 손을 놓쳤다");
+
             ChangeState(fearingState);
         }
 
@@ -297,7 +305,7 @@ public class PlayerController : MonoBehaviour
         else
         {
             Vector3 pos = cameraBaseLocalPosition;
-            pos.y -= sittingEyeOffset + carryEyeOffset;
+            pos.y -= sittingEyeOffset + carryEyeOffset + HiddenEyeDrop;
             playerCamera.transform.localPosition = pos;
             playerCamera.transform.localEulerAngles = new Vector3(EffectivePitch, 0f, 0f);
         }
@@ -413,6 +421,14 @@ public class PlayerController : MonoBehaviour
 
     public void Move(Vector3 horizontalWorldVelocity)
     {
+        // 숨어 있는 동안은 CharacterController 를 꺼둔다(안 그러면 캐비닛 판에 밀려 나온다).
+        // 꺼진 컨트롤러에 Move 를 걸면 경고만 쏟아지므로 여기서 막는다.
+        if (Controller == null || !Controller.enabled)
+        {
+            verticalVelocity = 0f;
+            return;
+        }
+
         if (Controller.isGrounded)
         {
             verticalVelocity = 0f;
@@ -606,14 +622,36 @@ public class PlayerController : MonoBehaviour
 
     public void EnterHiding(IHidingSpot spot)
     {
-        if (spot == null) return;
+        if (spot == null || ActiveHidingSpot != null) return;
+
         ActiveHidingSpot = spot;
+        spot.OnHideEnter(this);      // 플레이어를 숨을 곳 안으로 옮긴다
         ChangeState(hidingState);
     }
 
     public void ExitHidingInternal()
     {
+        IHidingSpot spot = ActiveHidingSpot;
         ActiveHidingSpot = null;
+        if (spot != null) spot.OnHideExit(this);   // 원래 서 있던 자리로 돌려놓는다
+    }
+
+    /// 숨은 상태에서 밖으로 나온다. Q 를 다시 누르거나 이동 입력이 들어오면 불린다.
+    public void LeaveHiding()
+    {
+        if (ActiveHidingSpot == null) return;
+        GoToIdleOrWalking();   // HidingState.Exit -> ExitHidingInternal 이 이어서 돈다
+    }
+
+    /// CharacterController 를 켠 채로 위치를 바꾸면 무시된다. 잠깐 끄고 옮긴다.
+    public void TeleportTo(Vector3 position, Quaternion rotation)
+    {
+        bool had = Controller != null && Controller.enabled;
+        if (had) Controller.enabled = false;
+
+        transform.SetPositionAndRotation(position, rotation);
+
+        if (had) Controller.enabled = true;
     }
 
     public void EnterHolding(IHoldable item)

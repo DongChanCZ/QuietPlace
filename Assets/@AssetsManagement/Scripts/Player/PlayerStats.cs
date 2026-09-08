@@ -24,7 +24,7 @@ public class PlayerStats
     public float noiseLevelBase = 2f;
     public float noiseRangeBase = 2f;
     public float noiseTierStep = 1f;
-    public float noiseMaxTier = 5f;
+    public float noiseMaxTier = 8f;
 
     [System.NonSerialized] public float currentNoiseLevel;
     [System.NonSerialized] public float currentNoiseRange;

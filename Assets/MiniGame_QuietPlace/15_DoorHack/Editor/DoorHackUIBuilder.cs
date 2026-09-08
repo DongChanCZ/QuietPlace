@@ -58,12 +58,9 @@ public static class DoorHackUIBuilder
         TMP_Text progress = Label(panel.transform, "Progress", "0 / 19", 32f,
             new Vector2(0f, -450f), new Color(0.55f, 0.9f, 0.6f));
 
-        // 대소문자를 구분하므로 대문자는 Shift 를 같이 눌러야 한다. 안 알려주면
-        // 눌렀는데 안 넘어간다고 느낄 수밖에 없으니 화면에 못 박아둔다.
-        Label(panel.transform, "CaseNotice", "대소문자 구분함 · 대문자는 Shift", 26f,
-            new Vector2(0f, -495f), new Color(1f, 0.82f, 0.4f));
+        // 대소문자 안내는 난이도 라벨(DifficultyLabel)이 이미 같이 알려주므로 따로 두지 않는다.
 
-        Label(panel.transform, "Escape", "Esc  그만두기", 22f, new Vector2(0f, -530f), new Color(0.45f, 0.55f, 0.48f));
+        Label(panel.transform, "Escape", "X  그만두기", 22f, new Vector2(0f, -530f), new Color(0.45f, 0.55f, 0.48f));
 
         // ---------- 떨어지는 글자 프리팹용 템플릿 ----------
         // DoorHackTyping 은 letterPrefab 이 비어 있으면 스스로 만들지만, 초록 모노 느낌을
