@@ -83,9 +83,11 @@ public class QuickSlotManager : MonoBehaviour
         OnSlotsChanged?.Invoke();
     }
 
+    public bool HasItem(ItemType type) => Array.IndexOf(slots, (ItemType?)type) >= 0;
+
     public void AddItem(ItemType item, string displayName)
     {
-        if (Array.IndexOf(slots, (ItemType?)item) >= 0) return; // 이미 보유 중
+        if (HasItem(item)) return; // 이미 보유 중
         int index = Array.IndexOf(slots, (ItemType?)null);
         if (index < 0) return; // 6칸 다 참
         slots[index] = item;

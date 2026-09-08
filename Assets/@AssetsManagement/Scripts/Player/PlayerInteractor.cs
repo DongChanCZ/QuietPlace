@@ -24,6 +24,7 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
 
     [Header("Held Item Models")]
     [SerializeField] GameObject flashlightModelPrefab;
+    [SerializeField] GameObject brickModelPrefab;
 
     [Header("Throwing")]
     public float throwForce = 10f;
@@ -272,13 +273,17 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         anchorGO.transform.localRotation = Quaternion.Euler(-10f, -25f, 0f);
         heldItemAnchor = anchorGO.transform;
 
-        brickHeldModel = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        brickHeldModel.name = "HeldBrick";
-        brickHeldModel.transform.SetParent(heldItemAnchor, false);
-        brickHeldModel.transform.localScale = Vector3.one * 0.22f;
-        Destroy(brickHeldModel.GetComponent<Collider>());
-        DisableShadows(brickHeldModel);
-        brickHeldModel.SetActive(false);
+        if (brickModelPrefab != null)
+        {
+            brickHeldModel = Instantiate(brickModelPrefab, heldItemAnchor);
+            brickHeldModel.name = "HeldBrick";
+            brickHeldModel.transform.localPosition = Vector3.zero;
+            // localRotation/localScale은 안 건드림 - 벽돌의 각도/비율 자체가 프리팹에 저장돼 있음
+            foreach (Collider col in brickHeldModel.GetComponentsInChildren<Collider>())
+                Destroy(col);
+            DisableShadows(brickHeldModel);
+            brickHeldModel.SetActive(false);
+        }
 
         bottleHeldModel = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         bottleHeldModel.name = "HeldBottle";
