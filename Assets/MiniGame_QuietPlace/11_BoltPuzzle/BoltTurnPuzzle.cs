@@ -30,22 +30,22 @@ public class BoltTurnPuzzle : MonoBehaviour
     public int requiredTurns = 3;
 
     [Header("한 바퀴로 셀 각도 (볼트 기준)")]
-    public float degreesPerTurn = 180f;
+    public float degreesPerTurn = 200f;
 
     [Header("이 힘을 넘어야 볼트가 움직인다")]
-    public float breakawayTorque = 0.45f;
+    public float breakawayTorque = 0.55f;
     public float maxTorque = 1.6f;
 
     [Header("마우스로 돌린 각도가 힘으로 쌓이는 비율")]
     public float torqueGainPerDegree = 0.012f;
 
     /// 힘은 초당 이만큼 빠진다. 즉 마우스를 초당 (이 값 / torqueGainPerDegree) 도 이상
-    /// 꾸준히 돌려야 힘이 유지된다 - 기본값이면 약 92도/초. 손을 늦추면 볼트가 멈춘다.
+    /// 꾸준히 돌려야 힘이 유지된다 - 기본값이면 약 142도/초. 손을 늦추면 볼트가 멈춘다.
     [Header("손을 멈추면 힘이 빠지는 속도 (초당)")]
-    public float torqueDecayPerSecond = 1.1f;
+    public float torqueDecayPerSecond = 1.7f;
 
     [Header("힘을 다 줘도 볼트는 이 속도를 못 넘는다 (도/초)")]
-    public float maxTurnRate = 70f;
+    public float maxTurnRate = 45f;
 
     [Header("힘이 모자랄 때 볼트가 떠는 정도(도)")]
     public float strainShakeDegrees = 2.2f;

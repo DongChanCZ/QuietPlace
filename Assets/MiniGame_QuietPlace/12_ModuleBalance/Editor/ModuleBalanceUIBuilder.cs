@@ -61,7 +61,7 @@ public static class ModuleBalanceUIBuilder
             Stretch(dim.rectTransform);
 
             Label(uiRoot.transform, "Title", "변압기 모듈 안착", 48f, new Vector2(0f, 400f), new Color(0.6f, 0.85f, 1f));
-            TMP_Text hint = Label(uiRoot.transform, "Hint", "모듈을 왼쪽 버튼으로 잡아 슬롯에 넣어라", 28f,
+            TMP_Text hint = Label(uiRoot.transform, "Hint", "모듈을 왼쪽 버튼으로 잡아라", 28f,
                 new Vector2(0f, 348f), new Color(0.78f, 0.82f, 0.86f));
 
             // ---------- 움직일 수 있는 영역 ----------
@@ -113,12 +113,17 @@ public static class ModuleBalanceUIBuilder
             balance.module = module;
             balance.slot = slot;
             balance.bounds = area;
-            balance.grabRadius = 150f;
-            balance.followSpeed = 3.2f;
-            balance.driftStrength = 220f;
-            balance.driftSpeed = 1.3f;
-            balance.toleranceRadius = 48f;
-            balance.requiredHoldTime = 2f;
+            balance.grabRadius = 170f;
+            balance.pullStrength = 20f;
+            balance.damping = 4.2f;
+            balance.gravity = 900f;
+            balance.releaseGravityScale = 2.5f;
+            balance.swayStrength = 900f;
+            balance.swaySpeed = 0.85f;
+            balance.tremorStrength = 620f;
+            balance.tremorSpeed = 11f;
+            balance.toleranceRadius = 40f;
+            balance.requiredHoldTime = 3f;
             balance.gaugeFill = gauge;
             balance.slotFrame = slotFrame;
             balance.hintLabel = hint;
@@ -134,8 +139,10 @@ public static class ModuleBalanceUIBuilder
             PrefabUtility.SaveAsPrefabAsset(contents, PrefabPath);
             Debug.Log($"[ModuleBalanceUIBuilder] 조립 완료 -> {PrefabPath}\n" +
                       $"  옛 3D 구성 {turnedOff}개 비활성 (지우지 않음)\n" +
-                      $"  슬롯 허용 반경 {balance.toleranceRadius}px, 유지 {balance.requiredHoldTime}초, " +
-                      $"추종 {balance.followSpeed}, 드리프트 {balance.driftStrength}px/s");
+                      $"  슬롯 허용 {balance.toleranceRadius}px, 유지 {balance.requiredHoldTime}초\n" +
+                      $"  당김 {balance.pullStrength}, 중력 {balance.gravity}px/s^2 " +
+                      $"(커서를 슬롯보다 약 {(balance.gravity / balance.pullStrength):0}px 위에 둬야 균형), " +
+                      $"흔들림 {balance.swayStrength}+{balance.tremorStrength}");
         }
         finally
         {

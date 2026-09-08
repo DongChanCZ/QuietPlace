@@ -103,16 +103,16 @@ public static class BoltRepairUIBuilder
         puzzle.boltVisual = bolt;
         puzzle.pivot = pivot;
         puzzle.requiredTurns = 3;
-        puzzle.degreesPerTurn = 180f;
+        puzzle.degreesPerTurn = 200f;
 
-        // 뻑뻑함: 마우스를 초당 약 92도(1.1 / 0.012) 이상 꾸준히 돌려야 힘이 유지되고,
-        // 문턱 0.45 를 넘겨야 볼트가 비로소 움직인다. 넘겨도 초당 70도가 상한이라
-        // 3바퀴 x 180도 = 540도를 푸는 데 최선으로 붙잡아도 8초 가까이 걸린다.
-        puzzle.breakawayTorque = 0.45f;
+        // 뻑뻑함: 마우스를 초당 약 142도(1.7 / 0.012) 이상 꾸준히 돌려야 힘이 유지되고,
+        // 문턱 0.55 를 넘겨야 볼트가 비로소 움직인다. 넘겨도 초당 45도가 상한이라
+        // 3바퀴 x 200도 = 600도를 푸는 데 최선으로 붙잡아도 13초 넘게 걸린다.
+        puzzle.breakawayTorque = 0.55f;
         puzzle.maxTorque = 1.6f;
         puzzle.torqueGainPerDegree = 0.012f;
-        puzzle.torqueDecayPerSecond = 1.1f;
-        puzzle.maxTurnRate = 70f;
+        puzzle.torqueDecayPerSecond = 1.7f;
+        puzzle.maxTurnRate = 45f;
         puzzle.strainShakeDegrees = 2.2f;
 
         puzzle.progressFill = progress;

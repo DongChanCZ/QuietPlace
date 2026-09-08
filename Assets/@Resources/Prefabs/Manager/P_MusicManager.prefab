@@ -45,9 +45,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MusicManager
   tracks:
-  - {fileID: 8300000, guid: af1b7b20d61075f47845fc8273c7f30d, type: 3}
+  - {fileID: 8300000, guid: ae40623feb3c9614284972066bb63b08, type: 3}
   - {fileID: 8300000, guid: 448130591abc486458ddee5dff0eaddb, type: 3}
   - {fileID: 8300000, guid: 18b2374b32e4c9c4eaa94318a708f25a, type: 3}
-  playOnStart: heart_beat_normal
-  volume: 0.55
+  - {fileID: 8300000, guid: af1b7b20d61075f47845fc8273c7f30d, type: 3}
+  playOnStart: heart_beat_normal_loop
+  volume: 1
   crossfadeSeconds: 1.5

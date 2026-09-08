@@ -1367,12 +1367,12 @@ MonoBehaviour:
   boltVisual: {fileID: 8311885605299867432}
   pivot: {fileID: 3054107232842858888}
   requiredTurns: 3
-  degreesPerTurn: 180
-  breakawayTorque: 0.45
+  degreesPerTurn: 200
+  breakawayTorque: 0.55
   maxTorque: 1.6
   torqueGainPerDegree: 0.012
-  torqueDecayPerSecond: 1.1
-  maxTurnRate: 70
+  torqueDecayPerSecond: 1.7
+  maxTurnRate: 45
   strainShakeDegrees: 2.2
   deadZoneRadius: 30
   progressFill: {fileID: 4775604482725728273}
@@ -1856,7 +1856,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -153.125, y: -290}
+  m_AnchoredPosition: {x: -109.375, y: -290}
   m_SizeDelta: {x: 4, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5020699520851085022
