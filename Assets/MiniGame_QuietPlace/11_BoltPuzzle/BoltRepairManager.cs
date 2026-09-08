@@ -42,7 +42,7 @@ public class BoltRepairManager : MonoBehaviour
     {
         if (!IsRunning) return;
         if (Keyboard.current == null) return;
-        if (Keyboard.current.escapeKey.wasPressedThisFrame) Cancel();
+        if (Keyboard.current.xKey.wasPressedThisFrame) Cancel();   // 미니게임 나가기는 X
     }
 
     public void Begin(BoltedPanel panel, IInteractor player)
@@ -88,6 +88,16 @@ public class BoltRepairManager : MonoBehaviour
     {
         if (!IsRunning) return;
         Finish();
+    }
+
+    /// <summary>공포로 손을 놓쳤을 때. 돌린 바퀴까지 되돌려 처음부터 하게 만든다.</summary>
+    public void Abort()
+    {
+        if (!IsRunning) return;
+
+        BoltedPanel panel = pendingPanel;
+        Finish();
+        if (panel != null) panel.ResetTurns();
     }
 
     private void Finish()

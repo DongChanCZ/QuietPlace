@@ -158,6 +158,35 @@ public static class InteractableGlowSetup
                   + string.Join("\n", report.ToArray()));
     }
 
+    [MenuItem("Tools/QuietPlace/반짝이 - 5. 씬의 모든 반짝이를 기본값으로 맞추기")]
+    public static void ResyncAll()
+    {
+        // 스크립트 기본값을 바꿔도 이미 씬에 붙어 있는 컴포넌트는 예전 값을 그대로 들고 있다.
+        // 값을 조정한 뒤 전체에 다시 적용할 때 쓴다.
+        InteractableGlow[] all = Object.FindObjectsByType<InteractableGlow>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        int n = 0;
+
+        foreach (InteractableGlow g in all)
+        {
+            SerializedObject so = new SerializedObject(g);
+            so.FindProperty("glowColor").colorValue = new Color(0.35f, 0.72f, 1f);
+            so.FindProperty("intensity").floatValue = 0.85f;
+            so.FindProperty("idleLevel").floatValue = 0.1f;
+            so.FindProperty("breathSpeed").floatValue = 0.22f;
+            so.FindProperty("breathAmount").floatValue = 0.14f;
+            so.FindProperty("twinkleInterval").floatValue = 3.6f;
+            so.FindProperty("twinkleIntervalJitter").floatValue = 1.6f;
+            so.FindProperty("twinkleDuration").floatValue = 0.32f;
+            so.FindProperty("twinklePeak").floatValue = 1f;
+            so.ApplyModifiedProperties();
+            EditorUtility.SetDirty(g);
+            n++;
+        }
+
+        Debug.Log($"[InteractableGlowSetup] 반짝이 {n}개를 기본값으로 맞췄다\n" +
+                  "  평소 10% 밝기 + 아주 느린 숨쉬기, 3.6±1.6초마다 0.32초씩 반짝임");
+    }
+
     [MenuItem("Tools/QuietPlace/반짝이 - 4. 고른 오브젝트에서 반짝이 빼기")]
     public static void RemoveFromSelection()
     {

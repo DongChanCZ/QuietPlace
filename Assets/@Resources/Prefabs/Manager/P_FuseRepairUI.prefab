@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7634862062087031794}
-  - component: {fileID: 7729893515734959712}
+  - component: {fileID: 8785059688338796676}
   m_Layer: 0
   m_Name: Stage4_BreakerUp
   m_TagString: Untagged
@@ -40,7 +40,7 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &7729893515734959712
+--- !u!114 &8785059688338796676
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -49,13 +49,18 @@ MonoBehaviour:
   m_GameObject: {fileID: 598862301272733979}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 256c20953af49b74a985bc31af13a48d, type: 3}
+  m_Script: {fileID: 11500000, guid: d31d4a32b60c7ac4bb5b997ba7927bec, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MashToComplete
-  requiredPresses: 15
-  progressPerPress: 1
-  decayPerSecond: 0.6
+  m_EditorClassIdentifier: Assembly-CSharp::HoldToComplete
+  holdKey: 19
+  requiredSeconds: 2.4
+  startSpeed: 0.22
+  accelSeconds: 1.3
+  decayPerSecond: 0.5
   progressFill: {fileID: 7875605937199664901}
+  hintLabel: {fileID: 0}
+  lever: {fileID: 0}
+  leverGoesUp: 1
   onComplete:
     m_PersistentCalls:
       m_Calls: []
@@ -230,6 +235,7 @@ MonoBehaviour:
   speedRampPerHit: 70
   keySequence: 200000002100000022000000
   currentKeyLabel: {fileID: 5113664700672273607}
+  hintLabel: {fileID: 5479347923504920121}
   audioSource: {fileID: 0}
   hitSound: {fileID: 0}
   missSound: {fileID: 0}
@@ -311,6 +317,143 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!1 &3171947170334355141
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4124316292195523557}
+  - component: {fileID: 8467757788003794731}
+  - component: {fileID: 5439323849414251009}
+  m_Layer: 0
+  m_Name: ExitHint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &4124316292195523557
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3171947170334355141}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 67086929908717565}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: -430}
+  m_SizeDelta: {x: 400, y: 36}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &8467757788003794731
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3171947170334355141}
+  m_CullTransparentMesh: 1
+--- !u!114 &5439323849414251009
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3171947170334355141}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_text: "X  \uADF8\uB9CC\uB450\uAE30"
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: 16550c05cb6491b49be8b59b1bbd9560, type: 2}
+  m_sharedMaterial: {fileID: -2287058760040969196, guid: 16550c05cb6491b49be8b59b1bbd9560, type: 2}
+  m_fontSharedMaterials: []
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontColor: {r: 0.55, g: 0.58, b: 0.62, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: 0
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 22
+  m_fontSizeBase: 22
+  m_fontWeight: 400
+  m_enableAutoSizing: 0
+  m_fontSizeMin: 18
+  m_fontSizeMax: 72
+  m_fontStyle: 0
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_characterHorizontalScale: 1
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_TextWrappingMode: 1
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 0
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 0
+  m_ActiveFontFeatures: 6e72656b
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 1
+  m_EmojiFallbackSupport: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 1
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!1 &3267303152431703189
 GameObject:
   m_ObjectHideFlags: 0
@@ -742,7 +885,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &7015012260211079859
 RectTransform:
   m_ObjectHideFlags: 0
@@ -790,7 +933,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "E \uC5F0\uD0C0"
+  m_text: "E \uB97C \uAFB9 \uB204\uB978\uB2E4"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 16550c05cb6491b49be8b59b1bbd9560, type: 2}
   m_sharedMaterial: {fileID: -2287058760040969196, guid: 16550c05cb6491b49be8b59b1bbd9560, type: 2}
@@ -1522,7 +1665,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1906461856708878284}
-  - component: {fileID: 1785691401778749952}
+  - component: {fileID: 3286328731728121476}
   m_Layer: 0
   m_Name: Stage1_BreakerDown
   m_TagString: Untagged
@@ -1553,7 +1696,7 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1785691401778749952
+--- !u!114 &3286328731728121476
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1562,13 +1705,18 @@ MonoBehaviour:
   m_GameObject: {fileID: 5466289184972444006}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 256c20953af49b74a985bc31af13a48d, type: 3}
+  m_Script: {fileID: 11500000, guid: d31d4a32b60c7ac4bb5b997ba7927bec, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MashToComplete
-  requiredPresses: 15
-  progressPerPress: 1
-  decayPerSecond: 0.6
+  m_EditorClassIdentifier: Assembly-CSharp::HoldToComplete
+  holdKey: 19
+  requiredSeconds: 2.4
+  startSpeed: 0.22
+  accelSeconds: 1.3
+  decayPerSecond: 0.5
   progressFill: {fileID: 2183698032800451044}
+  hintLabel: {fileID: 6167092723745016787}
+  lever: {fileID: 0}
+  leverGoesUp: 0
   onComplete:
     m_PersistentCalls:
       m_Calls: []
@@ -1742,6 +1890,7 @@ RectTransform:
   - {fileID: 8549646205900325812}
   - {fileID: 2169195798904251688}
   - {fileID: 7634862062087031794}
+  - {fileID: 4124316292195523557}
   m_Father: {fileID: 6779998786666162735}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1865,14 +2014,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e61d85902829414da15ee80a2b3a523, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FuseBoxRepairSequence
-  breakerDown: {fileID: 1785691401778749952}
   breakerDownRoot: {fileID: 5466289184972444006}
+  breakerDown: {fileID: 0}
+  breakerDownHold: {fileID: 3286328731728121476}
   dischargeCheck: {fileID: 5749180675202882788}
   dischargeRoot: {fileID: 1837175845432074087}
   fuseInsert: {fileID: 1147203668877328288}
   fuseRoot: {fileID: 3694562163692083397}
-  breakerUp: {fileID: 7729893515734959712}
   breakerUpRoot: {fileID: 598862301272733979}
+  breakerUp: {fileID: 0}
+  breakerUpHold: {fileID: 8785059688338796676}
   onPowerRestored:
     m_PersistentCalls:
       m_Calls: []
@@ -1890,6 +2041,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::FuseRepairManager
   minigameRoot: {fileID: 6128421424202136984}
   sequence: {fileID: 2241462569294748080}
+  breakerLever: {fileID: 0}
   lockPlayerLook: 1
 --- !u!1 &7700258432574202749
 GameObject:
@@ -2120,7 +2272,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &4910904858801376849
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2305,7 +2457,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "E \uC5F0\uD0C0"
+  m_text: "E \uB97C \uAFB9 \uB204\uB978\uB2E4"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 16550c05cb6491b49be8b59b1bbd9560, type: 2}
   m_sharedMaterial: {fileID: -2287058760040969196, guid: 16550c05cb6491b49be8b59b1bbd9560, type: 2}

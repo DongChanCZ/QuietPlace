@@ -25,7 +25,10 @@ public sealed class ComputerTerminal : Interactable
     /// 비밀번호를 이미 통과했는가. 중간에 Esc 로 나갔다 들어와도 다시 묻지 않는다.
     public bool PasswordSolved { get; private set; }
 
-    /// 주파수 정합까지 끝났는가.
+    /// 주파수를 맞춰 송출이 시작됐는가.
+    public bool FrequencySet { get; private set; }
+
+    /// 송출까지 다 끝났는가.
     public bool Solved { get; private set; }
 
     // 콘솔은 손이 차 있어도 만질 수 있다 - 키보드는 팔꿈치로도 눌린다
@@ -34,12 +37,14 @@ public sealed class ComputerTerminal : Interactable
     public override string Prompt(IInteractor player)
     {
         if (Solved && oneShot) return null;
+        if (FrequencySet) return null;   // 송출 중에는 더 만질 게 없다
         return "E  " + displayName + (PasswordSolved ? " 주파수 정합" : " 접속");
     }
 
     public override void Interact(IInteractor player)
     {
         if (Solved && oneShot) return;
+        if (FrequencySet) return;
 
         if (FrequencyHackManager.Instance == null)
         {
@@ -59,7 +64,15 @@ public sealed class ComputerTerminal : Interactable
         PasswordSolved = true;
     }
 
-    /// <summary>주파수 정합까지 끝났을 때 매니저가 부른다.</summary>
+    /// <summary>네 대역을 다 맞춰 송출이 시작됐을 때 매니저가 부른다.</summary>
+    public void OnFrequencySet(IInteractor player)
+    {
+        FrequencySet = true;
+        PasswordSolved = true;
+        if (player != null) player.ShowNotice("주파수가 맞았다. 송출이 시작된다 - 숨어서 버텨라.");
+    }
+
+    /// <summary>송출까지 끝났을 때 매니저가 부른다.</summary>
     public void OnSolved(IInteractor player)
     {
         if (Solved && oneShot) return;
