@@ -34,6 +34,10 @@ public sealed class FusePickup : Interactable, IHoldable
     public bool Taken { get; private set; }
     public bool Installed { get; private set; }
 
+    /// 한 번이라도 집었는가. Taken 은 내려놓으면 다시 false 가 되지만 "자리에서 빼냈다" 는
+    /// 사실은 되돌아가지 않는다. 고장난 부품을 방 밖에 내려놨는데 슬롯이 다시 막히면 안 된다.
+    public bool EverTaken { get; private set; }
+
     private Rigidbody body;
     private Transform originalParent;
 
@@ -60,6 +64,10 @@ public sealed class FusePickup : Interactable, IHoldable
 
     // ---------------------------------------------------------------- Interactable
 
+    /// 주머니에 넣는 작은 물건(퓨즈, 몽키스패너)은 무거운 걸 들고 있어도 챙길 수 있다.
+    /// 두 손으로 드는 물건만 손을 비워야 한다 - 변압기를 들고 변압기를 또 들 수는 없다.
+    public override bool AllowedWhileHandsFull => !carryInHands;
+
     public override string Prompt(IInteractor player)
     {
         if (Installed || Taken) return null;
@@ -73,6 +81,7 @@ public sealed class FusePickup : Interactable, IHoldable
         if (!carryInHands)
         {
             Taken = true;
+            EverTaken = true;
             gameObject.SetActive(false);
             if (player != null) player.ShowNotice(displayName + "를 챙겼습니다.");
             return;
@@ -92,6 +101,7 @@ public sealed class FusePickup : Interactable, IHoldable
         }
 
         Taken = true;
+        EverTaken = true;
         controller.EnterHolding(this);
         if (player != null) player.ShowNotice(displayName + "를 들었습니다.");
     }
@@ -150,6 +160,7 @@ public sealed class FusePickup : Interactable, IHoldable
 
         Installed = true;
         Taken = true;
+        EverTaken = true;
 
         // 손에 들려 있었다면 FuseSlot 이 먼저 DropHeldItem 으로 놓아주므로 부모는 이미 원복돼 있다.
         transform.SetParent(originalParent, true);

@@ -28,6 +28,11 @@ public sealed class FuseSlot : Interactable
     /// part 를 포함해 이 중 플레이어가 챙겨온 것 하나가 설치된다.
     [SerializeField] FusePickup[] alternateParts;
 
+    /// 자리를 이미 차지하고 있는 고장난 부품. 이걸 먼저 들어내지 않으면 새 부품이 들어갈
+    /// 자리가 없다. 비워두면 이 검사를 건너뛴다.
+    [Header("먼저 빼내야 하는 고장난 부품")]
+    [SerializeField] FusePickup blockingPart;
+
     /// Whether the bay is seated. The breaker reads this - it trips back down
     /// on an empty bay - and this is the only thing outside needs to know.
     public bool Filled
@@ -44,6 +49,9 @@ public sealed class FuseSlot : Interactable
 
     /// 플레이어가 실제로 챙겨온 부품. 여분이 여러 개면 먼저 찾은 것을 쓴다.
     /// 아무것도 챙기지 않았으면 null.
+    /// 고장난 부품이 아직 자리에 박혀 있는가.
+    public bool Blocked { get { return blockingPart != null && !blockingPart.EverTaken; } }
+
     FusePickup CarriedPart()
     {
         if (part != null && part.Taken && !part.Installed) return part;
@@ -73,6 +81,8 @@ public sealed class FuseSlot : Interactable
     {
         if (anchor == null || Filled) return null;
         if (cover != null && !cover.Open) return null;   // 고정판이 자기 안내문을 낸다
+        // 여기서 null 을 내면 커버를 뗀 뒤 화면에 아무 안내도 없어 막힌 것처럼 보인다.
+        if (Blocked) return displayName + " · 고장난 " + itemName + " 먼저 들어내기";
         return CarriedPart() != null ? "E  " + itemName + " 설치" : displayName + " · " + itemName + " 없음";
     }
 
@@ -82,6 +92,11 @@ public sealed class FuseSlot : Interactable
         if (cover != null && !cover.Open)
         {
             if (player != null) player.ShowNotice("고정판을 먼저 떼어내야 합니다.");
+            return;
+        }
+        if (Blocked)
+        {
+            if (player != null) player.ShowNotice("자리에 박힌 " + itemName + "를 먼저 들어내야 합니다.");
             return;
         }
         if (CarriedPart() == null)

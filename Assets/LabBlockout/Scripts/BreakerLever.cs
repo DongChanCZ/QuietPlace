@@ -20,6 +20,9 @@ public sealed class BreakerLever : Interactable
     [SerializeField] float swingSeconds = 0.22f;
     [SerializeField] float tripSeconds = 0.7f;
 
+    [Header("처음부터 올라가 있는가 - 플레이어가 내리고 시작한다")]
+    [SerializeField] bool startOn = true;
+
     public bool On { get; private set; }
 
     Quaternion from;
@@ -30,7 +33,11 @@ public sealed class BreakerLever : Interactable
     void Awake()
     {
         Debug.Assert(lever, "BreakerLever has no lever to swing.");
-        if (lever != null) lever.localRotation = Quaternion.Euler(downEuler);
+
+        // 정전 전까지 돌아가던 설비라서 레버는 올라간 채로 발견된다. 퓨즈를 갈려면
+        // 플레이어가 먼저 이걸 내려야 한다 - 미니게임 1단계가 그 동작이다.
+        On = startOn;
+        if (lever != null) lever.localRotation = Quaternion.Euler(startOn ? upEuler : downEuler);
     }
 
     // 레버는 팔꿈치로도 내릴 수 있다

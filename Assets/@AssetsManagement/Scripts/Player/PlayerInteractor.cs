@@ -285,6 +285,10 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         {
             var candidate = reach[i].collider.GetComponentInParent<Interactable>();
             if (candidate == null || reach[i].distance >= nearestDistance) continue;
+            // 컴포넌트를 꺼둔 Interactable 은 조준 대상이 아니다. GetComponentInParent 는
+            // enabled 를 보지 않아서, 열고닫기를 없앤 문(SlidingDoor 비활성)이 그대로 잡혀
+            // E 를 누르면 열림/닫힘 안내문만 계속 뜨는 문제가 있었다.
+            if (!candidate.enabled) continue;
             nearest = candidate;
             nearestDistance = reach[i].distance;
         }
