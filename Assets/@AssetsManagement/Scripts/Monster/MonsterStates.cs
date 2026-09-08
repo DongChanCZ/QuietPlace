@@ -151,12 +151,14 @@ public class MonsterSecondDetectionState : IMonsterState
 
     private bool isPaused;
     private float pauseTimer;
+    private bool arrivedIdle; // 쫓아갈 곳에 도착해서 더 갱신될 목적지가 없어 두리번거리는 중인지
 
     public void Enter(MonsterController ctx)
     {
         ctx.Agent.speed = ctx.secondChaseSpeed;
         isPaused = true;
         pauseTimer = ctx.reactionDelay; // 감지 직후 바로 움직이지 않고 "어?" 하고 멈칫 (딱 한 번만)
+        arrivedIdle = false;
         ctx.Agent.ResetPath();
         ctx.SetAnimState("Idle");
     }
@@ -186,14 +188,30 @@ public class MonsterSecondDetectionState : IMonsterState
             return;
         }
 
-        // 확실히 알아챈 상태 — 스냅샷이 아니라 플레이어 실시간 위치를 계속 추적 (계속 움직여도 놓치지 않음).
-        // 단, 목적지가 크게 안 바뀌었으면 재지정 안 함 - 좁은 틈 너머라 도달 불가한 경우 매프레임
-        // 가장 가까운 지점을 다시 계산하면서 제자리에서 떠는 것처럼 보이는 걸 방지.
-        if (Vector3.Distance(ctx.Agent.destination, ctx.player.transform.position) > ctx.destinationUpdateThreshold)
-            ctx.Agent.SetDestination(ctx.player.transform.position);
+        // 확실히 알아챈 상태지만, 실좌표가 아니라 LastHeardPosition(마지막으로 실제 소리가 들린 지점)을
+        // 쫓는다 - 플레이어가 계속 소리를 내는 한(PlayerNoiseEmitter가 0.3초마다 갱신) 사실상 실시간
+        // 추적과 다름없지만, 조용해지면 그 지점에서 멈춰서 실제로 놓칠 수 있다 - "위치를 보고 있는"
+        // 것이 아니라 "소리를 쫓는" 느낌을 위함. 목적지가 크게 안 바뀌었으면 재지정 안 함 - 좁은 틈
+        // 너머라 도달 불가한 경우 매프레임 가장 가까운 지점을 다시 계산하면서 제자리에서 떠는 것 방지.
+        if (Vector3.Distance(ctx.Agent.destination, ctx.LastHeardPosition) > ctx.destinationUpdateThreshold)
+        {
+            ctx.Agent.SetDestination(ctx.LastHeardPosition);
+            if (arrivedIdle)
+            {
+                arrivedIdle = false;
+                ctx.SetAnimState("Chasing"); // 새 소리가 갱신돼서 다시 쫓아감
+            }
+        }
+        else if (!arrivedIdle && !ctx.Agent.pathPending && ctx.Agent.remainingDistance <= ctx.Agent.stoppingDistance)
+        {
+            // 도착했는데 더 갈 곳이 없음 - 청각 상태(타임아웃/공격 판정)는 그대로 유지한 채
+            // 계속 뛰는 모션 대신 두리번거리는 모션으로 - 제자리에서 계속 달리는 것처럼 보이는 것 방지.
+            arrivedIdle = true;
+            ctx.SetAnimState("Analyzing");
+        }
     }
 
-    public void Exit(MonsterController ctx) { isPaused = false; }
+    public void Exit(MonsterController ctx) { isPaused = false; arrivedIdle = false; }
 }
 
 public class MonsterFinalDetectionState : IMonsterState
@@ -202,12 +220,14 @@ public class MonsterFinalDetectionState : IMonsterState
 
     private bool isPaused;
     private float pauseTimer;
+    private bool arrivedIdle; // 쫓아갈 곳에 도착해서 더 갱신될 목적지가 없어 두리번거리는 중인지
 
     public void Enter(MonsterController ctx)
     {
         ctx.Agent.speed = ctx.secondChaseSpeed;
         isPaused = true;
         pauseTimer = ctx.reactionDelay; // 감지 직후 바로 움직이지 않고 "어?" 하고 멈칫 (딱 한 번만)
+        arrivedIdle = false;
         ctx.Agent.ResetPath();
         ctx.SetAnimState("Idle");
     }
@@ -239,14 +259,30 @@ public class MonsterFinalDetectionState : IMonsterState
             return;
         }
 
-        // 확실히 알아챈 상태 — 스냅샷이 아니라 플레이어 실시간 위치를 계속 추적 (계속 움직여도 놓치지 않음).
-        // 단, 목적지가 크게 안 바뀌었으면 재지정 안 함 - 좁은 틈 너머라 도달 불가한 경우 매프레임
-        // 가장 가까운 지점을 다시 계산하면서 제자리에서 떠는 것처럼 보이는 걸 방지.
-        if (Vector3.Distance(ctx.Agent.destination, ctx.player.transform.position) > ctx.destinationUpdateThreshold)
-            ctx.Agent.SetDestination(ctx.player.transform.position);
+        // 확실히 알아챈 상태지만, 실좌표가 아니라 LastHeardPosition(마지막으로 실제 소리가 들린 지점)을
+        // 쫓는다 - 플레이어가 계속 소리를 내는 한(PlayerNoiseEmitter가 0.3초마다 갱신) 사실상 실시간
+        // 추적과 다름없지만, 조용해지면 그 지점에서 멈춰서 실제로 놓칠 수 있다 - "위치를 보고 있는"
+        // 것이 아니라 "소리를 쫓는" 느낌을 위함. 목적지가 크게 안 바뀌었으면 재지정 안 함 - 좁은 틈
+        // 너머라 도달 불가한 경우 매프레임 가장 가까운 지점을 다시 계산하면서 제자리에서 떠는 것 방지.
+        if (Vector3.Distance(ctx.Agent.destination, ctx.LastHeardPosition) > ctx.destinationUpdateThreshold)
+        {
+            ctx.Agent.SetDestination(ctx.LastHeardPosition);
+            if (arrivedIdle)
+            {
+                arrivedIdle = false;
+                ctx.SetAnimState("Chasing"); // 새 소리가 갱신돼서 다시 쫓아감
+            }
+        }
+        else if (!arrivedIdle && !ctx.Agent.pathPending && ctx.Agent.remainingDistance <= ctx.Agent.stoppingDistance)
+        {
+            // 도착했는데 더 갈 곳이 없음 - 청각 상태(타임아웃/공격 판정)는 그대로 유지한 채
+            // 계속 뛰는 모션 대신 두리번거리는 모션으로 - 제자리에서 계속 달리는 것처럼 보이는 것 방지.
+            arrivedIdle = true;
+            ctx.SetAnimState("Analyzing");
+        }
     }
 
-    public void Exit(MonsterController ctx) { isPaused = false; }
+    public void Exit(MonsterController ctx) { isPaused = false; arrivedIdle = false; }
 }
 
 public class MonsterAttackState : IMonsterState

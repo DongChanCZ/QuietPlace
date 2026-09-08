@@ -71,7 +71,10 @@ public sealed class MainEntranceCollapse : MonoBehaviour
         permanentBlocker.enabled = true;
         if (blockerObstacle != null) blockerObstacle.enabled = true;
         if (dust != null) dust.Play();
-        NoiseManager.Instance?.Emit(new NoiseEvent(transform.position, 10f, 25f, NoiseType.Custom)); // 붕괴 순간 큰 소리 (Range는 실측 거리+벽감쇠 감안해 25로 확장)
+        // 붕괴 순간 큰 소리. 실측해보니 몬스터 순찰 위치까지 벽/바닥 감쇠가 커서(측정된 최종 intensity
+        // 1.49 - tier3=3 미달, SecondDetection에서 멈춤) loudness=10으로는 최종 청각 판정에서
+        // Final을 못 넘겼다. 감쇠 배율(약 0.29배)을 역산해 loudness를 30으로 올려 여유 있게 확보.
+        NoiseManager.Instance?.Emit(new NoiseEvent(transform.position, 30f, 30f, NoiseType.Custom));
         SoundManager.Instance?.PlaySFX(collapseSoundName); // 위 NoiseEvent 는 몬스터 청각용이고, 실제로 플레이어에게 들리는 소리는 이쪽
         ReleaseFragments();
         StartCoroutine(ShakeCamera());

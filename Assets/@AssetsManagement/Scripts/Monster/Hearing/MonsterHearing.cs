@@ -16,10 +16,16 @@ public class MonsterHearing : MonoBehaviour
     public float verticalTolerance = 3f; // 같은 층으로 볼 Y축 거리 (귀 높이 등으로 인한 기본 오차) — 이 안쪽은 가중치 없이 그대로 취급
     public float verticalDistanceWeight = 3f; // verticalTolerance를 넘는 초과분에만 곱해지는 가중치 — 클수록 다른 층 소리가 더 빨리 범위 밖으로 취급됨
 
-    [Header("Detection Thresholds (최종 청각 강도 0~1)")]
-    [Range(0f, 1f)] public float tier1Threshold = 0.15f;
-    [Range(0f, 1f)] public float tier2Threshold = 0.4f;
-    [Range(0f, 1f)] public float tier3Threshold = 0.7f;
+    // 판정 대상은 Loudness 원본이 아니라 거리/벽 감쇠까지 다 곱한 최종 intensity라 raw Loudness보다
+    // 훨씬 낮게 잡아야 한다. 실측(벽 1개 낀 5m, Walking) intensity≈0.86 - 벽 하나만 껴도 감쇠가
+    // 커서(defaultObstaclePassFactor=0.6) 완전 개활지 가정보다 훨씬 낮게 나온다. 이 실측값 기준:
+    //  - Idle(2) 완전 근접·개활지 intensity≈1.75 -> tier3 미만으로 묶어서 스쳐도 Final行 안 됨
+    //  - Walking(3) 벽 하나 낀 5m intensity≈0.86 -> tier2 이상으로 실추적 시작
+    //  - Gasping/Fearing(5)·투척(10)만 벽 있어도 tier3까지 도달
+    [Header("Detection Thresholds (최종 청각 강도 - 거리/벽 감쇠 적용 후 값)")]
+    public float tier1Threshold = 0.3f; // 거의 모든 근처 소리가 최소 한 번은 걸리는 정도
+    public float tier2Threshold = 0.7f; // Walking이 벽 하나 정도 껴도 실추적으로 이어지게
+    public float tier3Threshold = 3f;   // 이동 소음만으로는 도달 안 함 - 비명/투척급만
 
     [Header("Debug")]
     public bool showDebugGizmos = true;
