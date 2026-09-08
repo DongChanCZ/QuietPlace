@@ -18,6 +18,15 @@ public class InteractionPromptUI : MonoBehaviour
     {
         if (player == null || label == null) return;
 
+        // 미니게임이 열리면 매니저가 PlayerInteractor 를 꺼둔다. Aimed 는 꺼진 컴포넌트에서도
+        // 읽히므로, 이 검사가 없으면 미니게임 화면 위에 "E 퓨즈 설치" 같은 프롬프트가 남는다.
+        if (!player.enabled)
+        {
+            label.text = string.Empty;
+            label.enabled = false;
+            return;
+        }
+
         Interactable target = player.Aimed;
         string prompt = target != null && !(target is SlidingDoor) ? target.Prompt(player) : null;
 

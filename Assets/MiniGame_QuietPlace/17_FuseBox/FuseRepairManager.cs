@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// 배전반 수리 미니게임의 진입점. 맵 프리팹 안의 FuseSlot 이 씬에 있는 UI 를 직접 참조할 수 없어서
@@ -42,6 +43,14 @@ public class FuseRepairManager : MonoBehaviour
         if (Instance == this) Instance = null;
     }
 
+    void Update()
+    {
+        // 퓨즈 미니게임도 같은 이유로 Esc 취소가 필요하다 (커서가 풀린 채 갇히는 것 방지)
+        if (!IsRunning) return;
+        if (Keyboard.current == null) return;
+        if (Keyboard.current.escapeKey.wasPressedThisFrame) Cancel();
+    }
+
     /// <summary>FuseSlot 이 호출한다. 이미 진행 중이면 무시한다.</summary>
     public void Begin(FuseSlot slot, IInteractor player)
     {
@@ -72,6 +81,9 @@ public class FuseRepairManager : MonoBehaviour
         Finish();
 
         if (slot != null) slot.CompleteInstall(player);
+
+        // 퓨즈가 꽂혔으니 건물에 전원이 들어온다. 조명/차단기 레버는 BuildingPower 가 들고 있다.
+        if (BuildingPower.Instance != null) BuildingPower.Instance.Restore();
     }
 
     /// <summary>중간에 그만둘 때. 설치는 하지 않는다.</summary>

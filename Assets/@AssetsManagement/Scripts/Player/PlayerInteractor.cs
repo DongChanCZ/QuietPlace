@@ -121,11 +121,31 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         if (keyboard.eKey.wasPressedThisFrame)
         {
             Interactable target = Aimed;
-            if (target != null) target.Interact(this);
+            if (target != null)
+            {
+                if (CanInteractWith(target)) target.Interact(this);
+            }
+            else if (playerController != null && playerController.HeldItem != null)
+            {
+                // 아무것도 겨누지 않은 상태에서 E 를 누르면 들고 있던 물건을 내려놓는다.
+                // 슬롯이나 문을 보고 있을 때는 위쪽 분기가 먼저 처리하므로 설치가 우선된다.
+                playerController.DropHeldItem();
+            }
         }
         if (keyboard.fKey.wasPressedThisFrame) UseSelectedItem();
         if (keyboard.qKey.wasPressedThisFrame) ThrowSelectedItem();
         DrainBattery();
+    }
+
+    // 두 손으로 무거운 물건을 들고 있으면 새로 뭔가를 집을 수 없다.
+    // 설치 슬롯이나 문처럼 손을 비우지 않아도 되는 것만 AllowedWhileHandsFull 로 통과시킨다.
+    bool CanInteractWith(Interactable target)
+    {
+        bool handsFull = playerController != null && playerController.HeldItem != null;
+        if (!handsFull || target.AllowedWhileHandsFull) return true;
+
+        ShowNotice("양손이 차 있습니다. 먼저 내려놓으세요.");
+        return false;
     }
 
     // F는 손전등이면 토글, 약이면 그 자리에서 소비 - 그 외(빈 슬롯/사용 불가 아이템)엔 아무 반응 없음.
@@ -326,6 +346,10 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         {
             var candidate = reach[i].collider.GetComponentInParent<Interactable>();
             if (candidate == null || reach[i].distance >= nearestDistance) continue;
+            // 컴포넌트를 꺼둔 Interactable 은 조준 대상이 아니다. GetComponentInParent 는
+            // enabled 를 보지 않아서, 열고닫기를 없앤 문(SlidingDoor 비활성)이 그대로 잡혀
+            // E 를 누르면 열림/닫힘 안내문만 계속 뜨는 문제가 있었다.
+            if (!candidate.enabled) continue;
             nearest = candidate;
             nearestDistance = reach[i].distance;
         }
