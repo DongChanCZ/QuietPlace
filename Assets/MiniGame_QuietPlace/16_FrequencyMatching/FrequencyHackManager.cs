@@ -2,10 +2,12 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 /// <summary>
-/// 3층 키패드 해킹(주파수 맞추기) 미니게임의 진입점.
+/// 3층 컴퓨터의 진입점 (비밀번호 -> 주파수 맞추기).
 ///
-/// 맵 프리팹 안의 KeypadTerminal 이 씬에 있는 UI 를 직접 참조하지 않도록 이 매니저를 거친다.
-/// FuseRepairManager / TransformerRepairManager 와 같은 구조다.
+/// 맵 프리팹 안의 ComputerTerminal 이 씬에 있는 UI 를 직접 참조하지 않도록 이 매니저를 거친다.
+/// 다른 미니게임 매니저들과 같은 구조다.
+///
+/// 문을 여는 키패드는 이쪽이 아니라 DoorHackManager(빨리치기)가 담당한다.
 /// </summary>
 [DefaultExecutionOrder(-1000)]
 public class FrequencyHackManager : MonoBehaviour
@@ -15,14 +17,20 @@ public class FrequencyHackManager : MonoBehaviour
     [Header("미니게임 UI 전체 (평소에는 꺼둔다)")]
     [SerializeField] private GameObject minigameRoot;
 
-    [Header("주파수 퍼즐")]
+    [Header("1단계: 비밀번호 - 비우면 바로 주파수로 간다")]
+    [SerializeField] private GameObject passwordRoot;
+    [SerializeField] private PasswordEntry passwordEntry;
+
+    [Header("2단계: 주파수 정합")]
+    [SerializeField] private GameObject puzzleRoot;
     [SerializeField] private FrequencyMatchingPuzzle puzzle;
 
-    private KeypadTerminal pendingKeypad;
+    private ComputerTerminal pendingComputer;
+    private IInteractor pendingPlayer;
     private MonoBehaviour suppressedInteractor;
     private PlayerController lockedPlayer;
 
-    public bool IsRunning => pendingKeypad != null;
+    public bool IsRunning => pendingComputer != null;
 
     void Awake()
     {
@@ -45,9 +53,9 @@ public class FrequencyHackManager : MonoBehaviour
         if (Keyboard.current.escapeKey.wasPressedThisFrame) Cancel();
     }
 
-    public void Begin(KeypadTerminal keypad, IInteractor player)
+    public void Begin(ComputerTerminal computer, IInteractor player)
     {
-        if (IsRunning || keypad == null) return;
+        if (IsRunning || computer == null) return;
 
         if (minigameRoot == null || puzzle == null)
         {
@@ -55,18 +63,49 @@ public class FrequencyHackManager : MonoBehaviour
             return;
         }
 
-        pendingKeypad = keypad;
+        pendingComputer = computer;
+        pendingPlayer = player;
         SuppressPlayer(player);
 
         minigameRoot.SetActive(true);
+
+        // 비밀번호를 이미 통과했으면 다시 묻지 않는다.
+        bool needPassword = passwordEntry != null && passwordRoot != null && !computer.PasswordSolved;
+        if (needPassword)
+        {
+            if (puzzleRoot != null) puzzleRoot.SetActive(false);
+            passwordRoot.SetActive(true);
+            passwordEntry.onCorrect.AddListener(HandlePasswordCorrect);
+            return;
+        }
+
+        ShowPuzzleStage();
+    }
+
+    private void HandlePasswordCorrect()
+    {
+        if (passwordEntry != null) passwordEntry.onCorrect.RemoveListener(HandlePasswordCorrect);
+        if (pendingComputer != null) pendingComputer.MarkPasswordSolved();
+
+        ShowPuzzleStage();
+    }
+
+    private void ShowPuzzleStage()
+    {
+        if (passwordRoot != null) passwordRoot.SetActive(false);
+        if (puzzleRoot != null) puzzleRoot.SetActive(true);
+
         puzzle.onFullyCharged.AddListener(HandleCharged);
     }
 
     private void HandleCharged()
     {
-        KeypadTerminal keypad = pendingKeypad;
+        ComputerTerminal computer = pendingComputer;
+        IInteractor player = pendingPlayer;
+
         Finish();
-        if (keypad != null) keypad.OnHacked();
+
+        if (computer != null) computer.OnSolved(player);
     }
 
     public void Cancel()
@@ -78,13 +117,15 @@ public class FrequencyHackManager : MonoBehaviour
     private void Finish()
     {
         if (puzzle != null) puzzle.onFullyCharged.RemoveListener(HandleCharged);
+        if (passwordEntry != null) passwordEntry.onCorrect.RemoveListener(HandlePasswordCorrect);
         if (minigameRoot != null) minigameRoot.SetActive(false);
 
         RestorePlayer();
-        pendingKeypad = null;
+        pendingComputer = null;
+        pendingPlayer = null;
     }
 
-    // 슬라이더를 마우스로 끌어야 하므로 커서를 풀고, 그 사이 상호작용/시야는 잠근다.
+    // 슬라이더를 마우스로 끌어야 하므로 커서를 풀고, 그 사이 조작은 잠근다.
     private void SuppressPlayer(IInteractor player)
     {
         Cursor.lockState = CursorLockMode.None;
@@ -96,13 +137,18 @@ public class FrequencyHackManager : MonoBehaviour
         suppressedInteractor.enabled = false;
 
         lockedPlayer = suppressedInteractor.GetComponent<PlayerController>();
-        if (lockedPlayer != null) lockedPlayer.CameraLocked = true;
+        if (lockedPlayer == null) return;
+
+        // 비밀번호를 타이핑하는 동안 WASD 로 걸어다니면 안 된다.
+        lockedPlayer.InputLocked = true;
+        lockedPlayer.CameraLocked = true;
     }
 
     private void RestorePlayer()
     {
         if (lockedPlayer != null)
         {
+            lockedPlayer.InputLocked = false;
             lockedPlayer.CameraLocked = false;
             lockedPlayer = null;
         }

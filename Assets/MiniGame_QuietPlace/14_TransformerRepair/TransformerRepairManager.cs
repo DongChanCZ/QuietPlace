@@ -145,13 +145,18 @@ public class TransformerRepairManager : MonoBehaviour
         suppressedInteractor.enabled = false;
 
         lockedPlayer = suppressedInteractor.GetComponent<PlayerController>();
-        if (lockedPlayer != null) lockedPlayer.CameraLocked = true;
+        if (lockedPlayer == null) return;
+
+        // 미니게임 키가 이동 키와 겹친다(A/D, S). 입력 자체를 막아야 몸이 안 움직인다.
+        lockedPlayer.InputLocked = true;
+        lockedPlayer.CameraLocked = true;
     }
 
     private void RestorePlayer()
     {
         if (lockedPlayer != null)
         {
+            lockedPlayer.InputLocked = false;
             lockedPlayer.CameraLocked = false;
             lockedPlayer = null;
         }

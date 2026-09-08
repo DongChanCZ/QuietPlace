@@ -8,7 +8,13 @@ public class TransformerRepairSequence : MonoBehaviour
 
     [Header("3단계: 모듈 안착 (볼트 다 풀리기 전엔 비활성화)")]
     public GameObject moduleBalanceStageRoot;
+
+    /// 3D 월드에서 큐브를 끄는 옛 방식. 어두운 방에서 카메라 각도에 따라 보이지 않는
+    /// 문제가 있어 지금은 쓰지 않는다. 프리뷰 씬 호환을 위해 필드는 남겨둔다.
     public HeavyModuleBalance moduleBalanceStage;
+
+    /// 화면 UI 방식. 둘 중 채워진 쪽의 onSeated 를 듣는다.
+    public ModuleBalanceUI moduleBalanceUI;
 
     [Header("4단계: 배선 연결 (모듈 안착 전엔 비활성화)")]
     public GameObject wireStageRoot;
@@ -20,6 +26,7 @@ public class TransformerRepairSequence : MonoBehaviour
     {
         if (boltStage != null) boltStage.onAllBoltsRemoved.AddListener(OnBoltsDone);
         if (moduleBalanceStage != null) moduleBalanceStage.onSeated.AddListener(OnModuleSeated);
+        if (moduleBalanceUI != null) moduleBalanceUI.onSeated.AddListener(OnModuleSeated);
         if (wireStage != null) wireStage.onAllWiresConnected.AddListener(OnWiringDone);
 
         Begin();
