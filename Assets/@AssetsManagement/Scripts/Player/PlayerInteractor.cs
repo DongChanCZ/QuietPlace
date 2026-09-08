@@ -25,6 +25,11 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
     [Header("Held Item Models")]
     [SerializeField] GameObject flashlightModelPrefab;
 
+    [Header("Throwing")]
+    public float throwForce = 10f;
+    public float throwUpwardArc = 2f;
+    [SerializeField] GameObject landingRingPrefab;
+
     Transform heldItemAnchor;
     GameObject brickHeldModel;
     GameObject bottleHeldModel;
@@ -119,6 +124,7 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
             if (target != null) target.Interact(this);
         }
         if (keyboard.fKey.wasPressedThisFrame) UseSelectedItem();
+        if (keyboard.qKey.wasPressedThisFrame) ThrowSelectedItem();
         DrainBattery();
     }
 
@@ -137,6 +143,61 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         if (playerController != null) playerController.stats.UseSedative();
         ShowNotice("\"조금 진정되는 것 같아\"");
         QuickSlotManager.Instance.RemoveItem(QuickSlotManager.Instance.SelectedIndex);
+    }
+
+    // Q: CanThrow 아이템이 선택되어 있으면 던진다. 실제 보유 아이템(퀵슬롯)은 사라지지만,
+    // 손모델 원본은 heldItemAnchor에 그대로 남겨두고 복제본만 던진다 - 나중에 같은 종류를
+    // 다시 주웠을 때 보여줄 손모델이 있어야 하기 때문.
+    void ThrowSelectedItem()
+    {
+        QuickSlotManager manager = QuickSlotManager.Instance;
+        if (manager == null || !manager.TryGetSelectedItem(out ItemType item)) return;
+        if (!QuickSlotManager.CanThrow(item, batteryLevel)) return;
+
+        GameObject source = HeldModelFor(item);
+        if (source == null || eyes == null) return;
+
+        GameObject thrown = Instantiate(source, source.transform.position, source.transform.rotation);
+        thrown.name = source.name + "_Thrown";
+        thrown.transform.SetParent(null, true);
+        thrown.SetActive(true);
+        AddThrowCollider(thrown, item);
+
+        Rigidbody rb = thrown.AddComponent<Rigidbody>();
+        rb.linearVelocity = eyes.transform.forward * throwForce + Vector3.up * throwUpwardArc;
+
+        thrown.AddComponent<ThrownItem>().Init(landingRingPrefab);
+
+        manager.RemoveItem(manager.SelectedIndex);
+    }
+
+    GameObject HeldModelFor(ItemType item)
+    {
+        if (item == ItemType.Brick) return brickHeldModel;
+        if (item == ItemType.Bottle) return bottleHeldModel;
+        if (item == ItemType.Flashlight) return flashlightHeldModel;
+        return null;
+    }
+
+    // 손모델(임시 도형)은 손에 든 동안 콜라이더를 빼뒀으니(DisableShadows 근처 참고),
+    // 던지는 복제본에는 물리 충돌을 위해 다시 붙여준다. 형태별 근사치라 정밀하진 않음.
+    static void AddThrowCollider(GameObject go, ItemType item)
+    {
+        switch (item)
+        {
+            case ItemType.Brick:
+                go.AddComponent<BoxCollider>();
+                break;
+            case ItemType.Bottle:
+                go.AddComponent<SphereCollider>();
+                break;
+            default: // Flashlight
+                CapsuleCollider capsule = go.AddComponent<CapsuleCollider>();
+                capsule.direction = 2; // Z축이 긴 방향
+                capsule.radius = 0.08f;
+                capsule.height = 0.4f;
+                break;
+        }
     }
 
     void DrainBattery()
