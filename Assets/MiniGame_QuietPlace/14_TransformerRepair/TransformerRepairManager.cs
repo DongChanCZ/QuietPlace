@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// 변압기 모듈 수리 미니게임의 진입점 (볼트 풀기 -> 모듈 안착 -> 색선 연결).
@@ -30,6 +31,9 @@ public class TransformerRepairManager : MonoBehaviour
     [Header("비우면 Camera.main 을 쓴다")]
     [SerializeField] private Camera overrideCamera;
 
+    [Header("수리 완료 시 초록으로 바뀌는 표시등 (발전기 패널의 빨간 LED)")]
+    [SerializeField] private IndicatorLed successLed;
+
     private FuseSlot pendingSlot;
     private IInteractor pendingPlayer;
     private MonoBehaviour suppressedInteractor;
@@ -48,6 +52,15 @@ public class TransformerRepairManager : MonoBehaviour
     void OnDestroy()
     {
         if (Instance == this) Instance = null;
+    }
+
+    void Update()
+    {
+        // 미니게임 중에는 커서가 풀리고 플레이어 조작이 잠긴다. 오브젝트가 화면에 안 보이면
+        // 빠져나올 방법이 없어지므로 Esc 로 언제든 취소할 수 있어야 한다.
+        if (!IsRunning) return;
+        if (Keyboard.current == null) return;
+        if (Keyboard.current.escapeKey.wasPressedThisFrame) Cancel();
     }
 
     public void Begin(FuseSlot slot, IInteractor player)
@@ -86,6 +99,9 @@ public class TransformerRepairManager : MonoBehaviour
         Finish();
 
         if (slot != null) slot.CompleteInstall(player);
+
+        // 선 4개까지 다 연결된 뒤에야 패널 등이 빨강에서 초록으로 바뀐다
+        if (successLed != null) successLed.TurnOn();
     }
 
     /// <summary>중간에 그만둘 때. 진행한 단계는 그대로 남는다(볼트는 이미 빠져 있는 등).</summary>

@@ -57,6 +57,17 @@ public sealed class BreakerLever : Interactable
         if (player != null) player.ShowNotice("전원이 들어왔습니다.");
     }
 
+    /// 미니게임(퓨즈 교체)을 통과해 전원이 복구됐을 때 외부에서 레버를 올린다.
+    /// 플레이어가 직접 누른 것이 아니므로 빈 슬롯 검사와 튕겨 내려오기는 건너뛴다.
+    public void ForceOn()
+    {
+        if (On) return;
+
+        tripAt = -1f;
+        On = true;
+        Swing(upEuler);
+    }
+
     void Swing(Vector3 target)
     {
         if (lever == null) return;

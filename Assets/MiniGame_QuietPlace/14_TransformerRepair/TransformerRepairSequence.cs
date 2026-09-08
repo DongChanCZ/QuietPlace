@@ -18,12 +18,23 @@ public class TransformerRepairSequence : MonoBehaviour
 
     void Start()
     {
-        if (moduleBalanceStageRoot != null) moduleBalanceStageRoot.SetActive(false);
-        if (wireStageRoot != null) wireStageRoot.SetActive(false);
-
         if (boltStage != null) boltStage.onAllBoltsRemoved.AddListener(OnBoltsDone);
         if (moduleBalanceStage != null) moduleBalanceStage.onSeated.AddListener(OnModuleSeated);
         if (wireStage != null) wireStage.onAllWiresConnected.AddListener(OnWiringDone);
+
+        Begin();
+    }
+
+    /// <summary>
+    /// 첫 단계부터 다시 시작한다. 재시도할 때 Start 가 두 번 돌지 않으므로 외부에서 불러준다.
+    ///
+    /// boltStage 가 비어 있으면 볼트를 월드에서 따로 처리하는 구성(BoltedPanel 이 고정판을
+    /// 떼는 방식)이므로 모듈 안착부터 시작한다.
+    /// </summary>
+    public void Begin()
+    {
+        if (wireStageRoot != null) wireStageRoot.SetActive(false);
+        if (moduleBalanceStageRoot != null) moduleBalanceStageRoot.SetActive(boltStage == null);
     }
 
     void OnBoltsDone()

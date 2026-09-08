@@ -130,6 +130,20 @@ public sealed class SlidingDoor : Interactable
         if (open) { var handler = Opened; if (handler != null) handler(); }
     }
 
+    /// 키패드 해킹처럼 외부 장치가 문을 여는 경로. Sealed 여도 통하고,
+    /// SetOpenImmediate 와 달리 Update 로 스르륵 열린다.
+    public void ForceOpen(bool unseal = true)
+    {
+        if (unseal && access == Access.Sealed) access = Access.Unlocked;
+        if (open) return;
+
+        open = true;
+        direction = 1;
+
+        var handler = Opened;
+        if (handler != null) handler();
+    }
+
     /// Used by the play-mode checks, which cannot wait for Update to run.
     public void SetOpenImmediate(bool wantOpen)
     {

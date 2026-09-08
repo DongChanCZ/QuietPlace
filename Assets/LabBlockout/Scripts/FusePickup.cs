@@ -37,6 +37,10 @@ public sealed class FusePickup : Interactable, IHoldable
     private Rigidbody body;
     private Transform originalParent;
 
+    /// 처음 크기. 플레이어/카메라에 스케일이 걸려 있으면 부모를 바꿀 때마다
+    /// world<->local 환산이 누적되어 물건이 점점 커진다. 매번 이 값으로 되돌린다.
+    private Vector3 originalLocalScale;
+
     // ---------------------------------------------------------------- IHoldable
 
     public string PickupAnimationName => pickupAnimationName;
@@ -51,6 +55,7 @@ public sealed class FusePickup : Interactable, IHoldable
     {
         body = GetComponent<Rigidbody>();
         originalParent = transform.parent;
+        originalLocalScale = transform.localScale;
     }
 
     // ---------------------------------------------------------------- Interactable
@@ -101,6 +106,13 @@ public sealed class FusePickup : Interactable, IHoldable
         transform.SetParent(anchor, false);
         transform.localPosition = heldLocalOffset;
         transform.localRotation = Quaternion.identity;
+
+        // 부모(카메라)에 스케일이 걸려 있어도 눈에 보이는 크기가 그대로여야 한다.
+        Vector3 parentScale = anchor.lossyScale;
+        transform.localScale = new Vector3(
+            parentScale.x != 0f ? originalLocalScale.x / parentScale.x : originalLocalScale.x,
+            parentScale.y != 0f ? originalLocalScale.y / parentScale.y : originalLocalScale.y,
+            parentScale.z != 0f ? originalLocalScale.z / parentScale.z : originalLocalScale.z);
     }
 
     public void OnThrown(Vector3 force)
@@ -119,6 +131,7 @@ public sealed class FusePickup : Interactable, IHoldable
     private void ReleaseToWorld()
     {
         transform.SetParent(originalParent, true); // 월드 위치 유지
+        transform.localScale = originalLocalScale; // 스케일 누적 방지
         SetPhysicsFrozen(false);
         if (!Installed) Taken = false;
     }
@@ -140,6 +153,7 @@ public sealed class FusePickup : Interactable, IHoldable
 
         // 손에 들려 있었다면 FuseSlot 이 먼저 DropHeldItem 으로 놓아주므로 부모는 이미 원복돼 있다.
         transform.SetParent(originalParent, true);
+        transform.localScale = originalLocalScale;
         SetPhysicsFrozen(true); // 꽂힌 뒤에는 물리로 굴러가지 않아야 한다
         transform.SetPositionAndRotation(anchor.position, rotation);
         gameObject.SetActive(true);

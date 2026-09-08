@@ -116,7 +116,16 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         if (keyboard.eKey.wasPressedThisFrame)
         {
             Interactable target = Aimed;
-            if (target != null && CanInteractWith(target)) target.Interact(this);
+            if (target != null)
+            {
+                if (CanInteractWith(target)) target.Interact(this);
+            }
+            else if (playerController != null && playerController.HeldItem != null)
+            {
+                // 아무것도 겨누지 않은 상태에서 E 를 누르면 들고 있던 물건을 내려놓는다.
+                // 슬롯이나 문을 보고 있을 때는 위쪽 분기가 먼저 처리하므로 설치가 우선된다.
+                playerController.DropHeldItem();
+            }
         }
         if (keyboard.fKey.wasPressedThisFrame) UseSelectedItem();
         DrainBattery();
