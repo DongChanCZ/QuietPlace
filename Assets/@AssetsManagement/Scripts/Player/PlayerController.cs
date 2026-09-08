@@ -83,6 +83,10 @@ public class PlayerController : MonoBehaviour
     private float carryLookOffset;   // 무거운 물건을 들었을 때 고개 숙임
     private float carryEyeOffset;    // 무거운 물건을 들었을 때 시점 하강
 
+    /// 숨었을 때 시점 하강. 테이블 밑처럼 낮은 곳에 숨으면 카메라가 천판 위로 튀어나오므로
+    /// 플레이어를 땅에 묻지 않고 카메라만 내린다. HidingSpot 이 값을 넣는다.
+    public float HiddenEyeDrop { get; set; }
+
     [Header("Sitting Collider")]
     public float sittingColliderHeight = 1.05f; // 실제로 쪼그려 앉은 것처럼 Y축 판정만 줄임
     private float standingColliderHeight;
@@ -196,6 +200,10 @@ public class PlayerController : MonoBehaviour
         // 전역 인터럽트: Fear가 최대치에 도달하면 어떤 상태든 즉시 Fearing으로 전환
         if (stats.IsFearMaxed && currentState.Type != PlayerStateType.Fearing)
         {
+            // 미니게임 중이었다면 손을 놓친다. 진행도가 되돌아가 처음부터 다시 해야 한다.
+            // 전체 게임이 끝나는 게 아니라 그 미니게임만 중단된다.
+            MinigameAbort.AbortAll("공포에 질려 손을 놓쳤다");
+
             ChangeState(fearingState);
         }
 
@@ -297,7 +305,7 @@ public class PlayerController : MonoBehaviour
         else
         {
             Vector3 pos = cameraBaseLocalPosition;
-            pos.y -= sittingEyeOffset + carryEyeOffset;
+            pos.y -= sittingEyeOffset + carryEyeOffset + HiddenEyeDrop;
             playerCamera.transform.localPosition = pos;
             playerCamera.transform.localEulerAngles = new Vector3(EffectivePitch, 0f, 0f);
         }

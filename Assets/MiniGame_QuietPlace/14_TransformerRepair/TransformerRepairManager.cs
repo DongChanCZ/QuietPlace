@@ -60,7 +60,7 @@ public class TransformerRepairManager : MonoBehaviour
         // 빠져나올 방법이 없어지므로 Esc 로 언제든 취소할 수 있어야 한다.
         if (!IsRunning) return;
         if (Keyboard.current == null) return;
-        if (Keyboard.current.escapeKey.wasPressedThisFrame) Cancel();
+        if (Keyboard.current.xKey.wasPressedThisFrame) Cancel();   // 미니게임 나가기는 X
     }
 
     public void Begin(FuseSlot slot, IInteractor player)
@@ -89,6 +89,10 @@ public class TransformerRepairManager : MonoBehaviour
 
         minigameRoot.SetActive(true);
         sequence.onTransformerFixed.AddListener(HandleFixed);
+
+        // 열 때마다 첫 단계부터 시작한다. 이게 없으면 중간에 나갔던 자리에서 이어져,
+        // 공포로 중단된 뒤 다시 들어가도 처음부터가 아니게 된다.
+        sequence.Begin();
     }
 
     private void HandleFixed()
@@ -107,11 +111,17 @@ public class TransformerRepairManager : MonoBehaviour
         if (BuildingPower.Instance != null) BuildingPower.Instance.MarkTransformerFixed();
     }
 
-    /// <summary>중간에 그만둘 때. 진행한 단계는 그대로 남는다(볼트는 이미 빠져 있는 등).</summary>
+    /// <summary>중간에 그만둘 때. 다시 들어오면 첫 단계부터다.</summary>
     public void Cancel()
     {
         if (!IsRunning) return;
         Finish();
+    }
+
+    /// <summary>공포로 손을 놓쳤을 때. 여기서는 Cancel 과 같다 - 열 때 첫 단계부터 다시 시작하므로.</summary>
+    public void Abort()
+    {
+        Cancel();
     }
 
     private void Finish()

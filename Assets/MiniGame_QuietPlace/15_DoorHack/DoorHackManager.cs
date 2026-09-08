@@ -41,7 +41,7 @@ public class DoorHackManager : MonoBehaviour
     {
         if (!IsRunning) return;
         if (Keyboard.current == null) return;
-        if (Keyboard.current.escapeKey.wasPressedThisFrame) Cancel();
+        if (Keyboard.current.xKey.wasPressedThisFrame) Cancel();   // 미니게임 나가기는 X
     }
 
     public void Begin(KeypadTerminal keypad, IInteractor player)

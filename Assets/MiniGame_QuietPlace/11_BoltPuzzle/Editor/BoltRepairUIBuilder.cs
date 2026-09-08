@@ -96,10 +96,24 @@ public static class BoltRepairUIBuilder
         progress.fillOrigin = 0;
         progress.fillAmount = 0f;
 
-        Label(panel.transform, "Escape", "Esc  그만두기", 22f, new Vector2(0f, -400f), new Color(0.55f, 0.58f, 0.62f));
+        // ---------- 바퀴 눈금 ----------
+        // 한 바퀴 넘어갈 때마다 하나씩 켜진다. 진행바 위에 균등하게 얹는다.
+        int turns = 3;   // 어려움 기준으로 만들어두고, 보통(2바퀴)에서는 마지막 하나가 안 켜진다
+        var markers = new Image[turns];
+        for (int i = 0; i < turns; i++)
+        {
+            float t = (i + 1f) / turns;                 // 1/3, 2/3, 3/3 지점
+            float x = -350f + 700f * t;
+            markers[i] = Img(panel.transform, "TurnMarker_" + i, new Color(1f, 1f, 1f, 0.22f),
+                new Vector2(x - 5f, -340f), new Vector2(10f, 38f));
+        }
+
+        Label(panel.transform, "Escape", "X  그만두기", 22f, new Vector2(0f, -400f), new Color(0.55f, 0.58f, 0.62f));
 
         // ---------- 퍼즐 + 매니저 ----------
-        BoltTurnPuzzle puzzle = Undo.AddComponent<BoltTurnPuzzle>(root);
+        // 퍼즐은 Panel 에 붙인다. 루트에 붙이면 미니게임을 열어도 OnEnable 이 돌지 않아
+        // 난이도별 바퀴 수(requiredTurns)와 눈금 배치가 갱신되지 않는다.
+        BoltTurnPuzzle puzzle = Undo.AddComponent<BoltTurnPuzzle>(panel);
         puzzle.boltVisual = bolt;
         puzzle.pivot = pivot;
         puzzle.requiredTurns = 3;
@@ -116,6 +130,7 @@ public static class BoltRepairUIBuilder
         puzzle.strainShakeDegrees = 2.2f;
 
         puzzle.progressFill = progress;
+        puzzle.turnMarkers = markers;
         puzzle.torqueFill = torque;
         puzzle.breakawayMarker = marker;
         puzzle.counterLabel = counter;

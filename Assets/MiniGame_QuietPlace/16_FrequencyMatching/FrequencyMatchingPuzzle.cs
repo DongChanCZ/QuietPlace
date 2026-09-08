@@ -11,6 +11,12 @@ public class FrequencyMatchingPuzzle : MonoBehaviour
     public float randomMin = 0.1f;
     public float randomMax = 0.9f;
 
+    [Header("목표를 이 값들 중에서만 고른다 (비우면 연속 랜덤)")]
+    /// 파형을 정재파로 보여주기 때문에 목표가 정수 화음(2차, 3차...)이어야 한다.
+    /// 정수가 아니면 목표 파형의 끝이 벽에서 떠 있어서, "끝이 벽에 물리면 맞다"는
+    /// 단서가 통하지 않는다. 여기 담긴 값이 그 정수 차수에 해당하는 슬라이더 위치다.
+    public float[] targetCandidates;
+
     [Header("충전 게이지")]
     public Image chargeGaugeFill;
     public float chargeDuration = 5f;
@@ -38,7 +44,12 @@ public class FrequencyMatchingPuzzle : MonoBehaviour
         {
             foreach (FrequencyBand band in bands)
             {
-                if (band != null) band.Randomize(randomMin, randomMax);
+                if (band == null) continue;
+
+                if (targetCandidates != null && targetCandidates.Length > 0)
+                    band.targetValue = targetCandidates[Random.Range(0, targetCandidates.Length)];
+                else
+                    band.Randomize(randomMin, randomMax);
             }
         }
 

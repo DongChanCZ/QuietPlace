@@ -65,7 +65,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Esc  \uADF8\uB9CC\uB450\uAE30"
+  m_text: "X  \uADF8\uB9CC\uB450\uAE30"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 16550c05cb6491b49be8b59b1bbd9560, type: 2}
   m_sharedMaterial: {fileID: -2287058760040969196, guid: 16550c05cb6491b49be8b59b1bbd9560, type: 2}
@@ -274,6 +274,81 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &1188982211517315234
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2910154711224731994}
+  - component: {fileID: 1982293115424900271}
+  - component: {fileID: 5068178458341308669}
+  m_Layer: 0
+  m_Name: TurnMarker_2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &2910154711224731994
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1188982211517315234}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1776936100333275367}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 345, y: -340}
+  m_SizeDelta: {x: 10, y: 38}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &1982293115424900271
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1188982211517315234}
+  m_CullTransparentMesh: 1
+--- !u!114 &5068178458341308669
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1188982211517315234}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.22}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 1
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &1214250936714653124
 GameObject:
   m_ObjectHideFlags: 0
@@ -309,7 +384,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: -255, y: 0}
-  m_SizeDelta: {x: 1000, y: 221}
+  m_SizeDelta: {x: 1000, y: 57.800003}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &805609750851462304
 CanvasRenderer:
@@ -1260,7 +1335,6 @@ GameObject:
   - component: {fileID: 5337178291449622565}
   - component: {fileID: 8832446564419213149}
   - component: {fileID: 6969424261625007258}
-  - component: {fileID: 6372458590979725436}
   - component: {fileID: 5175200525201064969}
   m_Layer: 0
   m_Name: P_BoltRepairUI
@@ -1352,44 +1426,6 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
---- !u!114 &6372458590979725436
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6147481299592380145}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 17aeb00ca63d7724c856ca88df57fec7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BoltTurnPuzzle
-  boltVisual: {fileID: 8311885605299867432}
-  pivot: {fileID: 3054107232842858888}
-  requiredTurns: 3
-  degreesPerTurn: 200
-  breakawayTorque: 0.55
-  maxTorque: 1.6
-  torqueGainPerDegree: 0.012
-  torqueDecayPerSecond: 1.7
-  maxTurnRate: 45
-  strainShakeDegrees: 2.2
-  deadZoneRadius: 30
-  progressFill: {fileID: 4775604482725728273}
-  torqueFill: {fileID: 3371589697467722934}
-  breakawayMarker: {fileID: 3626577978066767508}
-  counterLabel: {fileID: 6551889516336597252}
-  hintLabel: {fileID: 2142524240585554189}
-  audioSource: {fileID: 0}
-  strainSound: {fileID: 0}
-  turnSound: {fileID: 0}
-  looseSound: {fileID: 0}
-  onTurnCompleted:
-    m_PersistentCalls:
-      m_Calls: []
-  onAllTurnsDone:
-    m_PersistentCalls:
-      m_Calls: []
 --- !u!114 &5175200525201064969
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1403,7 +1439,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BoltRepairManager
   minigameRoot: {fileID: 8531812241872689359}
-  puzzle: {fileID: 6372458590979725436}
+  puzzle: {fileID: 5598826704925400496}
 --- !u!1 &6255478363189483721
 GameObject:
   m_ObjectHideFlags: 0
@@ -1856,7 +1892,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -109.375, y: -290}
+  m_AnchoredPosition: {x: -153.125, y: -290}
   m_SizeDelta: {x: 4, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5020699520851085022
@@ -2031,6 +2067,81 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 0.62, g: 0.64, b: 0.68, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 1
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!1 &8140589455661434642
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 25989119536013489}
+  - component: {fileID: 6111205519417447830}
+  - component: {fileID: 8417667801749183431}
+  m_Layer: 0
+  m_Name: TurnMarker_0
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &25989119536013489
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8140589455661434642}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1776936100333275367}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -121.66666, y: -340}
+  m_SizeDelta: {x: 10, y: 38}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &6111205519417447830
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8140589455661434642}
+  m_CullTransparentMesh: 1
+--- !u!114 &8417667801749183431
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8140589455661434642}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.22}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2322,6 +2433,81 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &8505605143134152098
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6635142353962431607}
+  - component: {fileID: 4283716678136488294}
+  - component: {fileID: 2037216007291129113}
+  m_Layer: 0
+  m_Name: TurnMarker_1
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &6635142353962431607
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8505605143134152098}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1776936100333275367}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 111.66668, y: -340}
+  m_SizeDelta: {x: 10, y: 38}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &4283716678136488294
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8505605143134152098}
+  m_CullTransparentMesh: 1
+--- !u!114 &2037216007291129113
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8505605143134152098}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.22}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 1
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &8531812241872689359
 GameObject:
   m_ObjectHideFlags: 0
@@ -2331,6 +2517,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1776936100333275367}
+  - component: {fileID: 5598826704925400496}
   m_Layer: 0
   m_Name: Panel
   m_TagString: Untagged
@@ -2362,6 +2549,9 @@ RectTransform:
   - {fileID: 4531570832723144399}
   - {fileID: 9163847058758263249}
   - {fileID: 6375523668628697995}
+  - {fileID: 25989119536013489}
+  - {fileID: 6635142353962431607}
+  - {fileID: 2910154711224731994}
   - {fileID: 4382857027382474605}
   m_Father: {fileID: 3982644309910924401}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -2370,3 +2560,50 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &5598826704925400496
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8531812241872689359}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17aeb00ca63d7724c856ca88df57fec7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BoltTurnPuzzle
+  boltVisual: {fileID: 8311885605299867432}
+  pivot: {fileID: 3054107232842858888}
+  requiredTurns: 3
+  degreesPerTurn: 200
+  breakawayTorque: 0.55
+  maxTorque: 1.6
+  torqueGainPerDegree: 0.012
+  torqueDecayPerSecond: 1.7
+  maxTurnRate: 45
+  strainShakeDegrees: 2.2
+  deadZoneRadius: 30
+  progressFill: {fileID: 4775604482725728273}
+  torqueFill: {fileID: 3371589697467722934}
+  breakawayMarker: {fileID: 3626577978066767508}
+  counterLabel: {fileID: 6551889516336597252}
+  hintLabel: {fileID: 2142524240585554189}
+  turnMarkers:
+  - {fileID: 8417667801749183431}
+  - {fileID: 2037216007291129113}
+  - {fileID: 5068178458341308669}
+  markerOnColor: {r: 0.98, g: 0.85, b: 0.35, a: 1}
+  markerOffColor: {r: 1, g: 1, b: 1, a: 0.22}
+  markerBarWidth: 700
+  markerFlashSeconds: 0.35
+  markerFlashScale: 1.8
+  audioSource: {fileID: 0}
+  strainSound: {fileID: 0}
+  turnSound: {fileID: 0}
+  looseSound: {fileID: 0}
+  onTurnCompleted:
+    m_PersistentCalls:
+      m_Calls: []
+  onAllTurnsDone:
+    m_PersistentCalls:
+      m_Calls: []

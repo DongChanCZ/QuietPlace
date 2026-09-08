@@ -21,6 +21,11 @@ public sealed class HidingSpot : Interactable, IHidingSpot
     [Header("숨었을 때 플레이어가 서 있을 자리 - 비우면 이 오브젝트 위치")]
     [SerializeField] Transform hiddenViewPoint;
 
+    /// 숨었을 때 카메라를 이만큼 내린다. 테이블/벤치 밑처럼 낮게 들어가는 곳에 쓴다.
+    /// 캐비닛처럼 서서 들어가는 곳은 0 이면 된다.
+    [Header("시점 하강(m) - 테이블 밑처럼 낮은 곳")]
+    [SerializeField] float eyeDrop;
+
     [Header("들어갈 때 나는 소음 (문 여닫는 소리)")]
     [SerializeField] float noiseLevelBump = 2f;
     [SerializeField] float noiseRangeBump = 6f;
@@ -64,6 +69,8 @@ public sealed class HidingSpot : Interactable, IHidingSpot
         // 밀어낸다. 위치를 다시 붙여도 밀림이 이기므로 숨는 동안은 컨트롤러를 끈다.
         if (player.Controller != null) player.Controller.enabled = false;
 
+        player.HiddenEyeDrop = eyeDrop;
+
         doorTarget = 1f;
         Play(enterSoundName);
     }
@@ -79,6 +86,7 @@ public sealed class HidingSpot : Interactable, IHidingSpot
 
         // 들어간 자리로 되돌린 뒤에 컨트롤러를 다시 켠다. 순서가 바뀌면 캐비닛
         // 안에서 켜지면서 벽에 끼인다.
+        player.HiddenEyeDrop = 0f;
         player.TeleportTo(standingPosition, standingRotation);
         if (player.Controller != null) player.Controller.enabled = true;
     }

@@ -51,7 +51,7 @@ public class FuseRepairManager : MonoBehaviour
         // 퓨즈 미니게임도 같은 이유로 Esc 취소가 필요하다 (커서가 풀린 채 갇히는 것 방지)
         if (!IsRunning) return;
         if (Keyboard.current == null) return;
-        if (Keyboard.current.escapeKey.wasPressedThisFrame) Cancel();
+        if (Keyboard.current.xKey.wasPressedThisFrame) Cancel();   // 미니게임 나가기는 X
     }
 
     /// <summary>FuseSlot 이 호출한다. 이미 진행 중이면 무시한다.</summary>
@@ -102,11 +102,17 @@ public class FuseRepairManager : MonoBehaviour
         if (BuildingPower.Instance != null) BuildingPower.Instance.MarkFuseInstalled();
     }
 
-    /// <summary>중간에 그만둘 때. 설치는 하지 않는다.</summary>
+    /// <summary>중간에 그만둘 때. 설치는 하지 않는다. 다시 들어오면 첫 단계부터다.</summary>
     public void Cancel()
     {
         if (!IsRunning) return;
         Finish();
+    }
+
+    /// <summary>공포로 손을 놓쳤을 때. Begin 이 매번 첫 단계로 되돌리므로 Cancel 과 같다.</summary>
+    public void Abort()
+    {
+        Cancel();
     }
 
     private void Finish()

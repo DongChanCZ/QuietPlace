@@ -50,7 +50,7 @@ public class FrequencyHackManager : MonoBehaviour
         // UI 가 안 보이는 상황에서도 빠져나올 수 있어야 한다
         if (!IsRunning) return;
         if (Keyboard.current == null) return;
-        if (Keyboard.current.escapeKey.wasPressedThisFrame) Cancel();
+        if (Keyboard.current.xKey.wasPressedThisFrame) Cancel();   // 미니게임 나가기는 X
     }
 
     public void Begin(ComputerTerminal computer, IInteractor player)

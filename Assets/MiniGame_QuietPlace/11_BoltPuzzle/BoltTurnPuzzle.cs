@@ -60,11 +60,31 @@ public class BoltTurnPuzzle : MonoBehaviour
     public TMP_Text counterLabel;
     public TMP_Text hintLabel;
 
+    [Header("바퀴 눈금 - 진행바에 한 바퀴마다 하나. 넘길 때 켜진다")]
+    public Image[] turnMarkers;
+
+    [Header("눈금 켜진 색 / 꺼진 색")]
+    public Color markerOnColor = new Color(0.98f, 0.85f, 0.35f);
+    public Color markerOffColor = new Color(1f, 1f, 1f, 0.22f);
+
+    [Header("진행바 가로 폭(px) - 눈금을 균등하게 놓는 데 쓴다")]
+    public float markerBarWidth = 700f;
+
+    [Header("눈금이 켜질 때 번쩍이는 시간(초)과 배율")]
+    public float markerFlashSeconds = 0.35f;
+    public float markerFlashScale = 1.8f;
+
     [Header("사운드")]
     public AudioSource audioSource;
-    public AudioClip strainSound;     // 안 돌아갈 때 삐걱거리는 소리
-    public AudioClip turnSound;       // 한 바퀴 넘길 때
-    public AudioClip looseSound;      // 다 풀렸을 때
+
+    /// 힘이 모자라 안 돌아갈 때 삐걱거리는 소리.
+    public AudioClip strainSound;
+
+    /// 한 바퀴 넘어갈 때. 눈금이 켜지는 순간과 맞춰 난다 - "덜컥" 소리를 넣으면 된다.
+    public AudioClip turnSound;
+
+    /// 마지막 바퀴까지 다 돌아 볼트가 빠질 때.
+    public AudioClip looseSound;
 
     public UnityEvent onTurnCompleted;
     public UnityEvent onAllTurnsDone;
@@ -82,6 +102,8 @@ public class BoltTurnPuzzle : MonoBehaviour
     private float torque;
     private int turns;
     private float strainSoundCooldown;
+    private float markerFlashTimer;
+    private int markerFlashIndex = -1;
 
     public int Turns => turns;
 
@@ -96,12 +118,17 @@ public class BoltTurnPuzzle : MonoBehaviour
         torque = 0f;
         turns = 0;
         strainSoundCooldown = 0f;
+        markerFlashTimer = 0f;
+        markerFlashIndex = -1;
+        RefreshMarkers();
         if (boltVisual != null) boltVisual.localRotation = Quaternion.identity;
         Refresh(HintIdle);
     }
 
     void Update()
     {
+        UpdateMarkerFlash();
+
         if (completed)
         {
             ApplyBoltRotation(0f);
@@ -177,6 +204,12 @@ public class BoltTurnPuzzle : MonoBehaviour
         if (reached <= turns) return;
 
         turns = reached;
+
+        // 눈금 하나가 켜지고 번쩍인다. 소리도 이때 난다.
+        markerFlashIndex = turns - 1;
+        markerFlashTimer = markerFlashSeconds;
+        RefreshMarkers();
+
         Play(turnSound);
         onTurnCompleted?.Invoke();
 
@@ -211,6 +244,55 @@ public class BoltTurnPuzzle : MonoBehaviour
             shake = (Mathf.PerlinNoise(Time.time * 34f, 0f) - 0.5f) * 2f * strainShakeDegrees * Mathf.Clamp01(strain01);
 
         boltVisual.localRotation = Quaternion.Euler(0f, 0f, progressDegrees + shake);
+    }
+
+    /// 눈금을 바퀴 수에 맞춰 배치하고 색을 맞춘다.
+    ///
+    /// 눈금은 어려움 기준(3개)으로 만들어 두고, 난이도에 따라 requiredTurns 가 줄어들면
+    /// 남는 눈금은 끄고 쓰는 것만 균등하게 다시 놓는다. 안 그러면 2바퀴인데 눈금이 3개
+    /// 남아 있어 마지막 하나가 영원히 안 켜진다.
+    private void RefreshMarkers()
+    {
+        if (turnMarkers == null) return;
+
+        for (int i = 0; i < turnMarkers.Length; i++)
+        {
+            Image m = turnMarkers[i];
+            if (m == null) continue;
+
+            bool used = i < requiredTurns;
+            m.gameObject.SetActive(used);
+            if (!used) continue;
+
+            float t = (i + 1f) / requiredTurns;                       // 1/n, 2/n, ... n/n
+            float x = -markerBarWidth * 0.5f + markerBarWidth * t;
+            Vector2 pos = m.rectTransform.anchoredPosition;
+            m.rectTransform.anchoredPosition = new Vector2(x - m.rectTransform.sizeDelta.x * 0.5f, pos.y);
+
+            m.color = i < turns ? markerOnColor : markerOffColor;
+            m.transform.localScale = Vector3.one;
+        }
+    }
+
+    /// 방금 켜진 눈금을 잠깐 크게 만들었다 되돌린다. 한 바퀴 넘어간 게 눈에 보이게.
+    private void UpdateMarkerFlash()
+    {
+        if (markerFlashTimer <= 0f || turnMarkers == null) return;
+        if (markerFlashIndex < 0 || markerFlashIndex >= turnMarkers.Length) { markerFlashTimer = 0f; return; }
+
+        markerFlashTimer -= Time.deltaTime;
+
+        Image m = turnMarkers[markerFlashIndex];
+        if (m == null) { markerFlashTimer = 0f; return; }
+
+        float k = Mathf.Clamp01(markerFlashTimer / Mathf.Max(0.01f, markerFlashSeconds));
+        float scale = 1f + (markerFlashScale - 1f) * Mathf.Sin(k * Mathf.PI);
+        m.transform.localScale = new Vector3(scale, scale, 1f);
+
+        if (markerFlashTimer > 0f) return;
+
+        m.transform.localScale = Vector3.one;
+        markerFlashIndex = -1;
     }
 
     /// 마우스가 중심에서 얼마나 돌아간 위치에 있는지. 데드존 안이면 false.
