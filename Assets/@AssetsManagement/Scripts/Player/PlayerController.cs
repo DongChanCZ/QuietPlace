@@ -47,6 +47,11 @@ public class PlayerController : MonoBehaviour
     public CharacterController Controller { get; private set; }
     public PlayerStateType CurrentStateType => currentState != null ? currentState.Type : PlayerStateType.Idle;
     public bool CameraLocked { get; set; }
+
+    /// 미니게임 중처럼 조작을 전부 막아야 할 때. 시야만 잠그는 CameraLocked 와 달리
+    /// 이동/앉기/던지기 입력 자체를 읽지 않는다. 퓨즈 각도를 A/D 로 맞추는 동안 몸이
+    /// 같이 돌아가거나, 스킬체크의 S 키로 뒤로 걸어가는 문제를 막는다.
+    public bool InputLocked { get; set; }
     public IHidingSpot ActiveHidingSpot { get; private set; }
     public IHoldable HeldItem { get; private set; }
 
@@ -329,29 +334,30 @@ public class PlayerController : MonoBehaviour
     void ReadInput()
     {
         Keyboard kb = Keyboard.current;
-        if (kb == null)
+        if (kb == null || InputLocked)
         {
             MoveAxis = Vector2.zero;
             SitTogglePressed = false;
             StopHeld = false;
             InteractPressed = false;
             DropPressed = false;
+            SpacePressed = false;
+            ThrowPressed = false;
+            return;
         }
-        else
-        {
-            float x = 0f, y = 0f;
-            if (kb.wKey.isPressed) y += 1f;
-            if (kb.sKey.isPressed) y -= 1f;
-            if (kb.dKey.isPressed) x += 1f;
-            if (kb.aKey.isPressed) x -= 1f;
-            MoveAxis = Vector2.ClampMagnitude(new Vector2(x, y), 1f);
 
-            SitTogglePressed = kb.leftCtrlKey.wasPressedThisFrame;
-            StopHeld = kb.leftShiftKey.isPressed;
-            InteractPressed = kb.fKey.wasPressedThisFrame;
-            DropPressed = kb.gKey.wasPressedThisFrame;
-            SpacePressed = kb.spaceKey.wasPressedThisFrame;
-        }
+        float x = 0f, y = 0f;
+        if (kb.wKey.isPressed) y += 1f;
+        if (kb.sKey.isPressed) y -= 1f;
+        if (kb.dKey.isPressed) x += 1f;
+        if (kb.aKey.isPressed) x -= 1f;
+        MoveAxis = Vector2.ClampMagnitude(new Vector2(x, y), 1f);
+
+        SitTogglePressed = kb.leftCtrlKey.wasPressedThisFrame;
+        StopHeld = kb.leftShiftKey.isPressed;
+        InteractPressed = kb.fKey.wasPressedThisFrame;
+        DropPressed = kb.gKey.wasPressedThisFrame;
+        SpacePressed = kb.spaceKey.wasPressedThisFrame;
 
         ThrowPressed = Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
     }
