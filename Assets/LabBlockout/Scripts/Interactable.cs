@@ -25,4 +25,10 @@ public abstract class Interactable : MonoBehaviour
     public abstract string Prompt(IInteractor player);
 
     public abstract void Interact(IInteractor player);
+
+    /// 두 손으로 무거운 물건(변압기 모듈 등)을 들고 있을 때도 쓸 수 있는가.
+    ///
+    /// 기본은 false 다. 손이 차 있으면 물건을 새로 집을 수 없어야 한다.
+    /// 설치 슬롯이나 문·레버처럼 손을 비우지 않고도 조작할 수 있는 것만 true 로 덮어쓴다.
+    public virtual bool AllowedWhileHandsFull => false;
 }

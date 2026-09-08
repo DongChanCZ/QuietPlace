@@ -25,6 +25,11 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
     [Header("Held Item Models")]
     [SerializeField] GameObject flashlightModelPrefab;
 
+    [Header("Throwing")]
+    public float throwForce = 10f;
+    public float throwUpwardArc = 2f;
+    [SerializeField] GameObject landingRingPrefab;
+
     Transform heldItemAnchor;
     GameObject brickHeldModel;
     GameObject bottleHeldModel;
@@ -116,10 +121,31 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         if (keyboard.eKey.wasPressedThisFrame)
         {
             Interactable target = Aimed;
-            if (target != null) target.Interact(this);
+            if (target != null)
+            {
+                if (CanInteractWith(target)) target.Interact(this);
+            }
+            else if (playerController != null && playerController.HeldItem != null)
+            {
+                // 아무것도 겨누지 않은 상태에서 E 를 누르면 들고 있던 물건을 내려놓는다.
+                // 슬롯이나 문을 보고 있을 때는 위쪽 분기가 먼저 처리하므로 설치가 우선된다.
+                playerController.DropHeldItem();
+            }
         }
         if (keyboard.fKey.wasPressedThisFrame) UseSelectedItem();
+        if (keyboard.qKey.wasPressedThisFrame) ThrowSelectedItem();
         DrainBattery();
+    }
+
+    // 두 손으로 무거운 물건을 들고 있으면 새로 뭔가를 집을 수 없다.
+    // 설치 슬롯이나 문처럼 손을 비우지 않아도 되는 것만 AllowedWhileHandsFull 로 통과시킨다.
+    bool CanInteractWith(Interactable target)
+    {
+        bool handsFull = playerController != null && playerController.HeldItem != null;
+        if (!handsFull || target.AllowedWhileHandsFull) return true;
+
+        ShowNotice("양손이 차 있습니다. 먼저 내려놓으세요.");
+        return false;
     }
 
     // F는 손전등이면 토글, 약이면 그 자리에서 소비 - 그 외(빈 슬롯/사용 불가 아이템)엔 아무 반응 없음.
@@ -137,6 +163,61 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         if (playerController != null) playerController.stats.UseSedative();
         ShowNotice("\"조금 진정되는 것 같아\"");
         QuickSlotManager.Instance.RemoveItem(QuickSlotManager.Instance.SelectedIndex);
+    }
+
+    // Q: CanThrow 아이템이 선택되어 있으면 던진다. 실제 보유 아이템(퀵슬롯)은 사라지지만,
+    // 손모델 원본은 heldItemAnchor에 그대로 남겨두고 복제본만 던진다 - 나중에 같은 종류를
+    // 다시 주웠을 때 보여줄 손모델이 있어야 하기 때문.
+    void ThrowSelectedItem()
+    {
+        QuickSlotManager manager = QuickSlotManager.Instance;
+        if (manager == null || !manager.TryGetSelectedItem(out ItemType item)) return;
+        if (!QuickSlotManager.CanThrow(item, batteryLevel)) return;
+
+        GameObject source = HeldModelFor(item);
+        if (source == null || eyes == null) return;
+
+        GameObject thrown = Instantiate(source, source.transform.position, source.transform.rotation);
+        thrown.name = source.name + "_Thrown";
+        thrown.transform.SetParent(null, true);
+        thrown.SetActive(true);
+        AddThrowCollider(thrown, item);
+
+        Rigidbody rb = thrown.AddComponent<Rigidbody>();
+        rb.linearVelocity = eyes.transform.forward * throwForce + Vector3.up * throwUpwardArc;
+
+        thrown.AddComponent<ThrownItem>().Init(landingRingPrefab);
+
+        manager.RemoveItem(manager.SelectedIndex);
+    }
+
+    GameObject HeldModelFor(ItemType item)
+    {
+        if (item == ItemType.Brick) return brickHeldModel;
+        if (item == ItemType.Bottle) return bottleHeldModel;
+        if (item == ItemType.Flashlight) return flashlightHeldModel;
+        return null;
+    }
+
+    // 손모델(임시 도형)은 손에 든 동안 콜라이더를 빼뒀으니(DisableShadows 근처 참고),
+    // 던지는 복제본에는 물리 충돌을 위해 다시 붙여준다. 형태별 근사치라 정밀하진 않음.
+    static void AddThrowCollider(GameObject go, ItemType item)
+    {
+        switch (item)
+        {
+            case ItemType.Brick:
+                go.AddComponent<BoxCollider>();
+                break;
+            case ItemType.Bottle:
+                go.AddComponent<SphereCollider>();
+                break;
+            default: // Flashlight
+                CapsuleCollider capsule = go.AddComponent<CapsuleCollider>();
+                capsule.direction = 2; // Z축이 긴 방향
+                capsule.radius = 0.08f;
+                capsule.height = 0.4f;
+                break;
+        }
     }
 
     void DrainBattery()
@@ -265,6 +346,10 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         {
             var candidate = reach[i].collider.GetComponentInParent<Interactable>();
             if (candidate == null || reach[i].distance >= nearestDistance) continue;
+            // 컴포넌트를 꺼둔 Interactable 은 조준 대상이 아니다. GetComponentInParent 는
+            // enabled 를 보지 않아서, 열고닫기를 없앤 문(SlidingDoor 비활성)이 그대로 잡혀
+            // E 를 누르면 열림/닫힘 안내문만 계속 뜨는 문제가 있었다.
+            if (!candidate.enabled) continue;
             nearest = candidate;
             nearestDistance = reach[i].distance;
         }

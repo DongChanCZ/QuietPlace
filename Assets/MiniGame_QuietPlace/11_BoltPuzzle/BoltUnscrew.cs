@@ -24,6 +24,16 @@ public class BoltUnscrew : MonoBehaviour
     private int clickCount;
     private bool removed;
 
+    public bool Removed => removed;
+
+    /// 클릭 없이 즉시 빠지게 한다. 볼트 하나를 다 풀면 나머지가 따라 풀리는 연출에
+    /// BoltPuzzleManager 가 쓴다.
+    public void ForcePopOut()
+    {
+        if (removed) return;
+        PopOut();
+    }
+
     void OnMouseDown()
     {
         if (removed) return;

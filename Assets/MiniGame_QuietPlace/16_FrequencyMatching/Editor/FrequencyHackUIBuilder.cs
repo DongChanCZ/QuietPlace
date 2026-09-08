@@ -1,0 +1,219 @@
+using TMPro;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.UI;
+
+/// <summary>
+/// 3층 키패드 해킹(주파수 맞추기) UI 를 조립하고 프리팹으로 저장한다.
+/// 대역 4개(슬라이더+색 게이지+LOCK 램프), 충전 게이지, "불러오는 중" 표시를 만들고
+/// FrequencyMatchingPuzzle / FrequencyHackManager 참조를 전부 배선한다.
+/// </summary>
+public static class FrequencyHackUIBuilder
+{
+    const string PrefabPath = "Assets/@Resources/Prefabs/Manager/P_FrequencyHackUI.prefab";
+    const string RootName = "P_FrequencyHackUI";
+
+    // 기본 LiberationSans 에는 한글 글리프가 없어 네모로 나온다.
+    const string KoreanFontPath = "Assets/Fonts/MalgunGothic SDF.asset";
+
+    // 3상 + 중성선을 흉내낸 4개 대역
+    static readonly string[] BandLabels = { "R", "S", "T", "N" };
+    static readonly Color[] BandColors =
+    {
+        new Color(0.90f, 0.25f, 0.25f),
+        new Color(0.30f, 0.55f, 0.95f),
+        new Color(0.95f, 0.82f, 0.25f),
+        new Color(0.92f, 0.92f, 0.92f),
+    };
+
+    [MenuItem("Tools/QuietPlace/키패드 해킹 UI 만들기")]
+    public static void Build()
+    {
+        GameObject existing = GameObject.Find(RootName);
+        if (existing != null)
+        {
+            if (!EditorUtility.DisplayDialog("키패드 해킹 UI",
+                    $"씬에 이미 '{RootName}' 이 있다. 지우고 새로 만들까?", "새로 만들기", "취소"))
+                return;
+            Undo.DestroyObjectImmediate(existing);
+        }
+
+        GameObject root = new GameObject(RootName, typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
+        Undo.RegisterCreatedObjectUndo(root, "Build Frequency Hack UI");
+
+        Canvas canvas = root.GetComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvas.sortingOrder = 100;
+
+        CanvasScaler scaler = root.GetComponent<CanvasScaler>();
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.referenceResolution = new Vector2(1920f, 1080f);
+
+        GameObject panel = Empty(root.transform, "Panel");
+        Stretch((RectTransform)panel.transform);
+
+        Image dim = Img(panel.transform, "Dim", new Color(0f, 0.02f, 0.04f, 0.86f));
+        Stretch(dim.rectTransform);
+
+        Label(panel.transform, "Title", "주파수 정합", 52f, new Vector2(0f, 330f), new Color(0.5f, 0.95f, 0.8f));
+        Label(panel.transform, "Hint", "슬라이더를 움직여 네 대역을 모두 맞추고 5초간 유지", 28f,
+            new Vector2(0f, 272f), new Color(0.75f, 0.85f, 0.9f));
+
+        // ---------- 대역 4개 ----------
+        FrequencyBand[] bands = new FrequencyBand[BandLabels.Length];
+
+        for (int i = 0; i < BandLabels.Length; i++)
+        {
+            float y = 150f - i * 90f;
+            bands[i] = BuildBand(panel.transform, BandLabels[i], BandColors[i], y);
+        }
+
+        // ---------- 충전 게이지 ----------
+        Img(panel.transform, "ChargeBG", new Color(1f, 1f, 1f, 0.14f), new Vector2(0f, -240f), new Vector2(700f, 30f));
+        Image charge = Img(panel.transform, "ChargeFill", new Color(0.45f, 0.95f, 0.7f, 0.95f),
+            new Vector2(0f, -240f), new Vector2(700f, 30f));
+        charge.type = Image.Type.Filled;
+        charge.fillMethod = Image.FillMethod.Horizontal;
+        charge.fillOrigin = 0;
+        charge.fillAmount = 0f;
+
+        GameObject loading = Empty(panel.transform, "LoadingIndicator");
+        SetBox((RectTransform)loading.transform, new Vector2(0f, -292f), new Vector2(700f, 40f));
+        Label(loading.transform, "Text", "불러오는 중...", 30f, Vector2.zero, new Color(0.55f, 0.95f, 0.75f));
+        loading.SetActive(false);
+
+        // ---------- 퍼즐 + 매니저 ----------
+        FrequencyMatchingPuzzle puzzle = Undo.AddComponent<FrequencyMatchingPuzzle>(root);
+        puzzle.bands = bands;
+        puzzle.chargeGaugeFill = charge;
+        puzzle.loadingIndicator = loading;
+        puzzle.randomizeOnStart = true;
+
+        FrequencyHackManager manager = Undo.AddComponent<FrequencyHackManager>(root);
+        SerializedObject so = new SerializedObject(manager);
+        so.FindProperty("minigameRoot").objectReferenceValue = panel;
+        so.FindProperty("puzzle").objectReferenceValue = puzzle;
+        so.ApplyModifiedPropertiesWithoutUndo();
+
+        System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(PrefabPath));
+        AssetDatabase.Refresh();
+        GameObject saved = PrefabUtility.SaveAsPrefabAssetAndConnect(root, PrefabPath, InteractionMode.UserAction);
+
+        Selection.activeGameObject = root;
+        Debug.Log($"[FrequencyHackUIBuilder] 조립 완료 -> {PrefabPath}\n" +
+                  $"  대역 {bands.Length}개 (R/S/T/N), 충전 {puzzle.chargeDuration}초\n" +
+                  "  키패드의 KeypadTerminal 에 문을 물리면 연결된다.", saved);
+    }
+
+    static FrequencyBand BuildBand(Transform parent, string label, Color color, float y)
+    {
+        GameObject row = Empty(parent, "Band_" + label);
+        SetBox((RectTransform)row.transform, new Vector2(0f, y), new Vector2(820f, 64f));
+
+        Label(row.transform, "Label", label, 34f, new Vector2(-380f, 0f), color);
+
+        // 슬라이더 본체. Slider 가 드래그를 받으려면 그 아래에 raycast 를 받는 그래픽이 있어야 한다.
+        Image track = Img(row.transform, "Track", new Color(1f, 1f, 1f, 0.12f), new Vector2(30f, 0f), new Vector2(660f, 26f));
+        track.raycastTarget = true;
+
+        Image fill = Img(row.transform, "Fill", color, new Vector2(30f, 0f), new Vector2(660f, 26f));
+        fill.type = Image.Type.Filled;
+        fill.fillMethod = Image.FillMethod.Horizontal;
+        fill.fillOrigin = 0;
+
+        // Slider 는 handleRect 의 부모를 손잡이 이동 범위로 쓴다. 트랙과 같은 크기의 영역을 따로 둔다.
+        GameObject handleArea = Empty(row.transform, "HandleArea");
+        SetBox((RectTransform)handleArea.transform, new Vector2(30f, 0f), new Vector2(660f, 46f));
+
+        Image handleImage = Img(handleArea.transform, "Handle", new Color(0.95f, 0.98f, 1f), Vector2.zero, new Vector2(26f, 46f));
+        handleImage.raycastTarget = true;
+        RectTransform handle = handleImage.rectTransform;
+
+        GameObject lockLamp = Empty(row.transform, "LockLamp");
+        SetBox((RectTransform)lockLamp.transform, new Vector2(388f, 0f), new Vector2(60f, 30f));
+        Label(lockLamp.transform, "Text", "LOCK", 22f, Vector2.zero, new Color(0.4f, 1f, 0.55f));
+        lockLamp.SetActive(false);
+
+        Slider slider = Undo.AddComponent<Slider>(row);
+        slider.direction = Slider.Direction.LeftToRight;
+        slider.minValue = 0f;
+        slider.maxValue = 1f;
+        slider.fillRect = fill.rectTransform;
+        slider.handleRect = handle;
+        slider.targetGraphic = handleImage;
+        slider.value = 0f;
+
+        FrequencyBand band = Undo.AddComponent<FrequencyBand>(row);
+        band.bandColor = color;
+        band.fillImage = fill;
+        band.slider = slider;
+        band.tolerance = 0.04f; // 0.03 은 너무 좁아 찾기 어렵다
+
+        FrequencyBandFeedback feedback = Undo.AddComponent<FrequencyBandFeedback>(row);
+        SerializedObject fso = new SerializedObject(feedback);
+        fso.FindProperty("matchedIndicator").objectReferenceValue = lockLamp;
+        fso.ApplyModifiedPropertiesWithoutUndo();
+
+        return band;
+    }
+
+    // ---------------------------------------------------------------- 유틸
+
+    static GameObject Empty(Transform parent, string name)
+    {
+        GameObject go = new GameObject(name, typeof(RectTransform));
+        Undo.RegisterCreatedObjectUndo(go, "Create " + name);
+        go.transform.SetParent(parent, false);
+        return go;
+    }
+
+    static Image Img(Transform parent, string name, Color color) => Img(parent, name, color, Vector2.zero, new Vector2(100f, 100f));
+
+    static Image Img(Transform parent, string name, Color color, Vector2 pos, Vector2 size)
+    {
+        GameObject go = Empty(parent, name);
+        Image img = Undo.AddComponent<Image>(go);
+        img.color = color;
+        img.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
+        img.type = Image.Type.Sliced;
+        img.raycastTarget = false;
+        SetBox(img.rectTransform, pos, size);
+        return img;
+    }
+
+    static TMP_FontAsset koreanFont;
+
+    static void Label(Transform parent, string name, string text, float size, Vector2 pos, Color color)
+    {
+        GameObject go = Empty(parent, name);
+        TextMeshProUGUI tmp = Undo.AddComponent<TextMeshProUGUI>(go);
+
+        if (koreanFont == null) koreanFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(KoreanFontPath);
+        if (koreanFont != null) tmp.font = koreanFont;
+
+        tmp.text = text;
+        tmp.fontSize = size;
+        tmp.color = color;
+        tmp.alignment = TextAlignmentOptions.Center;
+        tmp.raycastTarget = false;
+        SetBox(tmp.rectTransform, pos, new Vector2(900f, size * 1.7f));
+    }
+
+    static void Stretch(RectTransform rt)
+    {
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.one;
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
+    }
+
+    static void SetBox(RectTransform rt, Vector2 pos, Vector2 size)
+    {
+        rt.anchorMin = new Vector2(0.5f, 0.5f);
+        rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.anchoredPosition = pos;
+        rt.sizeDelta = size;
+    }
+}
