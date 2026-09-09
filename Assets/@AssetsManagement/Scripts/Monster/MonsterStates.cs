@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.AI;
 
 public interface IMonsterState
 {
@@ -98,15 +99,37 @@ public class MonsterFirstDetectionState : IMonsterState
 
     private bool isPaused;
     private float pauseTimer;
+    private float totalTimer; // 계속 들려서 IsHearingFresh가 안 풀려도, 이거 하나로 결국 포기하게 만든다
+    private bool targetUnreachable; // 감지 지점이 방 너머 등 도달 불가라 판정되면, 그 뒤로 재시도 자체를 멈춘다
 
     public void Enter(MonsterController ctx)
     {
         ctx.Agent.speed = ctx.firstChaseSpeed;
-        BeginPause(ctx, ctx.reactionDelay); // 감지 직후 바로 움직이지 않고 "어?" 하고 멈칫
+        totalTimer = 0f;
+        targetUnreachable = false;
+        BeginPause(ctx, ctx.reactionDelay, "Idle"); // 감지 직후 바로 움직이지 않고 "어?" 하고 멈칫 - 아직 도착 전이라 Idle
     }
 
     public void Tick(MonsterController ctx, float dt)
     {
+        // 닿았는데 완전히 숨죽인(Stopping) 게 아니라 소리까지 내고 있으면 확실한 증거 - Final로 즉시 격상.
+        // 반대로 닿아도 숨죽이고 있으면(currentNoiseLevel<=0) 넘어가준다 - 완벽히 숨는 걸 보상해줌.
+        float touchDist = Vector3.Distance(ctx.transform.position, ctx.player.transform.position);
+        if (touchDist <= ctx.touchAttackRange && ctx.player.stats.currentNoiseLevel > 0f)
+        {
+            ctx.GoToDetection(MonsterStateType.FinalDetection);
+            return;
+        }
+
+        totalTimer += dt;
+        // Second/Final로 못 올라간 애매한 소리가 계속 들리기만 하면 무한정 따라다니게 되므로,
+        // 격상 없이 이 시간을 넘기면 그냥 포기한다 (스니킹 플레이어를 영원히 쫓아다니는 것 방지).
+        if (totalTimer >= ctx.firstTierMaxDuration)
+        {
+            ctx.GoToIdleFrom(MonsterStateType.FirstDetection);
+            return;
+        }
+
         if (!ctx.IsHearingFresh)
         {
             ctx.GoToIdleFrom(MonsterStateType.FirstDetection);
@@ -115,26 +138,30 @@ public class MonsterFirstDetectionState : IMonsterState
 
         if (isPaused)
         {
+            // 도달 불가로 판정된 뒤에는 새 지점을 다시 흔들어봐야 똑같이 못 갈 뿐이라, 그냥 이 자세로
+            // 버틴다 - 위쪽의 타임아웃/청각 만료로만 빠져나간다 (한쪽만 보고 반복 재생되는 것 방지).
+            if (targetUnreachable) return;
             pauseTimer -= dt;
             if (pauseTimer <= 0f) EndPause(ctx);
             return;
         }
 
-        // 스냅샷 지점에 도착했는데도 여전히 들리면, 잠깐 두리번거린 후 다시 스냅샷
+        // 감지된 위치에 도착하면 무조건 두리번(Scan) - 여전히 들리면 이 상태에서 잠깐 있다가 다시 스냅샷
         if (!ctx.Agent.pathPending && ctx.Agent.remainingDistance <= ctx.Agent.stoppingDistance)
         {
-            BeginPause(ctx, ctx.investigateLingerTime);
+            targetUnreachable = ctx.Agent.pathStatus != NavMeshPathStatus.PathComplete;
+            BeginPause(ctx, ctx.investigateLingerTime, "Analyzing");
         }
     }
 
-    public void Exit(MonsterController ctx) { isPaused = false; }
+    public void Exit(MonsterController ctx) { isPaused = false; targetUnreachable = false; }
 
-    private void BeginPause(MonsterController ctx, float duration)
+    private void BeginPause(MonsterController ctx, float duration, string animState)
     {
         isPaused = true;
         pauseTimer = duration;
         ctx.Agent.ResetPath();
-        ctx.SetAnimState("Idle");
+        ctx.SetAnimState(animState);
     }
 
     private void EndPause(MonsterController ctx)
@@ -152,6 +179,7 @@ public class MonsterSecondDetectionState : IMonsterState
     private bool isPaused;
     private float pauseTimer;
     private bool arrivedIdle; // 쫓아갈 곳에 도착해서 더 갱신될 목적지가 없어 두리번거리는 중인지
+    private bool targetUnreachable; // LastHeardPosition이 방 너머 등 도달 불가라 판정되면, 그 뒤로 재시도 자체를 멈춘다
 
     public void Enter(MonsterController ctx)
     {
@@ -159,14 +187,31 @@ public class MonsterSecondDetectionState : IMonsterState
         isPaused = true;
         pauseTimer = ctx.reactionDelay; // 감지 직후 바로 움직이지 않고 "어?" 하고 멈칫 (딱 한 번만)
         arrivedIdle = false;
+        targetUnreachable = false;
         ctx.Agent.ResetPath();
         ctx.SetAnimState("Idle");
     }
 
     public void Tick(MonsterController ctx, float dt)
     {
+        // 멈칫(reactionDelay) 동안은 격상 판정 자체를 안 한다 - 락온 직후 실제로 반응할 시간을 준다.
+        // 이 텀이 없으면 "어?" 하고 멈칫하는 연출만 있고 실제로는 그 순간 바로 다음 단계로 넘어가버림.
+        if (isPaused)
+        {
+            pauseTimer -= dt;
+            if (pauseTimer <= 0f)
+            {
+                isPaused = false;
+                ctx.SetAnimState("Chasing");
+            }
+            return;
+        }
+
         float dist = Vector3.Distance(ctx.transform.position, ctx.player.transform.position);
-        if (dist <= ctx.attackRange)
+        // IsHearingFresh도 같이 봐야 한다 - 안 그러면 청각이 이미 만료됐는데도 실좌표 거리만으로
+        // Final을 계속 재격상해서, 숨어서 조용해진 플레이어 옆에 우연히 서 있기만 해도
+        // Final<->Idle<->Second를 무한 반복하며 절대 포기하지 않는 버그가 생긴다.
+        if (dist <= ctx.attackRange && ctx.IsHearingFresh)
         {
             ctx.GoToDetection(MonsterStateType.FinalDetection);
             return;
@@ -177,16 +222,9 @@ public class MonsterSecondDetectionState : IMonsterState
             return;
         }
 
-        if (isPaused)
-        {
-            pauseTimer -= dt;
-            if (pauseTimer <= 0f)
-            {
-                isPaused = false;
-                ctx.SetAnimState("Chasing");
-            }
-            return;
-        }
+        // 도달 불가로 판정된 뒤에는 재시도 자체를 멈추고 그 자세로 버틴다 - 공격판정/청각만료 체크는
+        // 위에서 계속 돌고 있으니 자연스럽게 빠져나간다 (한쪽만 보고 반복 재생되는 것 방지).
+        if (targetUnreachable) return;
 
         // 확실히 알아챈 상태지만, 실좌표가 아니라 LastHeardPosition(마지막으로 실제 소리가 들린 지점)을
         // 쫓는다 - 플레이어가 계속 소리를 내는 한(PlayerNoiseEmitter가 0.3초마다 갱신) 사실상 실시간
@@ -206,12 +244,13 @@ public class MonsterSecondDetectionState : IMonsterState
         {
             // 도착했는데 더 갈 곳이 없음 - 청각 상태(타임아웃/공격 판정)는 그대로 유지한 채
             // 계속 뛰는 모션 대신 두리번거리는 모션으로 - 제자리에서 계속 달리는 것처럼 보이는 것 방지.
+            targetUnreachable = ctx.Agent.pathStatus != NavMeshPathStatus.PathComplete;
             arrivedIdle = true;
             ctx.SetAnimState("Analyzing");
         }
     }
 
-    public void Exit(MonsterController ctx) { isPaused = false; arrivedIdle = false; }
+    public void Exit(MonsterController ctx) { isPaused = false; arrivedIdle = false; targetUnreachable = false; }
 }
 
 public class MonsterFinalDetectionState : IMonsterState
@@ -221,6 +260,7 @@ public class MonsterFinalDetectionState : IMonsterState
     private bool isPaused;
     private float pauseTimer;
     private bool arrivedIdle; // 쫓아갈 곳에 도착해서 더 갱신될 목적지가 없어 두리번거리는 중인지
+    private bool targetUnreachable; // LastHeardPosition이 방 너머 등 도달 불가라 판정되면, 그 뒤로 재시도 자체를 멈춘다
 
     public void Enter(MonsterController ctx)
     {
@@ -228,16 +268,35 @@ public class MonsterFinalDetectionState : IMonsterState
         isPaused = true;
         pauseTimer = ctx.reactionDelay; // 감지 직후 바로 움직이지 않고 "어?" 하고 멈칫 (딱 한 번만)
         arrivedIdle = false;
+        targetUnreachable = false;
         ctx.Agent.ResetPath();
         ctx.SetAnimState("Idle");
     }
 
     public void Tick(MonsterController ctx, float dt)
     {
+        // 멈칫(reactionDelay) 동안은 공격 판정 자체를 안 한다 - 락온 직후 실제로 반응할 시간을 준다.
+        // 이 텀이 없으면 "어?" 하고 멈칫하는 연출만 있고 실제로는 그 순간 바로 공격이 나가버림.
+        if (isPaused)
+        {
+            pauseTimer -= dt;
+            if (pauseTimer <= 0f)
+            {
+                isPaused = false;
+                ctx.SetAnimState("Chasing");
+            }
+            return;
+        }
+
         float dist = Vector3.Distance(ctx.transform.position, ctx.player.transform.position);
+        // 완전히 조용한(Stopping/Hiding, currentNoiseLevel<=0) 상태면 거리만으로 공격하지 않는다 -
+        // MonsterController의 범용 즉시공격 체크와 동일한 조건을 여기도 걸어야 한다. Final은 그
+        // 체크를 안 거치고 자체 판정으로 공격하기 때문에, 안 걸면 숨어도 이미 락온된 상태에서
+        // 다가오면 그대로 공격당한다.
         // 터치 거리 안쪽이면 시야 체크 생략 - 문틀 상단 같은 얇은 구조물에 막혀서
         // 실제로 붙어있는데 공격을 못 하는 경우 방지. 그 밖(원거리)은 기존대로 벽 너머 공격 방지 유지.
-        if (dist <= ctx.touchAttackRange || (dist <= ctx.attackRange && ctx.HasLineOfSightToPlayer()))
+        if (ctx.player.stats.currentNoiseLevel > 0f &&
+            (dist <= ctx.touchAttackRange || (dist <= ctx.attackRange && ctx.HasLineOfSightToPlayer())))
         {
             ctx.GoToAttack();
             return;
@@ -248,16 +307,9 @@ public class MonsterFinalDetectionState : IMonsterState
             return;
         }
 
-        if (isPaused)
-        {
-            pauseTimer -= dt;
-            if (pauseTimer <= 0f)
-            {
-                isPaused = false;
-                ctx.SetAnimState("Chasing");
-            }
-            return;
-        }
+        // 도달 불가로 판정된 뒤에는 재시도 자체를 멈추고 그 자세로 버틴다 - 공격판정/청각만료 체크는
+        // 위에서 계속 돌고 있으니 자연스럽게 빠져나간다 (한쪽만 보고 반복 재생되는 것 방지).
+        if (targetUnreachable) return;
 
         // 확실히 알아챈 상태지만, 실좌표가 아니라 LastHeardPosition(마지막으로 실제 소리가 들린 지점)을
         // 쫓는다 - 플레이어가 계속 소리를 내는 한(PlayerNoiseEmitter가 0.3초마다 갱신) 사실상 실시간
@@ -277,12 +329,13 @@ public class MonsterFinalDetectionState : IMonsterState
         {
             // 도착했는데 더 갈 곳이 없음 - 청각 상태(타임아웃/공격 판정)는 그대로 유지한 채
             // 계속 뛰는 모션 대신 두리번거리는 모션으로 - 제자리에서 계속 달리는 것처럼 보이는 것 방지.
+            targetUnreachable = ctx.Agent.pathStatus != NavMeshPathStatus.PathComplete;
             arrivedIdle = true;
             ctx.SetAnimState("Analyzing");
         }
     }
 
-    public void Exit(MonsterController ctx) { isPaused = false; arrivedIdle = false; }
+    public void Exit(MonsterController ctx) { isPaused = false; arrivedIdle = false; targetUnreachable = false; }
 }
 
 public class MonsterAttackState : IMonsterState

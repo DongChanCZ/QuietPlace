@@ -12,7 +12,9 @@ public class MonsterHearing : MonoBehaviour
     public float earHeight = 1.5f;
 
     [Header("Base Hearing")]
-    public float baseHearingRange = 6f; // 몬스터 자신의 기본 청각 반경 (NoiseEvent.BaseRange에 더해짐)
+    public float baseHearingRange = 6f; // 몬스터 자신의 기본 청각 반경 (NoiseEvent.BaseRange에 더해짐) - Second/Final 판정은 이 범위 기준 그대로 유지
+    public float firstTierExtraRange = 4f; // First만 이만큼 추가로 더 멀리서도 반응 (걷는 소리 정도는 더 넓게 눈치채되, Second/Final로 격상되는 범위는 안 넓히기 위함)
+    public float firstTierExtraRangeMinLoudness = 3f; // 이 값(Walking 기준) 이상인 소리만 확장 범위 적용 - Sitting처럼 조용한 소리까지 같이 넓어지면 스니킹의 의미가 없어짐
     public float verticalTolerance = 3f; // 같은 층으로 볼 Y축 거리 (귀 높이 등으로 인한 기본 오차) — 이 안쪽은 가중치 없이 그대로 취급
     public float verticalDistanceWeight = 3f; // verticalTolerance를 넘는 초과분에만 곱해지는 가중치 — 클수록 다른 층 소리가 더 빨리 범위 밖으로 취급됨
 
@@ -89,11 +91,22 @@ public class MonsterHearing : MonoBehaviour
         float perceivedDist = PerceivedDistance(delta); // 판정용 — Y축 가중치 적용
 
         float effectiveRange = evt.BaseRange + baseHearingRange;
-        if (perceivedDist > effectiveRange) return; // 거리 컷 — Raycast 자체를 안 함
+        float firstTierRange = effectiveRange + firstTierExtraRange; // First 전용 확장 범위 - 컷 자체는 이 넓은 쪽 기준
+        if (perceivedDist > firstTierRange) return; // 거리 컷 — Raycast 자체를 안 함
+
+        float wallAttenuation = ComputeWallAttenuation(ear, evt.Position, realDist);
 
         float distanceAttenuation = 1f - Mathf.Clamp01(perceivedDist / effectiveRange);
-        float wallAttenuation = ComputeWallAttenuation(ear, evt.Position, realDist);
-        float intensity = evt.Loudness * distanceAttenuation * wallAttenuation;
+        float intensity = evt.Loudness * distanceAttenuation * wallAttenuation; // Second/Final 판정 - 확장 이전과 동일한 범위
+
+        // Sitting처럼 조용한 소리는 확장 범위를 안 써서 오늘 작업 이전 범위 그대로 유지 - 안 그러면
+        // 스니킹 중에도 몹이 넓어진 범위 안에서 계속 First로 따라붙는 문제가 생긴다.
+        float firstTierIntensity = 0f;
+        if (evt.Loudness >= firstTierExtraRangeMinLoudness)
+        {
+            float firstTierDistanceAttenuation = 1f - Mathf.Clamp01(perceivedDist / firstTierRange);
+            firstTierIntensity = evt.Loudness * firstTierDistanceAttenuation * wallAttenuation; // First 판정 전용 - 더 넓은 범위
+        }
 
         if (debugDrawRuntimeRays)
             Debug.DrawLine(ear, evt.Position, wallAttenuation < 0.99f ? Color.red : Color.yellow, 0.5f);
@@ -101,7 +114,7 @@ public class MonsterHearing : MonoBehaviour
 
         NoiseTier tier = intensity >= tier3Threshold ? NoiseTier.Final
                         : intensity >= tier2Threshold ? NoiseTier.Second
-                        : intensity >= tier1Threshold ? NoiseTier.First
+                        : (intensity >= tier1Threshold || firstTierIntensity >= tier1Threshold) ? NoiseTier.First
                         : NoiseTier.None;
 
         controller.OnNoiseHeard(tier, evt.Position, evt.Loudness);
