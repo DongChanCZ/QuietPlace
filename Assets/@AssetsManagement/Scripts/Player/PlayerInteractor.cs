@@ -134,35 +134,9 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
             }
         }
         if (keyboard.fKey.wasPressedThisFrame) UseSelectedItem();
-        // Q 는 숨기와 던지기가 같이 쓴다. 숨을 수 있는 상황이면 숨기가 먼저다.
-        if (keyboard.qKey.wasPressedThisFrame && !TryToggleHide()) ThrowSelectedItem();
+        // 숨기는 HidingSpotQTE(E + QTE)가 전담한다 - Q는 던지기 전용.
+        if (keyboard.qKey.wasPressedThisFrame) ThrowSelectedItem();
         DrainBattery();
-    }
-
-    /// Q 를 눌렀을 때 숨기/나오기를 처리한다. 처리했으면 true - 그럼 던지지 않는다.
-    ///
-    /// 숨은 상태에서는 무조건 나오기가 먼저다. 안 그러면 캐비닛 안에서 물건을 던지게 된다.
-    bool TryToggleHide()
-    {
-        if (playerController == null) return false;
-
-        if (playerController.ActiveHidingSpot != null)
-        {
-            playerController.LeaveHiding();
-            return true;
-        }
-
-        HidingSpot spot = AimedHidingSpot();
-        if (spot == null || spot.Occupied) return false;
-
-        if (playerController.HeldItem != null)
-        {
-            ShowNotice("양손이 차 있습니다. 먼저 내려놓으세요.");
-            return true;   // 던지기로 넘기지 않는다 - 숨으려던 조작이니까
-        }
-
-        playerController.EnterHiding(spot);
-        return true;
     }
 
     // 두 손으로 무거운 물건을 들고 있으면 새로 뭔가를 집을 수 없다.
@@ -367,32 +341,22 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         }
     }
 
-    /// 조준선에 걸린 숨을 곳.
+    readonly System.Collections.Generic.List<Interactable> interactableBuffer = new System.Collections.Generic.List<Interactable>(4);
+
+    /// 맞은 콜라이더에서 위로 올라가며 '켜져 있는' Interactable 을 찾는다.
     ///
-    /// Aimed 를 그대로 쓸 수 없다. 3층 숨기 캐비닛처럼 한 오브젝트에 Interactable 이
-    /// 둘(SlidingDoor + HidingSpot) 붙어 있으면 GetComponentInParent 가 어느 쪽을
-    /// 돌려줄지 알 수 없어서, 문이 잡히면 Q 가 먹지 않는다. 그래서 타입을 지정해 따로 찾는다.
-    HidingSpot AimedHidingSpot()
+    /// GetComponentInParent 는 enabled 를 보지 않고 첫 번째 것만 돌려준다. 은신 캐비닛처럼
+    /// 한 오브젝트에 Interactable 이 둘(꺼둔 SlidingDoor + HidingSpot)이면 꺼진 쪽이 잡혀
+    /// 조준이 통째로 실패했다. 형제까지 훑어 켜진 것을 고른다.
+    Interactable FindEnabledInteractable(Transform from)
     {
-        if (eyes == null) return null;
-
-        int count = Physics.SphereCastNonAlloc(eyes.transform.position, 0.08f,
-            eyes.transform.forward, reach, interactionDistance, ~0, QueryTriggerInteraction.Collide);
-
-        HidingSpot nearest = null;
-        float nearestDistance = float.PositiveInfinity;
-
-        for (int i = 0; i < count; i++)
+        for (Transform t = from; t != null; t = t.parent)
         {
-            HidingSpot candidate = reach[i].collider.GetComponentInParent<HidingSpot>();
-            if (candidate == null || !candidate.enabled) continue;
-            if (reach[i].distance >= nearestDistance) continue;
-
-            nearest = candidate;
-            nearestDistance = reach[i].distance;
+            t.GetComponents(interactableBuffer);
+            for (int i = 0; i < interactableBuffer.Count; i++)
+                if (interactableBuffer[i].enabled) return interactableBuffer[i];
         }
-
-        return nearest;
+        return null;
     }
 
     Interactable AimedInteractable()
@@ -401,18 +365,35 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         int count = Physics.SphereCastNonAlloc(eyes.transform.position, 0.08f,
             eyes.transform.forward, reach, interactionDistance, ~0, QueryTriggerInteraction.Collide);
         Interactable nearest = null;
+        Collider nearestCollider = null;
         float nearestDistance = float.PositiveInfinity;
         for (int i = 0; i < count; i++)
         {
-            var candidate = reach[i].collider.GetComponentInParent<Interactable>();
-            if (candidate == null || reach[i].distance >= nearestDistance) continue;
-            // 컴포넌트를 꺼둔 Interactable 은 조준 대상이 아니다. GetComponentInParent 는
-            // enabled 를 보지 않아서, 열고닫기를 없앤 문(SlidingDoor 비활성)이 그대로 잡혀
-            // E 를 누르면 열림/닫힘 안내문만 계속 뜨는 문제가 있었다.
-            if (!candidate.enabled) continue;
+            var candidate = FindEnabledInteractable(reach[i].collider.transform);
+            if (candidate == null) continue;
+            if (reach[i].distance >= nearestDistance) continue;
             nearest = candidate;
+            nearestCollider = reach[i].collider;
             nearestDistance = reach[i].distance;
         }
+        if (nearest == null) return null;
+
+        // 벽 너머의 물건을 집던 버그를 막는다. 위 스피어캐스트는 조준을 넉넉하게 잡으려고
+        // 반경이 있어서, 그 히트로 가림 판정을 하면 책상 모서리나 선반 판처럼 물건이
+        // 놓여 있는 면까지 '가림'으로 세어 아무것도 못 집게 된다.
+        // 가림 판정만 굵기 없는 선으로 따로 본다.
+        Vector3 from = eyes.transform.position;
+        Vector3 to = nearestCollider.ClosestPoint(from);
+        RaycastHit block;
+        if (Physics.Linecast(from, to, out block, ~0, QueryTriggerInteraction.Ignore)
+            && FindEnabledInteractable(block.collider.transform) != nearest
+            && !block.collider.transform.IsChildOf(transform)
+            // 물건이 그 콜라이더 '안에' 있으면 가림막일 수 없다. 책상처럼 콜라이더가
+            // 통짜 상자인 가구는 위에 올려둔 물건까지 부피 안에 품어버려서,
+            // 이걸 빼지 않으면 책상 앞에 서도 그 위의 손전등을 집을 수 없다.
+            && !block.collider.bounds.Contains(to))
+            return null;
+
         return nearest;
     }
 

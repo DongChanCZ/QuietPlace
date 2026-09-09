@@ -251,24 +251,50 @@ public sealed class BlockoutWalkPlayer : MonoBehaviour, IInteractor
         RaycastHit hit;
         bool found = false;
         Vector3 face = default;
-        for (float h = 0.25f; h <= vaultMaxRise; h += 0.15f)
+        // 0.25 에서 시작하면 쓰레기통 뚜껑(1.30) 위에서 창틀(윗면 1.55)을 1cm 차이로
+        // 지나쳐 창문이 안 잡힌다. 무릎보다 낮게 시작한다.
+        for (float h = 0.12f; h <= vaultMaxRise; h += 0.12f)
             if (Physics.Raycast(foot + Vector3.up * h, fwd, out hit, 1.0f, ~0, QueryTriggerInteraction.Ignore))
             { found = true; face = hit.point; break; }
         if (!found) return false;
 
         // 2) 턱 너머 위에서 아래로 쏴 윗면을 찾는다.
-        Vector3 above = face + fwd * 0.30f + Vector3.up * (vaultMaxRise + 0.50f);
-        if (!Physics.Raycast(above, Vector3.down, out hit, vaultMaxRise + 0.90f, ~0, QueryTriggerInteraction.Ignore))
-            return false;
-        float rise = hit.point.y - foot.y;
-        if (rise < 0.15f || rise > vaultMaxRise) return false;
+        //    한 지점만 보면 안 된다 - 창틀 깊이가 0.33 뿐이라 앞으로 0.30 을 고정으로
+        //    밀면 앞 검사가 어느 부재를 맞았느냐에 따라 5cm 차이로 창틀을 빗나간다.
+        float topY = 0f;
+        bool top = false;
+        foreach (float step in new float[] { 0.12f, 0.20f, 0.30f, 0.42f })
+        {
+            Vector3 above = face + fwd * step + Vector3.up * (vaultMaxRise + 0.50f);
+            // 창문은 위에 상부틀이 있어서 첫 히트가 늘 그것이다. 짚고 넘을 하부틀은
+            // 그 아래에 있으므로 전부 받아서 올라탈 수 있는 높이 중 가장 높은 면을 고른다.
+            RaycastHit[] downs = Physics.RaycastAll(above, Vector3.down, vaultMaxRise + 0.90f, ~0, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < downs.Length; i++)
+            {
+                float rise = downs[i].point.y - foot.y;
+                if (rise < 0.15f || rise > vaultMaxRise) continue;
+                if (top && downs[i].point.y <= topY) continue;
+                topY = downs[i].point.y;
+                top = true;
+            }
+            if (top) break;
+        }
+        if (!top) return false;
 
         // 3) 착지 자리에 웅크린 몸이 들어가는지. 안 들어가면 넘지 않는다 -
         //    벽 속으로 밀어 넣는 것보다 아무 일도 안 일어나는 편이 낫다.
-        Vector3 dest = new Vector3(face.x, hit.point.y + 0.05f, face.z) + fwd * vaultForward;
+        Vector3 dest = new Vector3(face.x, topY + 0.05f, face.z) + fwd * vaultForward;
         float r = body.radius - 0.02f;
         if (Physics.CheckCapsule(dest + Vector3.up * (r + 0.02f),
                                  dest + Vector3.up * (CrouchHeight - r - 0.02f), r, ~0, QueryTriggerInteraction.Ignore))
+            return false;
+
+        // 4) 턱 위가 트여 있어야 한다. 넘기는 컨트롤러를 끄고 트랜스폼을 직접 옮기므로,
+        //    이 검사가 없으면 통짜 벽 앞에서도 넘기가 걸려 벽을 뚫고 나간다.
+        //    창틀·쓰레기통처럼 위가 열린 것만 통과한다.
+        Vector3 overFrom = new Vector3(face.x, topY + 0.25f, face.z) - fwd * 0.25f;
+        Vector3 overTo = new Vector3(dest.x, topY + 0.25f, dest.z);
+        if (Physics.Linecast(overFrom, overTo, ~0, QueryTriggerInteraction.Ignore))
             return false;
 
         if (instant)

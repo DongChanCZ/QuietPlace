@@ -13,13 +13,21 @@ public class FullscreenNoteViewer : MonoBehaviour
 
     private PlayerMovement playerMovement;
 
+    // GameScene 의 플레이어는 PlayerMovement 가 아니라 PlayerController 를 쓴다.
+    // 둘 다 잡아두지 않으면 전체화면으로 글을 읽는 동안 화면이 가려진 채로 계속 걸어다닌다.
+    private PlayerController playerController;
+
     void Awake()
     {
         Instance = this;
         if (panelRoot != null) panelRoot.SetActive(false);
 
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-        if (playerObj != null) playerMovement = playerObj.GetComponent<PlayerMovement>();
+        if (playerObj != null)
+        {
+            playerMovement = playerObj.GetComponent<PlayerMovement>();
+            playerController = playerObj.GetComponent<PlayerController>();
+        }
     }
 
     void Update()
@@ -40,6 +48,7 @@ public class FullscreenNoteViewer : MonoBehaviour
         IsOpen = true;
 
         if (playerMovement != null) playerMovement.enabled = false;
+        if (playerController != null) playerController.enabled = false;
     }
 
     public void Close()
@@ -48,5 +57,6 @@ public class FullscreenNoteViewer : MonoBehaviour
         IsOpen = false;
 
         if (playerMovement != null) playerMovement.enabled = true;
+        if (playerController != null) playerController.enabled = true;
     }
 }
