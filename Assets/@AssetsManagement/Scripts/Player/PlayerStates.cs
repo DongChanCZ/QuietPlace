@@ -261,10 +261,9 @@ public class HidingState : IPlayerState
 
     private void RestoreQuietNoise(PlayerController ctx)
     {
-        // 스펙에 "숨어있는 동안"의 소음 수치가 명시되어 있지 않아 Sitting과 동일 수준(기본값 -1단계)으로 가정
-        var s = ctx.stats;
-        s.currentNoiseLevel = s.ClampNoiseTier(s.noiseLevelBase - s.noiseTierStep);
-        s.currentNoiseRange = s.ClampNoiseTier(s.noiseRangeBase - s.noiseTierStep);
+        // Stopping(숨 참기)과 동일한 소음 수준 - 완전히 숨은 상태는 사실상 무음으로 취급
+        ctx.stats.currentNoiseLevel = 0f;
+        ctx.stats.currentNoiseRange = 0f;
     }
 }
 

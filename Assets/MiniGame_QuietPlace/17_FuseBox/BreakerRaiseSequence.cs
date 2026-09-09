@@ -1,0 +1,305 @@
+using System.Collections;
+using UnityEngine;
+
+/// <summary>
+/// 퓨즈를 꽂은 뒤의 마무리 연출.
+///
+///   1. 퓨즈 미니게임이 닫히고, 플레이어가 실물 차단기 레버 앞으로 저절로 걸어간다.
+///   2. 레버가 내려가 있는 것이 보이고, 전용 화면에서 E 를 연타해 올린다.
+///      게이지가 차는 만큼 실물 레버가 같이 올라간다.
+///   3. 다 올리면 건물 전체에 전기가 들어오며 조명이 차례로 켜진다.
+///      그 장면을 잠시 보여준 뒤 조작을 돌려준다.
+///
+/// 조작을 빼앗는 방식이 중요하다. PlayerController 를 끄면 카메라 처리(ApplyCamera)까지
+/// 멈춰서 직접 카메라를 몰아야 하는데, 되돌릴 때 시선이 튄다. 대신 CharacterController 만
+/// 끈다 - PlayerController.Move 는 컨트롤러가 꺼져 있으면 아무 것도 하지 않으므로,
+/// 위치는 내가 직접 옮기면서 카메라는 계속 정상 처리된다.
+/// </summary>
+[DefaultExecutionOrder(-900)]
+public class BreakerRaiseSequence : MonoBehaviour
+{
+    public static BreakerRaiseSequence Instance { get; private set; }
+
+    [Header("플레이어")]
+    [SerializeField] private PlayerController player;
+    [SerializeField] private PlayerInteractor interactor;
+
+    [Header("실물 차단기 - 매니저가 넣어주기도 한다")]
+    [SerializeField] private BreakerLever lever;
+
+    [Header("레버 앞에 서는 자리 (없으면 레버 앞으로 계산한다)")]
+    [SerializeField] private Transform standAnchor;
+    [Tooltip("standAnchor 가 없을 때 레버에서 이만큼 떨어져 선다(m)")]
+    [SerializeField] private float standDistance = 1.5f;
+
+    [Header("1. 자동으로 걸어가는 시간(초)")]
+    [SerializeField] private float walkSeconds = 1.3f;
+    [Tooltip("레버의 어느 높이를 보게 할지 (레버 피벗에서 위로 m)")]
+    [SerializeField] private float lookAtHeight = 0f;
+
+    [Header("2. 차단기 올리기 화면")]
+    [SerializeField] private GameObject minigameRoot;
+    [SerializeField] private MashToComplete mash;
+
+    [Header("3. 전원이 들어오는 장면")]
+    [Tooltip("올려다볼 각도(도). 음수가 위쪽. 시작 시선과 무관한 절대값이다.")]
+    [SerializeField] private float cutsceneLookUpPitch = -32f;
+    [Tooltip("가장 트인 방향으로 몸을 돌린다. 벽을 마주본 채 위를 보면 천장 조명이 안 보인다.")]
+    [SerializeField] private bool cutsceneTurnToOpenSpace = true;
+    [Tooltip("트인 방향을 찾을 때 몇 방향을 재볼지")]
+    [SerializeField] private int cutsceneProbeCount = 12;
+    [SerializeField] private float cutsceneProbeDistance = 14f;
+    [SerializeField] private float cutscenePanSeconds = 1.8f;
+    [Tooltip("불이 다 켜진 뒤 이만큼 더 보여준다(초)")]
+    [SerializeField] private float cutsceneHoldSeconds = 3.2f;
+
+    [Header("전원이 들어올 때 나는 소리")]
+    [Tooltip("건물이 살아나는 공간음")]
+    [SerializeField] private AudioClip ambienceClip;
+    [SerializeField] private AudioSource ambienceSource;
+    [Tooltip("어딘가에서 괴물이 반응하는 포효")]
+    [SerializeField] private AudioClip growlClip;
+    [SerializeField] private AudioSource growlSource;
+    [Tooltip("포효를 공간음보다 이만큼 늦게 낸다(초) - 겹쳐 나오면 둘 다 묻힌다")]
+    [SerializeField] private float growlDelay = 1.1f;
+
+    public bool IsPlaying { get; private set; }
+
+    private IInteractor _pendingPlayer;
+    private bool _mashDone;
+
+    void Awake()
+    {
+        if (Instance != null && Instance != this) { Destroy(this); return; }
+        Instance = this;
+
+        if (minigameRoot != null) minigameRoot.SetActive(false);
+    }
+
+    void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+    }
+
+    /// <summary>퓨즈를 꽂은 직후 FuseRepairManager 가 부른다.</summary>
+    public void Begin(IInteractor who, BreakerLever physicalLever)
+    {
+        if (IsPlaying) return;
+        if (physicalLever != null) lever = physicalLever;
+
+        if (player == null || lever == null || minigameRoot == null || mash == null)
+        {
+            Debug.LogError($"[{nameof(BreakerRaiseSequence)}] 참조가 비어 있어 연출을 시작할 수 없다. " +
+                           $"player={player != null} lever={lever != null} minigameRoot={minigameRoot != null} mash={mash != null}", this);
+            return;
+        }
+
+        IsPlaying = true;
+        _pendingPlayer = who;
+        StartCoroutine(Run());
+    }
+
+    private IEnumerator Run()
+    {
+        TakeControl();
+
+        // 퓨즈를 끼우려 내려둔 차단기. 올려야 할 것이 눈에 보여야 한다.
+        lever.SetLeverProgress(0f);
+
+        yield return WalkToLever();
+
+        // ---------- 차단기 올리기 ----------
+        mash.lever = lever;
+        mash.leverGoesUp = true;
+
+        _mashDone = false;
+        mash.onComplete.AddListener(OnMashDone);
+        minigameRoot.SetActive(true);      // MashToComplete.OnEnable 이 게이지를 0 으로 되돌린다
+
+        while (!_mashDone) yield return null;
+
+        mash.onComplete.RemoveListener(OnMashDone);
+        minigameRoot.SetActive(false);
+        lever.ForceOn();                   // 끝까지 올라간 자세로 확정
+
+        yield return PowerOnCutscene();
+
+        GameCheckpoint.Save(GameStep.PowerRestored, _pendingPlayer);
+
+        ReturnControl();
+        IsPlaying = false;
+        _pendingPlayer = null;
+    }
+
+    private void OnMashDone()
+    {
+        _mashDone = true;
+    }
+
+    /// 레버 앞까지 저절로 걸어간다. 시선도 레버로 돌아간다.
+    private IEnumerator WalkToLever()
+    {
+        Vector3 target = StandPosition();
+        Vector3 lookAt = lever.transform.position + Vector3.up * lookAtHeight;
+
+        Vector3 fromPos = player.transform.position;
+        Quaternion fromRot = player.transform.rotation;
+        float fromPitch = player.LookPitch;
+
+        // 목표 자리에서 레버를 봤을 때의 좌우/위아래 각도
+        Vector3 flat = lookAt - target;
+        flat.y = 0f;
+        Quaternion toRot = flat.sqrMagnitude > 0.001f
+            ? Quaternion.LookRotation(flat.normalized, Vector3.up)
+            : fromRot;
+
+        // 카메라는 눈높이에 있으므로 그 높이에서 내려다보는 각도를 구한다
+        float eyeY = player.playerCamera != null
+            ? target.y + (player.playerCamera.transform.position.y - fromPos.y)
+            : target.y + 1.6f;
+        float horizontal = new Vector2(lookAt.x - target.x, lookAt.z - target.z).magnitude;
+        float toPitch = -Mathf.Atan2(lookAt.y - eyeY, Mathf.Max(0.01f, horizontal)) * Mathf.Rad2Deg;
+
+        float t = 0f;
+        while (t < walkSeconds)
+        {
+            t += Time.deltaTime;
+            float k = Smooth(t / walkSeconds);
+
+            player.transform.position = Vector3.Lerp(fromPos, target, k);
+            player.transform.rotation = Quaternion.Slerp(fromRot, toRot, k);
+            player.LookPitch = Mathf.Lerp(fromPitch, toPitch, k);
+            yield return null;
+        }
+
+        player.transform.position = target;
+        player.transform.rotation = toRot;
+        player.LookPitch = toPitch;
+    }
+
+    /// 불이 켜지는 것을 보여준다. BuildingPower 가 조명을 차례로 켜는 동안 시선을 든다.
+    private IEnumerator PowerOnCutscene()
+    {
+        // 퓨즈 쪽이 끝났다고 알린다. 변압기까지 끝나 있으면 여기서 전원이 들어온다.
+        if (BuildingPower.Instance != null) BuildingPower.Instance.MarkFuseInstalled();
+
+        // 건물이 살아나는 소리. 포효는 조금 늦게 얹어 "불이 켜진 걸 저쪽도 알았다" 로 읽히게.
+        if (ambienceSource != null && ambienceClip != null)
+        {
+            ambienceSource.clip = ambienceClip;
+            ambienceSource.time = 0f;
+            ambienceSource.Play();
+        }
+        if (growlSource != null && growlClip != null) StartCoroutine(PlayDelayed(growlSource, growlClip, growlDelay));
+
+        float fromPitch = player.LookPitch;
+        float toPitch = Mathf.Clamp(cutsceneLookUpPitch, player.minPitch, player.maxPitch);
+
+        // 벽을 마주본 채 위를 보면 벽면만 보인다. 가장 트인 쪽으로 몸을 돌려야
+        // 차례로 켜지는 천장 조명이 화면에 들어온다.
+        Quaternion fromRot = player.transform.rotation;
+        Quaternion toRot = cutsceneTurnToOpenSpace ? OpenestDirection() : fromRot;
+
+        float t = 0f;
+        while (t < cutscenePanSeconds)
+        {
+            t += Time.deltaTime;
+            float k = Smooth(t / cutscenePanSeconds);
+            player.LookPitch = Mathf.Lerp(fromPitch, toPitch, k);
+            player.transform.rotation = Quaternion.Slerp(fromRot, toRot, k);
+            yield return null;
+        }
+        player.transform.rotation = toRot;
+
+        if (cutsceneHoldSeconds > 0f) yield return new WaitForSeconds(cutsceneHoldSeconds);
+
+        bool powered = BuildingPower.Instance != null && BuildingPower.Instance.Powered;
+        Debug.Log($"[BreakerRaiseSequence] 차단기 올림 -> 전원 {(powered ? "복구" : "아직 - 변압기가 남았다")}");
+    }
+
+    /// <summary>
+    /// 눈높이에서 사방으로 재보고 가장 멀리까지 트인 방향을 고른다.
+    /// 그쪽이 방이 열려 있는 쪽이라 천장 조명이 여러 개 화면에 들어온다.
+    /// </summary>
+    private Quaternion OpenestDirection()
+    {
+        Vector3 eye = player.playerCamera != null
+            ? player.playerCamera.transform.position
+            : player.transform.position + Vector3.up * 1.6f;
+
+        int probes = Mathf.Max(4, cutsceneProbeCount);
+        Vector3 best = player.transform.forward;
+        float bestClear = -1f;
+
+        for (int i = 0; i < probes; i++)
+        {
+            float angle = 360f * i / probes;
+            Vector3 dir = Quaternion.Euler(0f, angle, 0f) * Vector3.forward;
+
+            RaycastHit hit;
+            float clear = Physics.Raycast(eye, dir, out hit, cutsceneProbeDistance, ~0, QueryTriggerInteraction.Ignore)
+                ? hit.distance
+                : cutsceneProbeDistance;
+
+            if (clear <= bestClear) continue;
+            bestClear = clear;
+            best = dir;
+        }
+
+        Debug.Log($"[BreakerRaiseSequence] 가장 트인 방향 {best.ToString("0.00")} ({bestClear:0.0}m)");
+        return Quaternion.LookRotation(best, Vector3.up);
+    }
+
+    private static System.Collections.IEnumerator PlayDelayed(AudioSource source, AudioClip clip, float delay)
+    {
+        if (delay > 0f) yield return new WaitForSeconds(delay);
+        if (source == null || clip == null) yield break;
+
+        source.clip = clip;
+        source.time = 0f;
+        source.Play();
+    }
+
+    private Vector3 StandPosition()
+    {
+        if (standAnchor != null) return standAnchor.position;
+
+        // 앵커가 없으면 레버 앞쪽 바닥을 찾아 선다.
+        Vector3 front = lever.transform.position + lever.transform.forward * standDistance;
+        RaycastHit hit;
+        if (Physics.Raycast(front + Vector3.up * 1.5f, Vector3.down, out hit, 4f, ~0, QueryTriggerInteraction.Ignore))
+            return hit.point + Vector3.up * 0.05f;
+
+        return new Vector3(front.x, player.transform.position.y, front.z);
+    }
+
+    // ---------------------------------------------------------------- 조작 잠금
+
+    private void TakeControl()
+    {
+        if (interactor != null) interactor.enabled = false;
+
+        player.InputLocked = true;
+        player.CameraLocked = true;
+
+        // Move 는 컨트롤러가 꺼져 있으면 그냥 돌아간다. 그래서 위치를 직접 옮길 수 있고,
+        // PlayerController 자체는 켜져 있으니 카메라는 계속 눈높이에 붙어 있는다.
+        if (player.Controller != null) player.Controller.enabled = false;
+    }
+
+    private void ReturnControl()
+    {
+        if (player.Controller != null) player.Controller.enabled = true;
+
+        player.InputLocked = false;
+        player.CameraLocked = false;
+
+        if (interactor != null) interactor.enabled = true;
+    }
+
+    private static float Smooth(float x)
+    {
+        x = Mathf.Clamp01(x);
+        return x * x * (3f - 2f * x);
+    }
+}

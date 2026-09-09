@@ -100,7 +100,7 @@ MonoBehaviour:
   firstChaseSpeed: 3
   secondChaseSpeed: 8
   attackRange: 2
-  touchAttackRange: 1.5
+  touchAttackRange: 1.9
   destinationUpdateThreshold: 0.8
   patrolPoints:
   - {fileID: 0}
@@ -111,9 +111,11 @@ MonoBehaviour:
   maxHearingMemoryDuration: 8
   reactionDelay: 0.4
   investigateLingerTime: 1.2
+  firstTierMaxDuration: 7
   soundPositionError: 1.5
   minSoundPositionError: 1.2
   heardPositionSampleRadius: 3
+  patrolRelocateSpread: 4
 --- !u!114 &7826251467520733573
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -137,6 +139,8 @@ MonoBehaviour:
   maxObstaclesPerCheck: 8
   earHeight: 1.5
   baseHearingRange: 6
+  firstTierExtraRange: 4
+  firstTierExtraRangeMinLoudness: 3
   verticalTolerance: 3
   verticalDistanceWeight: 3
   tier1Threshold: 0.3

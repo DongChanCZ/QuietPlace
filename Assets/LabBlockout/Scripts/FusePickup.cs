@@ -25,6 +25,21 @@ public sealed class FusePickup : Interactable, IHoldable
     [SerializeField] float noiseLevelBump = 3f;
     [SerializeField] float noiseRangeBump = 3f;
 
+    [Header("떨어뜨려 바닥에 부딪혔을 때 (무거운 물건만)")]
+    [SerializeField] AudioClip dropSound;
+    [SerializeField] AudioSource dropSource;
+    [Tooltip("이 속도보다 세게 부딪혀야 소리가 난다(m/s). 살살 내려놓으면 조용하다.")]
+    [SerializeField] float minImpactSpeed = 1.6f;
+    [Tooltip("소음 크기. MonsterHearing 의 tier3(=3)을 벽 너머에서도 넘겨야 바로 뛰쳐온다.")]
+    [SerializeField] float dropNoiseLoudness = 60f;
+    [Tooltip("이 거리 밖이면 벽 유무와 무관하게 안 들린다(m)")]
+    [SerializeField] float dropNoiseRange = 70f;
+    [Tooltip("한 번 부딪힌 뒤 이 시간 안의 튕김은 무시한다(초)")]
+    [SerializeField] float impactCooldown = 0.6f;
+
+    [Tooltip("벽/층에 막혀도 괴물이 반드시 달려오게 할지")]
+    [SerializeField] bool summonMonsters = true;
+
     [Header("무게 - 낮을수록 느려진다")]
     [SerializeField, Range(0.1f, 1f)] float moveSpeedMultiplier = 0.45f;
     [SerializeField] float carryLookDownPitch = 12f;
@@ -72,15 +87,39 @@ public sealed class FusePickup : Interactable, IHoldable
     /// 두 손으로 드는 물건만 손을 비워야 한다 - 변압기를 들고 변압기를 또 들 수는 없다.
     public override bool AllowedWhileHandsFull => !carryInHands;
 
+    /// 집어 가는 물건은 뒤/속에 있는 기계보다 먼저 잡혀야 한다.
+    public override int AimPriority => 10;
+
+    /// 이 부품을 덮고 있는 고정판. FuseSlot 이 Awake 에서 자기 cover 를 알려준다.
+    /// 판이 닫혀 있는 동안에는 손이 닿지 않아야 한다 - 볼트를 풀기 전에 안쪽 부품이
+    /// 빠져나오면 볼트 미니게임 자체가 무의미해진다.
+    private BoltedPanel sealedBehind;
+
+    private bool Sealed => sealedBehind != null && !sealedBehind.Open;
+
+    /// <summary>FuseSlot 이 부른다. 이 부품이 고정판 안쪽에 있다고 알린다.</summary>
+    public void SealBehind(BoltedPanel panel)
+    {
+        sealedBehind = panel;
+    }
+
+    public override bool Available(IInteractor player) => !Taken && !Installed && !Sealed;
+
     public override string Prompt(IInteractor player)
     {
-        if (Installed || Taken) return null;
+        if (Installed || Taken || Sealed) return null;
         return carryInHands ? "E  " + displayName + " 들기" : "E  " + displayName + " 획득";
     }
 
     public override void Interact(IInteractor player)
     {
         if (Taken || Installed) return;
+
+        if (Sealed)
+        {
+            if (player != null) player.ShowNotice("고정판을 먼저 떼어내야 합니다.");
+            return;
+        }
 
         if (!carryInHands)
         {
@@ -155,11 +194,60 @@ public sealed class FusePickup : Interactable, IHoldable
         if (glow != null) glow.Restore();   // 다시 집을 수 있으니 표시도 되살린다
     }
 
+    /// <summary>
+    /// 무거운 물건이 바닥에 부딪혔을 때. 큰 소리가 나고 괴물이 그 자리로 뛰쳐온다.
+    ///
+    /// 놓는 순간이 아니라 실제로 닿는 순간에 울려야 한다 - 그래야 "떨어뜨렸다"는
+    /// 느낌이 난다. 들고 있는 동안은 Rigidbody 가 kinematic 이라 충돌이 오지 않는다.
+    /// </summary>
+    void OnCollisionEnter(Collision collision)
+    {
+        if (!carryInHands || Installed || Taken) return;
+        if (Time.time < _nextImpactTime) return;                       // 튕기며 여러 번 울리지 않게
+        if (collision.relativeVelocity.magnitude < minImpactSpeed) return;
+
+        _nextImpactTime = Time.time + impactCooldown;
+
+        Vector3 at = collision.contactCount > 0 ? collision.GetContact(0).point : transform.position;
+
+        if (dropSound != null)
+        {
+            if (dropSource != null) dropSource.PlayOneShot(dropSound);
+            else AudioSource.PlayClipAtPoint(dropSound, at);
+        }
+
+        if (NoiseManager.Instance != null)
+            NoiseManager.Instance.Emit(new NoiseEvent(at, dropNoiseLoudness, dropNoiseRange, NoiseType.ObjectImpact));
+
+        // 소음만으로는 벽/층 감쇠에 막혀 "무조건" 이 안 된다. 직접 불러들인다.
+        if (summonMonsters) MonsterAlarm.Summon(at, dropNoiseLoudness);
+
+        Debug.Log($"[FusePickup] {displayName} 을 떨어뜨렸다 - 소음 {dropNoiseLoudness} / 범위 {dropNoiseRange}m @ {at}");
+    }
+
+    private float _nextImpactTime;
+
     private void SetPhysicsFrozen(bool frozen)
     {
         if (body == null) return;
+
+        // 이미 kinematic 인 몸에 속도를 쓰면 Unity 가 경고를 낸다. 얼리기 전에 먼저 지운다.
+        if (frozen && !body.isKinematic) body.linearVelocity = Vector3.zero;
         body.isKinematic = frozen;
-        if (frozen) body.linearVelocity = Vector3.zero;
+    }
+
+    /// <summary>
+    /// 세이브포인트 복원용. 플레이어가 챙겨간 것과 같은 상태로 만들고 화면에서 치운다.
+    /// Interact 와 달리 손에 드는 처리를 하지 않는다 - 이미 지나간 일이라 물건만 사라져야 한다.
+    /// </summary>
+    public void ForceConsumed()
+    {
+        if (Installed) return;
+
+        Taken = true;
+        EverTaken = true;
+        if (glow != null) glow.Consume();
+        gameObject.SetActive(false);
     }
 
     /// Called by FuseSlot. Put the same object down at the slot.

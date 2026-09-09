@@ -1301,8 +1301,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -30, y: -30}
-  m_SizeDelta: {x: 420, y: 50}
+  m_AnchoredPosition: {x: -34, y: -28}
+  m_SizeDelta: {x: 300, y: 210}
   m_Pivot: {x: 1, y: 1}
 --- !u!114 &421027251
 MonoBehaviour:
@@ -1324,7 +1324,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC81C\uC791: \uD300\uBA85 \uC5EC\uAE30\uC5D0"
+  m_text: "\uC81C\uC791\n\uC774\uB3D9\uCC2C\n\uAE40\uB3D9\uC6B1\n\uD558\uC0C1\uC6D0\n\uC815\uC2B9\uACBD"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 16550c05cb6491b49be8b59b1bbd9560, type: 2}
   m_sharedMaterial: {fileID: -2287058760040969196, guid: 16550c05cb6491b49be8b59b1bbd9560, type: 2}
@@ -1351,20 +1351,20 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 28
-  m_fontSizeBase: 28
+  m_fontSize: 26
+  m_fontSizeBase: 26
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
   m_HorizontalAlignment: 4
-  m_VerticalAlignment: 1024
+  m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_characterHorizontalScale: 1
   m_wordSpacing: 0
-  m_lineSpacing: 0
+  m_lineSpacing: 14
   m_lineSpacingMax: 0
   m_paragraphSpacing: 0
   m_charWidthMaxAdj: 0
@@ -5424,6 +5424,30 @@ PrefabInstance:
       propertyPath: 'sfxClips.Array.data[10]'
       value: 
       objectReference: {fileID: 8300000, guid: 475b18fe8addb4a4ea7f8c5510c7b035, type: 3}
+    - target: {fileID: 815482729486757139, guid: c5b5ccad195806a49814e9f741934b51, type: 3}
+      propertyPath: 'sfxClips.Array.data[11]'
+      value: 
+      objectReference: {fileID: 8300000, guid: 0df2d09b006d2a445990594cc11ba402, type: 3}
+    - target: {fileID: 815482729486757139, guid: c5b5ccad195806a49814e9f741934b51, type: 3}
+      propertyPath: 'sfxClips.Array.data[12]'
+      value: 
+      objectReference: {fileID: 8300000, guid: 3da384e430765594587a3f0ed04fbe80, type: 3}
+    - target: {fileID: 815482729486757139, guid: c5b5ccad195806a49814e9f741934b51, type: 3}
+      propertyPath: 'sfxClips.Array.data[13]'
+      value: 
+      objectReference: {fileID: 8300000, guid: fafb483f80b13514098cf9cdc7958923, type: 3}
+    - target: {fileID: 815482729486757139, guid: c5b5ccad195806a49814e9f741934b51, type: 3}
+      propertyPath: 'sfxClips.Array.data[14]'
+      value: 
+      objectReference: {fileID: 8300000, guid: 3878e6c3f6e553542a3864d9c3218d45, type: 3}
+    - target: {fileID: 815482729486757139, guid: c5b5ccad195806a49814e9f741934b51, type: 3}
+      propertyPath: 'sfxClips.Array.data[15]'
+      value: 
+      objectReference: {fileID: 8300000, guid: 48a563b7dfecdaf4ea584007a012c1bd, type: 3}
+    - target: {fileID: 815482729486757139, guid: c5b5ccad195806a49814e9f741934b51, type: 3}
+      propertyPath: 'sfxClips.Array.data[16]'
+      value: 
+      objectReference: {fileID: 8300000, guid: a4dbf1a84aa289448b6388f1f1a4f7c4, type: 3}
     - target: {fileID: 3141307636526722647, guid: c5b5ccad195806a49814e9f741934b51, type: 3}
       propertyPath: m_LocalPosition.x
       value: 14.49514

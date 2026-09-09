@@ -28,6 +28,7 @@ public class MonsterController : MonoBehaviour
     [Header("Sound Reaction")]
     public float reactionDelay = 0.4f; // 소리 감지 직후 "어?" 하고 멈칫하는 텀 (즉각 반응 방지)
     public float investigateLingerTime = 1.2f; // 소리 지점 도착 후 두리번거리는 시간
+    public float firstTierMaxDuration = 7f; // First가 이 시간 넘게 지속되면 계속 들리고 있어도(격상 안 됐다면) 그냥 포기 - 스니킹 플레이어를 무한정 쫓아다니는 것 방지
     public float soundPositionError = 2f; // NoiseLevel 0 기준 오차 반경
     public float minSoundPositionError = 1.2f; // loudNoiseCommitThreshold 이상이어도 이 아래로는 안 줄어듦 - 오브젝트에 완전히 달라붙는 것 방지
     public float heardPositionSampleRadius = 3f; // 소리 위치를 NavMesh 위로 스냅할 때 허용 거리 - 벽/물체 표면에 맞아 NavMesh 밖에 찍히는 경우 대비
@@ -65,7 +66,9 @@ public class MonsterController : MonoBehaviour
     {
         if (player == null || currentState.Type == MonsterStateType.Neutralization) return;
 
-        if (currentState.Type != MonsterStateType.Attack)
+        // First는 아직 확신 없는 상태라 이 즉시공격 규칙에서 제외 - 우연히 스치기만 해도 죽는 건
+        // 억울함. First 중의 접촉은 MonsterFirstDetectionState 자체에서 Final 격상으로 처리한다.
+        if (currentState.Type != MonsterStateType.Attack && currentState.Type != MonsterStateType.FirstDetection)
         {
             float dist = Vector3.Distance(transform.position, player.transform.position);
             // 터치 거리에서는 시야 체크 안 함 - 문틀 상단 같은 얇은 구조물에 레이가 걸려서
@@ -159,8 +162,20 @@ public class MonsterController : MonoBehaviour
         t == MonsterStateType.SecondDetection ? 2 :
         t == MonsterStateType.FirstDetection ? 1 : 0;
 
+    /// 애니메이션 트리거 이름 중 "주위를 살피는" 동작. 소리 연출이 이 순간을 잡는다.
+    public const string ScanAnimState = "Analyzing";
+
+    /// <summary>지금 주위를 살피는 동작 중인가.</summary>
+    ///
+    /// 상태(MonsterStateType)로는 알 수 없다 - 살피는 동작은 추적 상태 안에서
+    /// "갈 곳까지 갔는데 더 갈 데가 없을 때" 나오기 때문이다. 애니메이션이 바뀌는
+    /// 이 지점에서 한 번만 판정하면 다른 동작으로 넘어갈 때 저절로 풀린다.
+    public bool IsScanning { get; private set; }
+
     public void SetAnimState(string name)
     {
+        IsScanning = name == ScanAnimState;
+
         if (animator == null) return;
         // 이전에 걸린 트리거가 소비 안 된 채 남아있으면(Any State 전이가 canTransitionToSelf=false라
         // 자기 자신으로는 안 넘어가서 안 지워짐) 나중에 엉뚱한 상태로 튀는 원인이 됨 - 새로 걸기 전에 나머지를 비운다.

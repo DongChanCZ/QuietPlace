@@ -48,6 +48,18 @@ public class PlayerController : MonoBehaviour
     public PlayerStateType CurrentStateType => currentState != null ? currentState.Type : PlayerStateType.Idle;
     public bool CameraLocked { get; set; }
 
+    /// <summary>
+    /// 지금 위아래 시선 각도(도). 좌우(yaw)는 transform.rotation 에 들어 있다.
+    ///
+    /// 연출에서 카메라를 특정 지점으로 돌려놓을 때 이 값을 같이 맞춰야 한다.
+    /// 그러지 않으면 조작을 돌려주는 순간 원래 pitch 로 화면이 홱 튄다.
+    /// </summary>
+    public float LookPitch
+    {
+        get { return pitch; }
+        set { pitch = Mathf.Clamp(value, minPitch, maxPitch); }
+    }
+
     /// 미니게임 중처럼 조작을 전부 막아야 할 때. 시야만 잠그는 CameraLocked 와 달리
     /// 이동/앉기/던지기 입력 자체를 읽지 않는다. 퓨즈 각도를 A/D 로 맞추는 동안 몸이
     /// 같이 돌아가거나, 스킬체크의 S 키로 뒤로 걸어가는 문제를 막는다.
@@ -94,7 +106,10 @@ public class PlayerController : MonoBehaviour
 
     [Header("Vault")]
     public float vaultMaxRise = 1.30f;   // 발 기준 올라탈 수 있는 최대 높이
-    public float vaultForward = 1.50f;   // 넘어간 뒤 앞으로 나아가는 거리
+    // 넘어간 뒤 앞으로 나아가는 거리. 1.50 이면 경비실 창틀을 넘을 때 착지점이
+    // 방 안쪽 벽에 박혀 넘기 자체가 취소된다. 블록아웃 검사로 0.60 이 맞는 값인 걸
+    // 확인했는데 그 수정이 이 스크립트에는 안 옮겨져 있었다.
+    public float vaultForward = 0.60f;
     public float vaultSeconds = 0.38f;
     private bool vaulting;
     // Pre-allocated: OverlapCapsuleNonAlloc would otherwise allocate an array every call.
@@ -470,23 +485,51 @@ public class PlayerController : MonoBehaviour
         RaycastHit hit;
         bool found = false;
         Vector3 face = default;
-        for (float h = 0.25f; h <= vaultMaxRise; h += 0.15f)
+        // 0.25 에서 시작하면 쓰레기통 뚜껑(1.30) 위에서 경비실 창틀(윗면 1.55)을
+        // 딱 1cm 차이로 지나쳐 버려 창문이 영영 안 잡힌다. 무릎보다 낮게 시작한다.
+        for (float h = 0.12f; h <= vaultMaxRise; h += 0.12f)
             if (Physics.Raycast(foot + Vector3.up * h, fwd, out hit, 1.0f, ~0, QueryTriggerInteraction.Ignore))
             { found = true; face = hit.point; break; }
         if (!found) return false;
 
         // 2) 턱 너머 위에서 아래로 쏴 윗면을 찾는다.
-        Vector3 above = face + fwd * 0.30f + Vector3.up * (vaultMaxRise + 0.50f);
-        if (!Physics.Raycast(above, Vector3.down, out hit, vaultMaxRise + 0.90f, ~0, QueryTriggerInteraction.Ignore))
-            return false;
-        float rise = hit.point.y - foot.y;
-        if (rise < 0.15f || rise > vaultMaxRise) return false;
+        //    한 지점만 보면 안 된다 - 창틀은 깊이가 0.33 밖에 안 되는데 앞으로 0.30 을
+        //    고정으로 밀면, 앞 검사가 어느 부재를 맞았느냐에 따라 5cm 차이로 창틀을
+        //    빗나가 "윗면 없음" 이 된다. 몇 지점을 훑어 먼저 걸리는 윗면을 쓴다.
+        float topY = 0f;
+        bool top = false;
+        foreach (float step in new float[] { 0.12f, 0.20f, 0.30f, 0.42f })
+        {
+            Vector3 above = face + fwd * step + Vector3.up * (vaultMaxRise + 0.50f);
+            // 한 번만 쏘면 안 된다 - 창문은 위에 상부틀이 있어서 첫 히트가 늘 그것이고,
+            // 정작 짚고 넘어야 할 하부틀은 그 아래에 있다. 전부 받아서 올라탈 수 있는
+            // 높이 중 가장 높은 면을 고른다.
+            RaycastHit[] downs = Physics.RaycastAll(above, Vector3.down, vaultMaxRise + 0.90f, ~0, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < downs.Length; i++)
+            {
+                float rise = downs[i].point.y - foot.y;
+                if (rise < 0.15f || rise > vaultMaxRise) continue;
+                if (top && downs[i].point.y <= topY) continue;
+                topY = downs[i].point.y;
+                top = true;
+            }
+            if (top) break;
+        }
+        if (!top) return false;
 
         // 3) 착지 자리에 웅크린 몸이 들어가는지. 안 들어가면 넘지 않는다.
-        Vector3 dest = new Vector3(face.x, hit.point.y + 0.05f, face.z) + fwd * vaultForward;
+        Vector3 dest = new Vector3(face.x, topY + 0.05f, face.z) + fwd * vaultForward;
         float r = Controller.radius - 0.02f;
         if (Physics.CheckCapsule(dest + Vector3.up * (r + 0.02f),
                                  dest + Vector3.up * (sittingColliderHeight - r - 0.02f), r, ~0, QueryTriggerInteraction.Ignore))
+            return false;
+
+        // 4) 턱 위가 트여 있어야 한다. VaultTo 는 컨트롤러를 끄고 transform 을 직접 옮기므로,
+        //    이 검사가 없으면 창틀이 아니라 그냥 벽 앞에서도 넘기가 걸려 벽을 뚫고 나간다.
+        //    창틀·쓰레기통처럼 위가 열린 것은 통과하고, 통짜 벽은 여기서 걸러진다.
+        Vector3 overFrom = new Vector3(face.x, topY + 0.25f, face.z) - fwd * 0.25f;
+        Vector3 overTo = new Vector3(dest.x, topY + 0.25f, dest.z);
+        if (Physics.Linecast(overFrom, overTo, ~0, QueryTriggerInteraction.Ignore))
             return false;
 
         StartCoroutine(VaultTo(dest));
@@ -598,6 +641,11 @@ public class PlayerController : MonoBehaviour
         currentState?.Exit(this);
         currentState = next;
         currentState.Enter(this);
+
+        // 앉으면 판정도 같이 낮춘다. 지금까지 SetSittingCollider 는 넘기(VaultTo)에서만
+        // 불렸고 웅크리기는 시야 높이만 낮췄다. 그래서 캡슐이 계속 1.80 이라
+        // 경비실 창문(개구부 1.32m)에 몸이 안 들어가 기어 들어갈 수가 없었다.
+        if (!vaulting) SetSittingCollider(next.Type == PlayerStateType.Sitting);
     }
 
     public void GoToIdle() => ChangeState(idleState);
