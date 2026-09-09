@@ -113,9 +113,9 @@ public class DoorHackTyping : MonoBehaviour
         fallSpeed = MinigameTuning.DoorFallSpeed;
         fallSpeedRampPerHit = MinigameTuning.DoorFallRamp;
 
+        // 대소문자 안내는 화면에 쓰지 않는다.
         if (difficultyLabel != null)
-            difficultyLabel.text = "난이도: " + MinigameTuning.Label
-                + (caseSensitive ? " · 대소문자 구분(Shift)" : " · 대소문자 무시");
+            difficultyLabel.text = "난이도: " + MinigameTuning.Label;
     }
 
     void Update()

@@ -61,8 +61,8 @@ public static class FuseRepairUIBuilder
         FuseAngleInsert fuseInsert = BuildAngleStage(panel.transform, "Stage3_FuseInsert",
             "각도를 맞춰 삽입", "A / D 회전 · E 삽입");
 
-        MashToComplete breakerUp = BuildMashStage(panel.transform, "Stage4_BreakerUp",
-            "차단기를 올린다", "E 연타");
+        // 차단기 올리기 단계는 글 없이 게이지만 보여준다(요청). 빈 문자열이면 라벨이 아무것도 그리지 않는다.
+        MashToComplete breakerUp = BuildMashStage(panel.transform, "Stage4_BreakerUp", "", "");
 
         // 시퀀서 배선
         FuseBoxRepairSequence sequence = Undo.AddComponent<FuseBoxRepairSequence>(root);

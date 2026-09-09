@@ -31,4 +31,24 @@ public abstract class Interactable : MonoBehaviour
     /// 기본은 false 다. 손이 차 있으면 물건을 새로 집을 수 없어야 한다.
     /// 설치 슬롯이나 문·레버처럼 손을 비우지 않고도 조작할 수 있는 것만 true 로 덮어쓴다.
     public virtual bool AllowedWhileHandsFull => false;
+
+    /// 조준이 여러 대상에 걸렸을 때 누가 이기는가. 큰 값이 먼저다.
+    ///
+    /// 거리만으로 고르면 큰 기계 안에 놓인 작은 물건을 집을 수 없다. 실제로
+    /// ITEM_2F_Wrench 는 PROP_2F_Switchboard 의 3.4x2.2x2.6m 짜리 박스 콜라이더에
+    /// 완전히 파묻혀 있어서, 어느 방향에서 조준해도 배전반이 먼저 잡혀 집을 수가 없었다.
+    /// 집어 가는 작은 물건은 뒤에 있는 기계를 이겨야 한다.
+    public virtual int AimPriority => 0;
+
+    /// <summary>
+    /// 지금 이 대상을 쓸 수 있는가. false 면 조준 대상에서 아예 빠진다.
+    ///
+    /// AimPriority 만으로 고르면, 지금 쓸 수 없는 물건이 조준을 차지한 채 아무 안내도
+    /// 내지 않아 뒤에 있는 진짜 대상이 가려진다. 실제로 두 가지가 그렇게 막혔다.
+    ///   - 손에 든 변압기가 카메라 앞에 매달려 조준을 가져가 배전반에 꽂을 수 없었다.
+    ///   - 볼트로 잠긴 고정판 안쪽의 고장난 변압기가 잡혀 판을 풀기 전에 빠져나왔다.
+    /// Prompt 가 null 인 것과 뜻이 같지만, Prompt 는 문자열을 만들어 매 프레임
+    /// 쓰레기를 남기므로 판정만 따로 둔다.
+    /// </summary>
+    public virtual bool Available(IInteractor player) => true;
 }

@@ -200,8 +200,8 @@ public static class FrequencyHackUIBuilder
         Image track = Img(row.transform, "Track", new Color(1f, 1f, 1f, 0.13f), new Vector2(30f, 0f), new Vector2(660f, 12f));
         track.raycastTarget = true;
 
-        // 목표 자리 눈금. 어디쯤을 노려야 하는지 슬라이더에서도 보이게 한다.
-        Image tick = Img(row.transform, "TargetTick", color * 0.85f, new Vector2(30f, 0f), new Vector2(4f, 26f));
+        // 슬라이더에는 목표 눈금을 두지 않는다. 어디가 정답인지 미리 알려주면
+        // 파형을 보며 더듬어 찾는 재미가 없어진다 - 정답은 위쪽 그래프에만 있다.
 
         // Slider 는 handleRect 의 부모를 손잡이 이동 범위로 쓴다. 트랙과 같은 크기의 영역을 따로 둔다.
         GameObject handleArea = Empty(row.transform, "HandleArea");
@@ -239,9 +239,6 @@ public static class FrequencyHackUIBuilder
         fso.FindProperty("currentWave").objectReferenceValue = currentWave;
         fso.FindProperty("matchedIndicator").objectReferenceValue = lockLamp;
         fso.FindProperty("harmonicLabel").objectReferenceValue = harmonicLabel;
-        fso.FindProperty("targetTick").objectReferenceValue = tick.rectTransform;
-        fso.FindProperty("trackWidth").floatValue = 660f;
-        fso.FindProperty("trackCenterX").floatValue = 30f;
         fso.ApplyModifiedPropertiesWithoutUndo();
 
         return band;

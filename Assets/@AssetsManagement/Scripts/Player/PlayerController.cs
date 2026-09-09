@@ -48,6 +48,18 @@ public class PlayerController : MonoBehaviour
     public PlayerStateType CurrentStateType => currentState != null ? currentState.Type : PlayerStateType.Idle;
     public bool CameraLocked { get; set; }
 
+    /// <summary>
+    /// 지금 위아래 시선 각도(도). 좌우(yaw)는 transform.rotation 에 들어 있다.
+    ///
+    /// 연출에서 카메라를 특정 지점으로 돌려놓을 때 이 값을 같이 맞춰야 한다.
+    /// 그러지 않으면 조작을 돌려주는 순간 원래 pitch 로 화면이 홱 튄다.
+    /// </summary>
+    public float LookPitch
+    {
+        get { return pitch; }
+        set { pitch = Mathf.Clamp(value, minPitch, maxPitch); }
+    }
+
     /// 미니게임 중처럼 조작을 전부 막아야 할 때. 시야만 잠그는 CameraLocked 와 달리
     /// 이동/앉기/던지기 입력 자체를 읽지 않는다. 퓨즈 각도를 A/D 로 맞추는 동안 몸이
     /// 같이 돌아가거나, 스킬체크의 S 키로 뒤로 걸어가는 문제를 막는다.

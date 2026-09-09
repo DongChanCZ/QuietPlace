@@ -72,6 +72,10 @@ public sealed class FuseSlot : Interactable
     void Awake()
     {
         Debug.Assert(part && anchor, "FuseSlot is missing its part or anchor.");
+
+        // 자리에 박힌 고장난 부품은 고정판 안쪽에 있다. 판이 닫혀 있는 동안 손이
+        // 닿으면 볼트를 풀기 전에 부품이 빠져나온다.
+        if (blockingPart != null && cover != null) blockingPart.SealBehind(cover);
     }
 
     // 들고 온 부품을 꽂는 곳이라 손이 차 있는 상태로 써야 한다
@@ -137,5 +141,30 @@ public sealed class FuseSlot : Interactable
 
         carried.InstallAt(anchor, Quaternion.Euler(installEuler));
         if (player != null) player.ShowNotice(itemName + "를 설치했습니다.");
+    }
+
+    /// <summary>
+    /// 세이브포인트 복원용. 플레이어가 들고 오지 않아도 그대로 꽂아 놓는다.
+    /// CompleteInstall 은 손에 든 부품을 요구하므로 씬을 다시 로드한 직후에는 쓸 수 없다.
+    /// </summary>
+    public void ForceInstall()
+    {
+        if (anchor == null || Filled) return;
+
+        FusePickup pick = part;
+        if (pick == null && alternateParts != null)
+        {
+            for (int i = 0; i < alternateParts.Length && pick == null; i++)
+                pick = alternateParts[i];
+        }
+        if (pick == null) return;
+
+        pick.InstallAt(anchor, Quaternion.Euler(installEuler));
+    }
+
+    /// <summary>세이브포인트 복원용. 자리에 박혀 있던 고장난 부품을 들어낸 것으로 처리한다.</summary>
+    public void ForceUnblock()
+    {
+        if (blockingPart != null) blockingPart.ForceConsumed();
     }
 }

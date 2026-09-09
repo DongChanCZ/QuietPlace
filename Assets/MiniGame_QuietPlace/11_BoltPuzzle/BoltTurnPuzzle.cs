@@ -56,6 +56,10 @@ public class BoltTurnPuzzle : MonoBehaviour
     [Header("UI")]
     public Image progressFill;
     public Image torqueFill;          // 지금 주고 있는 힘
+
+    [Header("아날로그 계기판 - 있으면 바늘로도 같이 보여준다")]
+    public AnalogGauge torqueGauge;   // 지금 주고 있는 힘
+    public AnalogGauge progressGauge; // 얼마나 풀렸는가
     public Image breakawayMarker;     // 볼트가 움직이기 시작하는 지점 표시
     public TMP_Text counterLabel;
     public TMP_Text hintLabel;
@@ -317,14 +321,14 @@ public class BoltTurnPuzzle : MonoBehaviour
     /// message 가 null 이면 문구는 그대로 두고 게이지만 갱신한다.
     private void Refresh(string message)
     {
-        if (progressFill != null)
-        {
-            float total = Mathf.Max(1f, degreesPerTurn * requiredTurns);
-            progressFill.fillAmount = Mathf.Clamp01(progressDegrees / total);
-        }
+        float progress01 = Mathf.Clamp01(progressDegrees / Mathf.Max(1f, degreesPerTurn * requiredTurns));
+        float torque01 = Mathf.Clamp01(torque / Mathf.Max(0.0001f, maxTorque));
 
-        if (torqueFill != null)
-            torqueFill.fillAmount = Mathf.Clamp01(torque / Mathf.Max(0.0001f, maxTorque));
+        if (progressFill != null) progressFill.fillAmount = progress01;
+        if (torqueFill != null) torqueFill.fillAmount = torque01;
+
+        if (progressGauge != null) progressGauge.SetValue01(progress01);
+        if (torqueGauge != null) torqueGauge.SetValue01(torque01);
 
         if (counterLabel != null)
             counterLabel.text = "볼트 " + turns + " / " + requiredTurns + " 바퀴";

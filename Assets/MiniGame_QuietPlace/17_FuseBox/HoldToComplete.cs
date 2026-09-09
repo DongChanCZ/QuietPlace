@@ -34,6 +34,9 @@ public class HoldToComplete : MonoBehaviour
     public Image progressFill;
     public TMP_Text hintLabel;
 
+    [Header("아날로그 전압계 - 있으면 바늘로도 같이 보여준다")]
+    public AnalogGauge gauge;
+
     [Header("실물 차단기 레버 - 매니저가 넣어준다")]
     public BreakerLever lever;
 
@@ -95,6 +98,7 @@ public class HoldToComplete : MonoBehaviour
     private void Refresh()
     {
         if (progressFill != null) progressFill.fillAmount = progress01;
+        if (gauge != null) gauge.SetValue01(progress01);
 
         if (hintLabel == null) return;
 

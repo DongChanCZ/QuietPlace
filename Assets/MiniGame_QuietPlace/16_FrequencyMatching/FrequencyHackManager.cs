@@ -112,6 +112,8 @@ public class FrequencyHackManager : MonoBehaviour
 
         if (computer != null) computer.OnFrequencySet(player);
 
+        GameCheckpoint.Save(GameStep.FrequencySet, player);
+
         if (FrequencyBroadcast.Instance != null) FrequencyBroadcast.Instance.Begin(computer, player);
         else if (computer != null) computer.OnSolved(player);   // 송출 매니저가 없으면 바로 완료 처리
     }

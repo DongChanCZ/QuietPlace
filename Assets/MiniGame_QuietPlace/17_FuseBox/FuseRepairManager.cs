@@ -81,13 +81,51 @@ public class FuseRepairManager : MonoBehaviour
             sequence.breakerUpHold.lever = breakerLever;
             sequence.breakerUpHold.leverGoesUp = true;      // 올리기
         }
+        // 차단기 올리기는 연타 방식으로 바꿨다. 꾹 누르기는 이 단계만 입력이 달라서,
+        // 안내문 없이는 눌러도 안 차는 것처럼 보였다.
+        if (sequence.breakerUp != null)
+        {
+            sequence.breakerUp.lever = breakerLever;
+            sequence.breakerUp.leverGoesUp = true;
+        }
+        if (sequence.breakerDown != null)
+        {
+            sequence.breakerDown.lever = breakerLever;
+            sequence.breakerDown.leverGoesUp = false;
+        }
 
         minigameRoot.SetActive(true);
         sequence.onPowerRestored.AddListener(HandlePowerRestored);
+        sequence.onFuseInserted.AddListener(HandleFuseInserted);
         sequence.Begin(); // 재시도 시에도 1단계부터 다시 시작하도록 명시적으로 초기화
     }
 
-    /// <summary>4단계를 모두 통과했을 때 시퀀서가 부르는 지점.</summary>
+    /// <summary>
+    /// 퓨즈를 꽂은 순간. 미니게임을 닫고 밖으로 나가, 실물 레버 앞에서 차단기를 올린다.
+    /// 전원 복구와 세이브포인트는 그 연출이 끝낼 때 처리한다.
+    /// </summary>
+    private void HandleFuseInserted()
+    {
+        FuseSlot slot = pendingSlot;
+        IInteractor player = pendingPlayer;
+
+        Finish();
+
+        if (slot != null) slot.CompleteInstall(player);
+
+        if (BreakerRaiseSequence.Instance != null)
+        {
+            BreakerRaiseSequence.Instance.Begin(player, breakerLever);
+            return;
+        }
+
+        // 연출이 없는 씬에서는 예전처럼 그 자리에서 마무리한다.
+        Debug.LogWarning($"[{nameof(FuseRepairManager)}] BreakerRaiseSequence 가 없어 전원을 바로 복구한다.", this);
+        if (BuildingPower.Instance != null) BuildingPower.Instance.MarkFuseInstalled();
+        GameCheckpoint.Save(GameStep.PowerRestored, player);
+    }
+
+    /// <summary>차단기 올리기까지 이 화면 안에서 하는 구성에서만 쓰인다.</summary>
     private void HandlePowerRestored()
     {
         FuseSlot slot = pendingSlot;
@@ -100,6 +138,8 @@ public class FuseRepairManager : MonoBehaviour
         // 퓨즈 쪽이 끝났다고만 알린다. 발전기실(변압기)까지 끝났을 때 BuildingPower 가
         // 스스로 전원을 넣는다 - 한쪽만 고쳤을 때 불이 켜지면 스토리가 무너진다.
         if (BuildingPower.Instance != null) BuildingPower.Instance.MarkFuseInstalled();
+
+        GameCheckpoint.Save(GameStep.PowerRestored, player);
     }
 
     /// <summary>중간에 그만둘 때. 설치는 하지 않는다. 다시 들어오면 첫 단계부터다.</summary>
@@ -117,7 +157,11 @@ public class FuseRepairManager : MonoBehaviour
 
     private void Finish()
     {
-        if (sequence != null) sequence.onPowerRestored.RemoveListener(HandlePowerRestored);
+        if (sequence != null)
+        {
+            sequence.onPowerRestored.RemoveListener(HandlePowerRestored);
+            sequence.onFuseInserted.RemoveListener(HandleFuseInserted);
+        }
         if (minigameRoot != null) minigameRoot.SetActive(false);
 
         RestorePlayer();

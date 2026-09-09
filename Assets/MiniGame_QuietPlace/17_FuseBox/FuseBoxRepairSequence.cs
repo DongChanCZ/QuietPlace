@@ -26,6 +26,15 @@ public class FuseBoxRepairSequence : MonoBehaviour
 
     public UnityEvent onPowerRestored; // 건물 전원 들어옴(불 켜짐 등)에 연결
 
+    /// <summary>
+    /// 퓨즈를 꽂은 순간. 여기서 미니게임이 닫히고, 차단기 올리기는 밖으로 나가
+    /// 실물 레버 앞에서 따로 진행한다(BreakerRaiseSequence).
+    /// </summary>
+    public UnityEvent onFuseInserted;
+
+    [Header("차단기 올리기를 이 화면 안에서 할지 (끄면 퓨즈를 꽂는 순간 미니게임이 닫힌다)")]
+    public bool raiseBreakerInThisScreen;
+
     void Start()
     {
         if (breakerDown != null) breakerDown.onComplete.AddListener(OnBreakerDownDone);
@@ -57,7 +66,15 @@ public class FuseBoxRepairSequence : MonoBehaviour
 
     void OnFuseDone()
     {
-        SetOnly(breakerUpRoot);
+        if (raiseBreakerInThisScreen)
+        {
+            SetOnly(breakerUpRoot);
+            return;
+        }
+
+        // 화면을 닫고 밖으로 나간다. 차단기는 실물 레버 앞에서 올린다.
+        SetOnly(null);
+        onFuseInserted?.Invoke();
     }
 
     void OnBreakerUpDone()

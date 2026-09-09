@@ -108,6 +108,8 @@ public class FrequencyBroadcast : MonoBehaviour
         // 이게 없으면 송출이 끝나도 컴퓨터가 완료 처리되지 않는다.
         if (_computer != null) _computer.OnSolved(_player);
 
+        GameCheckpoint.Save(GameStep.Broadcast, _player);
+
         onBroadcastComplete?.Invoke();
     }
 
