@@ -31,9 +31,15 @@ public sealed class PushProp : Interactable
     Vector3 to;
     float t = -1f;
 
+    /// 클립 이름은 코드에 둔다 - 인스펙터 참조는 병합 때 빠지지만 이 문자열은 남는다.
+    const string DragSoundName = "Dumpster dragging wheels_2";
+
     void Awake()
     {
         Debug.Assert(anchor, "PushProp is missing its anchor.");
+
+        dragSound = AudioLibrary.Resolve(dragSound, DragSoundName);
+        dragSource = AudioLibrary.EnsureSource(dragSource, transform, "DragSource", 0.85f, 2f, 25f, 0.9f);
     }
 
     public override string Prompt(IInteractor player)

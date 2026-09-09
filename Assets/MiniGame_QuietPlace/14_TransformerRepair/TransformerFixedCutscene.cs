@@ -9,6 +9,9 @@ using UnityEngine;
 /// 빨강이던 등이 초록으로 바뀐 것을 보면서 혼잣말이 한 줄 뜨고, 조작이 돌아온다.
 /// "고쳤는데 왜 불이 안 들어오지" 를 플레이어가 스스로 묻게 만들어 배전반으로 보내는 장면이다.
 ///
+/// 배전반 퓨즈를 먼저 끝내둔 경우에는 이 수리가 마지막 한 조각이라 여기서 전원이 들어온다.
+/// 그때는 표시등 혼잣말 대신 불이 켜지는 연출(PowerOnCutscene)로 넘긴다.
+///
 /// 시간을 멈추지 않는 이유는 두 가지다. 괴물이 계속 돌아다녀야 긴장이 유지되고,
 /// Time.timeScale 을 0 으로 만들면 이 연출의 코루틴도 같이 멈춘다.
 /// </summary>
@@ -38,6 +41,8 @@ public class TransformerFixedCutscene : MonoBehaviour
 
     public bool IsPlaying { get; private set; }
 
+    private IInteractor _pendingPlayer;
+
     void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(this); return; }
@@ -56,11 +61,12 @@ public class TransformerFixedCutscene : MonoBehaviour
     }
 
     /// <summary>변압기 수리가 끝난 직후 TransformerRepairManager 가 부른다.</summary>
-    public void Begin()
+    public void Begin(IInteractor who = null)
     {
         if (IsPlaying || player == null) return;
 
         IsPlaying = true;
+        _pendingPlayer = who;
         StartCoroutine(Run());
     }
 
@@ -68,9 +74,40 @@ public class TransformerFixedCutscene : MonoBehaviour
     {
         TakeControl();
 
-        yield return TurnToLamp();
+        // 퓨즈를 먼저 끝내뒀다면 이 수리로 전원이 들어와 있다.
+        // 그러면 "왜 불이 안 들어오지" 가 아니라 불이 켜지는 장면을 보여줘야 한다.
+        bool powerCameOn = BuildingPower.Instance != null && BuildingPower.Instance.Powered;
 
-        // ---------- 혼잣말 ----------
+        if (powerCameOn)
+        {
+            if (PowerOnCutscene.Instance != null) yield return PowerOnCutscene.Instance.Play();
+            else Debug.LogWarning($"[{nameof(TransformerFixedCutscene)}] PowerOnCutscene 이 없어 전원 연출을 건너뛴다.", this);
+
+            GameCheckpoint.Save(GameStep.PowerRestored, _pendingPlayer);
+            Debug.Log("[TransformerFixedCutscene] 변압기가 마지막 한 조각 - 전원 복구 연출");
+        }
+        else
+        {
+            yield return TurnToLamp();
+            yield return ShowMonologue();
+            Debug.Log("[TransformerFixedCutscene] 표시등 확인 + 혼잣말 끝 - 배전반으로");
+        }
+
+        ReturnControl();
+        IsPlaying = false;
+        _pendingPlayer = null;
+    }
+
+    /// 혼잣말 한 줄. 공용 자막(MonologueOverlay)이 있으면 그걸 쓰고,
+    /// 없으면 예전처럼 자기 자막을 띄운다 - 에디터 메뉴를 안 돌린 씬에서도 동작해야 한다.
+    private IEnumerator ShowMonologue()
+    {
+        if (MonologueOverlay.Instance != null)
+        {
+            yield return MonologueOverlay.Instance.Show(monologue, holdSeconds);
+            yield break;
+        }
+
         if (line != null) line.text = monologue;
 
         if (lineGroup != null)
@@ -86,11 +123,6 @@ public class TransformerFixedCutscene : MonoBehaviour
             yield return Fade(1f, 0f, fadeSeconds);
             lineGroup.gameObject.SetActive(false);
         }
-
-        ReturnControl();
-        IsPlaying = false;
-
-        Debug.Log("[TransformerFixedCutscene] 표시등 확인 + 혼잣말 끝 - 조작 복귀");
     }
 
     /// 표시등으로 시선을 돌린다. 좌우는 몸을 돌려서, 위아래는 LookPitch 로.

@@ -85,6 +85,10 @@ public class PlayerDeathSequence : MonoBehaviour
 
     public bool IsPlaying { get; private set; }
 
+    // 클립 이름은 코드에 둔다 - 병합으로 사라지지 않는다.
+    const string ScreamName = "Crush_malescream";
+    const string HeartMonitorName = "heart_monitor_beep_Die";
+
     void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(this); return; }
@@ -95,6 +99,12 @@ public class PlayerDeathSequence : MonoBehaviour
             SetOverlayAlpha(0f);
             greyOverlay.gameObject.SetActive(false);
         }
+
+        // 인스펙터 참조는 병합 때 빠질 수 있다. 빠졌으면 이름으로 찾고 소스도 만든다.
+        screamClip = AudioLibrary.Resolve(screamClip, ScreamName);
+        heartMonitorClip = AudioLibrary.Resolve(heartMonitorClip, HeartMonitorName);
+        screamSource = AudioLibrary.EnsureSource(screamSource, transform, "ScreamSource", 0f, 0f, 0f, 1f);
+        monitorSource = AudioLibrary.EnsureSource(monitorSource, transform, "HeartMonitorSource", 0f, 0f, 0f, 0.85f);
     }
 
     void OnDestroy()

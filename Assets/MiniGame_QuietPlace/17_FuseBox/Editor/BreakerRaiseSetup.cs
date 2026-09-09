@@ -102,9 +102,8 @@ public static class BreakerRaiseSetup
         so.FindProperty("standDistance").floatValue = 1.5f;
         so.FindProperty("walkSeconds").floatValue = 1.3f;
         so.FindProperty("lookAtHeight").floatValue = 0f;
-        so.FindProperty("cutsceneLookUpPitch").floatValue = -32f;
-        so.FindProperty("cutscenePanSeconds").floatValue = 1.2f;
-        so.FindProperty("cutsceneHoldSeconds").floatValue = 2.6f;
+        so.FindProperty("fuseOnlyMonologue").stringValue = "전력을 복구했으니 발전기를 가동시켜야지.";
+        so.FindProperty("monologueHoldSeconds").floatValue = 4.2f;
         so.ApplyModifiedProperties();
         EditorUtility.SetDirty(seq);
 
@@ -121,7 +120,8 @@ public static class BreakerRaiseSetup
                   $"  설 자리 앵커 = {anchor.transform.position.ToString("0.00")} ({anchorNote})\n" +
                   $"  연타 {mash.requiredPresses}번, 게이지에 맞춰 실물 레버가 올라간다\n" +
                   $"  퓨즈 시퀀서 raiseBreakerInThisScreen={(fuseSeq == null ? "시퀀서 못 찾음" : "false (밖으로 나감)")}\n" +
-                  "  화면에 문장 없음 - 게이지 + E 키캡만", seq);
+                  "  화면에 문장 없음 - 게이지 + E 키캡만\n" +
+                  "  변압기가 아직이면 전원 연출 대신 \"전력을 복구했으니 발전기를 가동시켜야지\" 혼잣말", seq);
     }
 
     /// 레버 앞쪽에서 바닥을 찾는다. 앞이 막혀 있으면 좌우/뒤도 훑는다.

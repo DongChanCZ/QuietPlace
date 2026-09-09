@@ -112,7 +112,9 @@ public class FrequencyHackManager : MonoBehaviour
 
         if (computer != null) computer.OnFrequencySet(player);
 
-        GameCheckpoint.Save(GameStep.FrequencySet, player);
+        // 여기서는 세이브하지 않는다. 이 지점을 세이브포인트로 잡으면 죽은 뒤 씬을 다시
+        // 불러올 때 송출 연출이 저절로 시작돼(숨어서 버티는 구간) 상태가 꼬인다.
+        // 죽으면 주파수부터 다시 맞춘다.
 
         if (FrequencyBroadcast.Instance != null) FrequencyBroadcast.Instance.Begin(computer, player);
         else if (computer != null) computer.OnSolved(player);   // 송출 매니저가 없으면 바로 완료 처리

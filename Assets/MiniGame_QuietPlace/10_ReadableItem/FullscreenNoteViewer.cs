@@ -17,6 +17,9 @@ public class FullscreenNoteViewer : MonoBehaviour
     // 둘 다 잡아두지 않으면 전체화면으로 글을 읽는 동안 화면이 가려진 채로 계속 걸어다닌다.
     private PlayerController playerController;
 
+    // 연 그 프레임에 같은 E 입력으로 바로 닫히지 않게 한다
+    private int openedFrame = -1;
+
     void Awake()
     {
         Instance = this;
@@ -32,7 +35,7 @@ public class FullscreenNoteViewer : MonoBehaviour
 
     void Update()
     {
-        if (!IsOpen) return;
+        if (!IsOpen || Time.frameCount == openedFrame) return;
         if (Keyboard.current == null) return;
 
         if (Keyboard.current.eKey.wasPressedThisFrame || Keyboard.current.escapeKey.wasPressedThisFrame)
@@ -46,6 +49,7 @@ public class FullscreenNoteViewer : MonoBehaviour
         if (displayImage != null) displayImage.sprite = sprite;
         if (panelRoot != null) panelRoot.SetActive(true);
         IsOpen = true;
+        openedFrame = Time.frameCount;
 
         if (playerMovement != null) playerMovement.enabled = false;
         if (playerController != null) playerController.enabled = false;

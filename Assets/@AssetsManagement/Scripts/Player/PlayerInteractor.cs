@@ -41,6 +41,10 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
     [Tooltip("클립 앞에서 이만큼만 재생한다(초). 0 이면 끝까지.")]
     [SerializeField] float throwImpactSeconds = 1.5f;
 
+    // 클립 이름은 코드에 둔다 - 인스펙터 참조는 병합 때 빠지지만 이 문자열은 남는다.
+    const string BottleBreakName = "bottle_break";
+    const string BrickThrowName = "brick_throw";
+
     Transform heldItemAnchor;
     GameObject brickHeldModel;
     GameObject bottleHeldModel;
@@ -59,6 +63,11 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         playerController = GetComponent<PlayerController>();
         CreatePlayerFlashlight();
         CreateHeldItemModels();
+
+        // 인스펙터 참조는 병합 때 빠질 수 있다. 빠졌으면 이름으로 찾고 소스도 만든다.
+        bottleBreakSound = AudioLibrary.Resolve(bottleBreakSound, BottleBreakName);
+        brickThrowSound = AudioLibrary.Resolve(brickThrowSound, BrickThrowName);
+        throwImpactSource = AudioLibrary.EnsureSource(throwImpactSource, transform, "ThrowImpactSource", 1f, 3f, 45f, 1f);
     }
 
     void OnEnable()
@@ -444,11 +453,7 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         RaycastHit block;
         if (Physics.Linecast(from, to, out block, ~0, QueryTriggerInteraction.Ignore)
             && FindEnabledInteractable(block.collider.transform) != nearest
-            && !block.collider.transform.IsChildOf(transform)
-            // 물건이 그 콜라이더 '안에' 있으면 가림막일 수 없다. 책상처럼 콜라이더가
-            // 통짜 상자인 가구는 위에 올려둔 물건까지 부피 안에 품어버려서,
-            // 이걸 빼지 않으면 책상 앞에 서도 그 위의 손전등을 집을 수 없다.
-            && !block.collider.bounds.Contains(to))
+            && !block.collider.transform.IsChildOf(transform))
             return null;
 
         return nearest;

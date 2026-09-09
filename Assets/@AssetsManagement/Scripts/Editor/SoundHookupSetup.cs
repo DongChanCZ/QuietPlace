@@ -41,8 +41,10 @@ public static class SoundHookupSetup
         GameObject host = GameObject.Find(HostName);
         if (host == null) return "  ★ GameManager 오브젝트가 없다\n";
 
-        BreakerRaiseSequence seq = host.GetComponent<BreakerRaiseSequence>();
-        if (seq == null) return "  ★ BreakerRaiseSequence 가 없다. '차단기 올리기 연출 만들기' 를 먼저 실행할 것\n";
+        // 전원 켜지는 연출은 발전기실/배전반실 어느 쪽이 마지막이 되든 같아야 한다.
+        // 그래서 미니게임에 붙이지 않고 따로 둔 컴포넌트에 꽂는다.
+        PowerOnCutscene cut = host.GetComponent<PowerOnCutscene>();
+        if (cut == null) cut = Undo.AddComponent<PowerOnCutscene>(host);
 
         Transform old = host.transform.Find(RootName);
         if (old != null) Undo.DestroyObjectImmediate(old.gameObject);
@@ -55,28 +57,65 @@ public static class SoundHookupSetup
         AudioClip growl = Find("Far_creepy_monster_growling");
 
         // 둘 다 화면 연출이라 2D. 위치에 따라 작아지면 안 된다.
-        AudioSource ambSrc = MakeSource(root.transform, "AmbienceSource", 0.7f);
-        AudioSource growlSrc = MakeSource(root.transform, "GrowlSource", 0.85f);
+        AudioSource ambSrc = MakeSource(root.transform, "PowerAmbienceSource", 0.7f);
+        AudioSource growlSrc = MakeSource(root.transform, "PowerGrowlSource", 0.85f);
 
-        SerializedObject so = new SerializedObject(seq);
+        PlayerController player = FindOne<PlayerController>();
+
+        SerializedObject so = new SerializedObject(cut);
+        so.FindProperty("player").objectReferenceValue = player;
         so.FindProperty("ambienceClip").objectReferenceValue = ambience;
         so.FindProperty("growlClip").objectReferenceValue = growl;
         so.FindProperty("ambienceSource").objectReferenceValue = ambSrc;
         so.FindProperty("growlSource").objectReferenceValue = growlSrc;
         so.FindProperty("growlDelay").floatValue = 1.1f;
 
-        // 카메라를 더 크게 들어 "전기가 다 들어왔다" 가 보이게
-        so.FindProperty("cutsceneLookUpPitch").floatValue = -32f;
-        so.FindProperty("cutsceneTurnToOpenSpace").boolValue = true;
-        so.FindProperty("cutsceneProbeCount").intValue = 12;
-        so.FindProperty("cutsceneProbeDistance").floatValue = 14f;
-        so.FindProperty("cutscenePanSeconds").floatValue = 1.8f;
-        so.FindProperty("cutsceneHoldSeconds").floatValue = 3.2f;
+        // 카메라를 크게 들어 "전기가 다 들어왔다" 가 보이게
+        so.FindProperty("lookUpPitch").floatValue = -32f;
+        so.FindProperty("turnToOpenSpace").boolValue = true;
+        so.FindProperty("probeCount").intValue = 12;
+        so.FindProperty("probeDistance").floatValue = 14f;
+        so.FindProperty("panSeconds").floatValue = 1.8f;
+        so.FindProperty("holdSeconds").floatValue = 3.2f;
         so.ApplyModifiedProperties();
-        EditorUtility.SetDirty(seq);
+        EditorUtility.SetDirty(cut);
 
         return $"  전원복구 컷신: 공간음={Name(ambience)} / 포효={Name(growl)} (1.1초 뒤)\n" +
-               "    가장 트인 쪽으로 몸을 돌리고 위로 32도, 1.8초 팬 + 3.2초 유지\n";
+               $"    player={(player == null ? "없음 ★" : player.gameObject.name)} / 가장 트인 쪽으로 돌아 위로 32도, 1.8초 팬 + 3.2초 유지\n" +
+               WireMonologue(host);
+    }
+
+    // ---------------------------------------------------------------- 공용 혼잣말 자막
+
+    /// <summary>
+    /// 혼잣말 자막을 한 곳으로 모은다. 변압기 완료 연출이 만들어 둔 자막 UI 를 그대로
+    /// 재사용해, 퓨즈만 끝냈을 때의 혼잣말도 같은 자리/같은 폰트로 뜨게 한다.
+    /// </summary>
+    static string WireMonologue(GameObject host)
+    {
+        TransformerFixedCutscene seq = host.GetComponent<TransformerFixedCutscene>();
+        if (seq == null)
+            return "  ★ 혼잣말 자막: TransformerFixedCutscene 이 없다. '변압기 완료 연출 + 낙하음 만들기' 를 먼저 실행할 것\n";
+
+        SerializedObject sso = new SerializedObject(seq);
+        Object line = sso.FindProperty("line").objectReferenceValue;
+        Object group = sso.FindProperty("lineGroup").objectReferenceValue;
+
+        if (line == null || group == null)
+            return "  ★ 혼잣말 자막: 변압기 연출의 자막 참조가 비어 있다. '변압기 완료 연출 + 낙하음 만들기' 를 다시 실행할 것\n";
+
+        MonologueOverlay overlay = host.GetComponent<MonologueOverlay>();
+        if (overlay == null) overlay = Undo.AddComponent<MonologueOverlay>(host);
+
+        SerializedObject oso = new SerializedObject(overlay);
+        oso.FindProperty("line").objectReferenceValue = line;
+        oso.FindProperty("group").objectReferenceValue = group;
+        oso.FindProperty("fadeSeconds").floatValue = 0.45f;
+        oso.FindProperty("defaultHoldSeconds").floatValue = 4.2f;
+        oso.ApplyModifiedProperties();
+        EditorUtility.SetDirty(overlay);
+
+        return "  혼잣말 자막: 변압기 연출의 자막을 공용으로 재사용 (퓨즈만 완료 / 변압기 완료 둘 다 여기로)\n";
     }
 
     // ---------------------------------------------------------------- 볼트 한 바퀴
@@ -277,6 +316,12 @@ public static class SoundHookupSetup
         src.spatialBlend = 0f;
         src.volume = volume;
         return src;
+    }
+
+    static T FindOne<T>() where T : Component
+    {
+        T[] found = Object.FindObjectsByType<T>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        return found.Length == 0 ? null : found[0];
     }
 
     static string Name(AudioClip c) => c == null ? "없음 ★" : c.name + $" ({c.length:0.0}초)";
