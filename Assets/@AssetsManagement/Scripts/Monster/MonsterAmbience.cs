@@ -58,10 +58,25 @@ public class MonsterAmbience : MonoBehaviour
     [SerializeField] private AudioClip scanClip;
     [SerializeField] private AudioSource scanSource;
 
-    [Header("추적을 포기할 때 - 바닥 원판이 흰색(Idle)으로 바뀌는 그 순간")]
+    [Header("대기(Idle) 상태에 들어갈 때 - 바닥 원판이 흰색으로 바뀌는 그 순간")]
     [Tooltip("놓쳤다는 듯 가까이서 내는 포효")]
     [SerializeField] private AudioClip nearGrowlClip;
     [SerializeField] private AudioSource nearGrowlSource;
+    [Tooltip("연달아 울리지 않게 최소 간격(초)")]
+    [SerializeField] private float nearGrowlCooldown = 6f;
+
+    [Header("추격을 시작할 때")]
+    [SerializeField] private AudioClip chaseClip;
+    [SerializeField] private AudioSource chaseSource;
+    [Tooltip("연달아 울리지 않게 최소 간격(초)")]
+    [SerializeField] private float chaseCooldown = 5f;
+
+    // 클립 이름은 코드에 둔다. 인스펙터 참조는 병합 때 빠지지만 이 문자열은 .cs 안에 있어 남는다.
+    const string GrowlName = "Far_creepy_monster_growling";
+    const string FootstepName = "Far_footstep";
+    const string ScanName = "Creature_jaw_clicks_seach";
+    const string NearGrowlName = "Near_growl";
+    const string ChaseName = "chase_monster";
 
     [Header("몇 초마다 검사할지")]
     [SerializeField] private float checkInterval = 0.25f;
@@ -72,6 +87,9 @@ public class MonsterAmbience : MonoBehaviour
     private float _calmTimer;
     private bool[] _wasScanning;
     private bool[] _wasChasing;
+    private bool[] _wasIdle;
+    private float _nextNearGrowl;
+    private float _nextChase;
 
     /// 볼륨을 이 상태 기준으로 이미 맞춰뒀는가. 매번 SetVolume 을 부르지 않으려고 둔다.
     private bool _volumeSetFor;
@@ -84,10 +102,23 @@ public class MonsterAmbience : MonoBehaviour
         int n = monsters != null ? monsters.Length : 0;
         _wasScanning = new bool[n];
         _wasChasing = new bool[n];
+        _wasIdle = new bool[n];
         _farTimer = Random.Range(farInterval.x, farInterval.y);
 
         // 시작은 평온. _volumeSetFor 를 반대로 둬서 첫 판정에 반드시 한 번 적용되게 한다.
         _volumeSetFor = true;
+
+        // 인스펙터 참조가 병합으로 빠졌으면 이름으로 찾고, 소스도 없으면 만든다.
+        growlClip = AudioLibrary.Resolve(growlClip, GrowlName);
+        farFootstepClip = AudioLibrary.Resolve(farFootstepClip, FootstepName);
+        scanClip = AudioLibrary.Resolve(scanClip, ScanName);
+        nearGrowlClip = AudioLibrary.Resolve(nearGrowlClip, NearGrowlName);
+        chaseClip = AudioLibrary.Resolve(chaseClip, ChaseName);
+
+        farSource = AudioLibrary.EnsureSource(farSource, transform, "FarSource", 0.7f, 15f, 90f, 0.55f);
+        scanSource = AudioLibrary.EnsureSource(scanSource, transform, "ScanSource", 0.85f, 2f, 30f, 0.8f);
+        nearGrowlSource = AudioLibrary.EnsureSource(nearGrowlSource, transform, "NearGrowlSource", 0.9f, 3f, 35f, 0.9f);
+        chaseSource = AudioLibrary.EnsureSource(chaseSource, transform, "ChaseSource", 0.85f, 4f, 45f, 0.9f);
     }
 
     void Update()
@@ -312,22 +343,42 @@ public class MonsterAmbience : MonoBehaviour
                         || s == MonsterStateType.SecondDetection
                         || s == MonsterStateType.FinalDetection;
 
-            // 쫓고 있다가 Idle 로 떨어진 순간에만 울린다.
-            if (_wasChasing[i] && s == MonsterStateType.Idle) PlayNearGrowl(m.transform);
+            // 추격을 시작하는 순간
+            if (chasing && !_wasChasing[i]) PlayChase(m.transform);
+
+            // 대기(Idle)로 들어가는 순간 - 바닥 원판이 흰색으로 바뀌는 그 시점
+            bool idle = s == MonsterStateType.Idle;
+            if (idle && !_wasIdle[i]) PlayNearGrowl(m.transform);
 
             _wasChasing[i] = chasing;
+            _wasIdle[i] = idle;
         }
     }
 
     private void PlayNearGrowl(Transform at)
     {
         if (nearGrowlSource == null || nearGrowlClip == null) return;
+        if (Time.time < _nextNearGrowl) return;      // 순찰 중 잠깐 멈출 때마다 울리면 시끄럽다
+        _nextNearGrowl = Time.time + nearGrowlCooldown;
 
         nearGrowlSource.transform.position = at.position;
         nearGrowlSource.clip = nearGrowlClip;
         nearGrowlSource.Play();
 
-        Debug.Log("[MonsterAmbience] 추적 포기 - 가까이서 포효 @ " + at.position.ToString("0.0"));
+        Debug.Log("[MonsterAmbience] 대기 상태 진입 - 가까이서 포효 @ " + at.position.ToString("0.0"));
+    }
+
+    private void PlayChase(Transform at)
+    {
+        if (chaseSource == null || chaseClip == null) return;
+        if (Time.time < _nextChase) return;          // 등급이 올라갈 때마다 겹쳐 울리지 않게
+        _nextChase = Time.time + chaseCooldown;
+
+        chaseSource.transform.position = at.position;
+        chaseSource.clip = chaseClip;
+        chaseSource.Play();
+
+        Debug.Log("[MonsterAmbience] 추격 시작 - 추격 소리 @ " + at.position.ToString("0.0"));
     }
 
     private void PlayScan(Transform at)

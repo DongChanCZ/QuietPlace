@@ -73,12 +73,18 @@ public sealed class FusePickup : Interactable, IHoldable
     public float CarryLookDownPitch => carryLookDownPitch;
     public float CarryEyeDrop => carryEyeDrop;
 
+    /// 클립 이름은 코드에 둔다 - 인스펙터 참조는 병합 때 빠지지만 이 문자열은 남는다.
+    const string DropSoundName = "Metal_drop_1";
+
     void Awake()
     {
         body = GetComponent<Rigidbody>();
         glow = GetComponent<InteractableGlow>();
         originalParent = transform.parent;
         originalLocalScale = transform.localScale;
+
+        // 두 손으로 드는 무거운 물건만 떨어질 때 소리가 난다.
+        if (carryInHands) dropSound = AudioLibrary.Resolve(dropSound, DropSoundName);
     }
 
     // ---------------------------------------------------------------- Interactable

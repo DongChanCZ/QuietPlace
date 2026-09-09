@@ -5401,6 +5401,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 815482729486757139, guid: c5b5ccad195806a49814e9f741934b51, type: 3}
+      propertyPath: sfxClips.Array.size
+      value: 18
+      objectReference: {fileID: 0}
+    - target: {fileID: 815482729486757139, guid: c5b5ccad195806a49814e9f741934b51, type: 3}
       propertyPath: 'sfxClips.Array.data[5]'
       value: 
       objectReference: {fileID: 8300000, guid: af1b7b20d61075f47845fc8273c7f30d, type: 3}
@@ -5448,6 +5452,10 @@ PrefabInstance:
       propertyPath: 'sfxClips.Array.data[16]'
       value: 
       objectReference: {fileID: 8300000, guid: a4dbf1a84aa289448b6388f1f1a4f7c4, type: 3}
+    - target: {fileID: 815482729486757139, guid: c5b5ccad195806a49814e9f741934b51, type: 3}
+      propertyPath: 'sfxClips.Array.data[17]'
+      value: 
+      objectReference: {fileID: 8300000, guid: d645b2587ab83ff42a13ea6a89714434, type: 3}
     - target: {fileID: 3141307636526722647, guid: c5b5ccad195806a49814e9f741934b51, type: 3}
       propertyPath: m_LocalPosition.x
       value: 14.49514

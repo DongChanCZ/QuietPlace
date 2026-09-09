@@ -167,6 +167,10 @@ public class FearingState : IPlayerState
     private const float Duration = 6f;
     private float timer;
 
+    /// 공포가 100% 가 된 순간의 비명. 이름은 코드에 둔다 - 인스펙터 참조는 병합 때
+    /// 빠지지만 이 문자열은 남고, SoundManager 가 못 찾으면 사운드 목록에서 찾아준다.
+    private const string ScreamName = "malescreamHigh";
+
     public void Enter(PlayerController ctx)
     {
         var s = ctx.stats;
@@ -176,6 +180,10 @@ public class FearingState : IPlayerState
         timer = 0f;
         ctx.CameraLocked = true;
         ctx.SetAnimState("Fearing");
+
+        // 여기가 공포 100% 다. 6초 뒤 공포가 0 으로 돌아가므로 연달아 나지 않는다.
+        if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(ScreamName);
+        Debug.Log("[FearingState] 공포 100% - 비명 " + ScreamName);
     }
 
     public void Tick(PlayerController ctx, float dt)

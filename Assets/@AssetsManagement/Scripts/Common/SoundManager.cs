@@ -72,10 +72,22 @@ public class SoundManager : MonoBehaviour
     /// </summary>
     public void PlaySFX(string soundName)
     {
-        if (!_sfxByName.TryGetValue(soundName, out AudioClip clip))
+        AudioClip clip;
+        if (!_sfxByName.TryGetValue(soundName, out clip))
         {
-            Debug.LogWarning($"[{nameof(SoundManager)}] '{soundName}' 효과음이 등록되어 있지 않다.", this);
-            return;
+            // 인스펙터 목록에서 빠진 것은 사운드 목록(AudioLibrary)에서 이름으로 찾는다.
+            // 병합할 때마다 인스펙터 참조가 사라져도 소리가 안 나는 일은 없어야 한다.
+            clip = AudioLibrary.Get(soundName);
+
+            if (clip == null)
+            {
+                Debug.LogWarning($"[{nameof(SoundManager)}] '{soundName}' 효과음을 인스펙터에서도, 사운드 목록에서도 못 찾았다.", this);
+                return;
+            }
+
+            // 한 번 찾았으면 캐시한다 - 매번 목록을 다시 뒤지지 않는다.
+            _sfxByName[soundName] = clip;
+            Debug.Log($"[{nameof(SoundManager)}] '{soundName}' 은 인스펙터에 없어 사운드 목록에서 가져왔다.", this);
         }
 
         _source.PlayOneShot(clip, sfxVolume);

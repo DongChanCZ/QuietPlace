@@ -90,6 +90,9 @@ public class BoltTurnPuzzle : MonoBehaviour
     /// 마지막 바퀴까지 다 돌아 볼트가 빠질 때.
     public AudioClip looseSound;
 
+    /// 클립 이름은 코드에 둔다 - 인스펙터 참조는 병합 때 빠지지만 이 문자열은 남는다.
+    const string TurnSoundName = "Wrench_Bolt";
+
     public UnityEvent onTurnCompleted;
     public UnityEvent onAllTurnsDone;
 
@@ -114,6 +117,10 @@ public class BoltTurnPuzzle : MonoBehaviour
     void OnEnable()
     {
         degreesPerTurn = MinigameTuning.BoltDegreesPerTurn;
+
+        // 인스펙터 참조는 병합 때 빠질 수 있다. 빠졌으면 이름으로 찾고 소스도 만든다.
+        turnSound = AudioLibrary.Resolve(turnSound, TurnSoundName);
+        audioSource = AudioLibrary.EnsureSource(audioSource, transform, "BoltAudioSource", 0f, 0f, 0f, 0.9f);
 
         dragging = false;
         completed = false;

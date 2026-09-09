@@ -56,7 +56,6 @@ public class GameCheckpoint : MonoBehaviour
     {
         if (Instance != null && Instance != this) { Destroy(this); return; }
         Instance = this;
-        GameProgress.EnsureLoaded();
     }
 
     void OnDestroy()
@@ -80,11 +79,12 @@ public class GameCheckpoint : MonoBehaviour
 
         if (step >= GameStep.Transformer) RestoreTransformer();
         if (step >= GameStep.PowerRestored) RestorePower();
+        else if (GameProgress.FuseOnly) RestoreFuseOnly();   // 퓨즈만 먼저 갈아둔 경우
         if (step >= GameStep.DoorHacked) RestoreDoor();
 
-        // 주파수는 송출까지 끝났는지에 따라 갈린다.
+        // 주파수 정합은 세이브하지 않는다(FrequencyHackManager 참고). 송출까지 끝낸
+        // 뒤에 죽은 경우만 되살린다.
         if (step >= GameStep.Broadcast) RestoreBroadcastDone();
-        else if (step >= GameStep.FrequencySet) RestoreFrequencySet();
 
         MovePlayerToCheckpoint();
         RestoreInventory();
@@ -272,22 +272,19 @@ public class GameCheckpoint : MonoBehaviour
         if (BuildingPower.Instance != null) BuildingPower.Instance.MarkFuseInstalled();
     }
 
+    /// <summary>
+    /// 발전기실보다 퓨즈를 먼저 끝냈던 경우. 퓨즈만 꽂아 두고 전원은 넣지 않는다 -
+    /// 변압기가 아직이라 BuildingPower 가 스스로 판단해 불을 켜지 않는다.
+    /// </summary>
+    private void RestoreFuseOnly()
+    {
+        if (fuseSlot != null) fuseSlot.ForceInstall();
+        if (BuildingPower.Instance != null) BuildingPower.Instance.MarkFuseInstalled();
+    }
+
     private void RestoreDoor()
     {
         if (keypad != null) keypad.OnHacked();   // 잠금 해제 + 문 열기
-    }
-
-    // 주파수는 맞췄지만 송출이 끝나기 전에 죽은 경우.
-    // 송출을 처음부터 다시 돌린다 - 다시 숨어서 버텨야 한다.
-    private void RestoreFrequencySet()
-    {
-        if (computer == null) return;
-
-        computer.MarkPasswordSolved();
-        computer.OnFrequencySet(null);
-
-        if (FrequencyBroadcast.Instance != null)
-            FrequencyBroadcast.Instance.Begin(computer, interactor);
     }
 
     private void RestoreBroadcastDone()
