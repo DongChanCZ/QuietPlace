@@ -4149,6 +4149,17 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1011941694 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 416105348302997615, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
+  m_PrefabInstance: {fileID: 1879752900}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a87455d375e0cc542a0572a15321c860, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SlidingDoor
 --- !u!1001 &1050221967
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7481,7 +7492,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db35d9bcb3e9c4b459ab34db77cc3f8b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KeypadTerminal
-  door: {fileID: 0}
+  door: {fileID: 1011941694}
   displayName: "\uBB38 \uD0A4\uD328\uB4DC"
   promptVerb: "\uB72F\uC5B4\uC11C \uD68C\uB85C \uC870\uC791"
   oneShot: 1

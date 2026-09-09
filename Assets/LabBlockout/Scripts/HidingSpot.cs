@@ -1,0 +1,54 @@
+using UnityEngine;
+
+/// 캐비닛·책상 밑 같은 은신처의 E 조작구.
+///
+/// 실제 숨기/나오기는 팀원의 HidingSpotQTE 가 다 한다. 이 스크립트는 두 가지만 한다.
+///  - 조준했을 때 화면에 뜨는 키 안내문
+///  - E 한 번으로 숨고, 숨은 상태에서 E 로 나오기
+///
+/// 캐비닛에는 SlidingDoor 도 붙어 있는데, Interactable 이 한 오브젝트에 둘이면
+/// PlayerInteractor 가 어느 쪽을 잡을지 알 수 없다. 그래서 문은 컴포넌트를 꺼 두고
+/// (꺼진 Interactable 은 조준에서 빠진다) 여기서 SetOpenImmediate 로 직접 여닫는다.
+[DisallowMultipleComponent]
+[RequireComponent(typeof(HidingSpotQTE))]
+public sealed class HidingSpot : Interactable
+{
+    [SerializeField] string displayName = "캐비닛";
+
+    /// 여닫을 문. 책상 밑처럼 문이 없는 자리는 비워둔다.
+    [SerializeField] SlidingDoor door;
+
+    HidingSpotQTE spot;
+
+    void Awake()
+    {
+        spot = GetComponent<HidingSpotQTE>();
+        // 문이 E 를 두고 다투지 않게 한다. 컴포넌트를 꺼도 SetOpenImmediate 는 그대로 쓴다.
+        if (door != null) door.enabled = false;
+    }
+
+    // 물건을 들고 있어도 숨을 수는 있어야 한다
+    public override bool AllowedWhileHandsFull => true;
+
+    public override string Prompt(IInteractor player)
+    {
+        return spot.IsPlayerHidden ? "E  나오기" : "E  " + displayName + "에 숨기";
+    }
+
+    public override void Interact(IInteractor player)
+    {
+        if (spot.IsPlayerHidden)
+        {
+            if (door != null) door.SetOpenImmediate(true);
+            spot.Unhide();
+            if (door != null) door.SetOpenImmediate(false);
+            if (player != null) player.ShowNotice(displayName + "에서 나왔습니다.");
+            return;
+        }
+
+        if (door != null) door.SetOpenImmediate(true);
+        spot.Hide();
+        if (door != null) door.SetOpenImmediate(false);   // 들어간 뒤 문을 닫아 준다
+        if (player != null) player.ShowNotice("숨었습니다.  E 로 나오기");
+    }
+}

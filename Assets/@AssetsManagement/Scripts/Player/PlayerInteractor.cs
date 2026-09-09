@@ -335,6 +335,24 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         }
     }
 
+    readonly System.Collections.Generic.List<Interactable> interactableBuffer = new System.Collections.Generic.List<Interactable>(4);
+
+    /// 맞은 콜라이더에서 위로 올라가며 '켜져 있는' Interactable 을 찾는다.
+    ///
+    /// GetComponentInParent 는 enabled 를 보지 않고 첫 번째 것만 돌려준다. 은신 캐비닛처럼
+    /// 한 오브젝트에 Interactable 이 둘(꺼둔 SlidingDoor + HidingSpot)이면 꺼진 쪽이 잡혀
+    /// 조준이 통째로 실패했다. 형제까지 훑어 켜진 것을 고른다.
+    Interactable FindEnabledInteractable(Transform from)
+    {
+        for (Transform t = from; t != null; t = t.parent)
+        {
+            t.GetComponents(interactableBuffer);
+            for (int i = 0; i < interactableBuffer.Count; i++)
+                if (interactableBuffer[i].enabled) return interactableBuffer[i];
+        }
+        return null;
+    }
+
     Interactable AimedInteractable()
     {
         if (eyes == null) return null;
@@ -345,11 +363,8 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         float nearestDistance = float.PositiveInfinity;
         for (int i = 0; i < count; i++)
         {
-            var candidate = reach[i].collider.GetComponentInParent<Interactable>();
-            // 컴포넌트를 꺼둔 Interactable 은 조준 대상이 아니다. GetComponentInParent 는
-            // enabled 를 보지 않아서, 열고닫기를 없앤 문(SlidingDoor 비활성)이 그대로 잡혀
-            // E 를 누르면 열림/닫힘 안내문만 계속 뜨는 문제가 있었다.
-            if (candidate == null || !candidate.enabled) continue;
+            var candidate = FindEnabledInteractable(reach[i].collider.transform);
+            if (candidate == null) continue;
             if (reach[i].distance >= nearestDistance) continue;
             nearest = candidate;
             nearestCollider = reach[i].collider;
@@ -365,7 +380,7 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         Vector3 to = nearestCollider.ClosestPoint(from);
         RaycastHit block;
         if (Physics.Linecast(from, to, out block, ~0, QueryTriggerInteraction.Ignore)
-            && block.collider.GetComponentInParent<Interactable>() != nearest
+            && FindEnabledInteractable(block.collider.transform) != nearest
             && !block.collider.transform.IsChildOf(transform)
             // 물건이 그 콜라이더 '안에' 있으면 가림막일 수 없다. 책상처럼 콜라이더가
             // 통짜 상자인 가구는 위에 올려둔 물건까지 부피 안에 품어버려서,
