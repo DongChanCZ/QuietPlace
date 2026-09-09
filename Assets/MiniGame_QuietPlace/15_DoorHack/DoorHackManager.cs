@@ -64,8 +64,12 @@ public class DoorHackManager : MonoBehaviour
     private void HandleSuccess()
     {
         KeypadTerminal keypad = pendingKeypad;
+        IInteractor player = suppressedInteractor as IInteractor;
+
         Finish();
         if (keypad != null) keypad.OnHacked();
+
+        GameCheckpoint.Save(GameStep.DoorHacked, player);
     }
 
     public void Cancel()

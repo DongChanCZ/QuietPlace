@@ -25,11 +25,6 @@ public class FrequencyBandWave : MonoBehaviour
     [Header("차수를 적어주는 라벨 (1차 화음 ...)")]
     [SerializeField] private TMPro.TMP_Text harmonicLabel;
 
-    [Header("슬라이더 위 목표 자리 눈금")]
-    [SerializeField] private RectTransform targetTick;
-    [SerializeField] private float trackWidth = 660f;
-    [SerializeField] private float trackCenterX;
-
     [Header("선 굵기 - 맞았을 때 / 아닐 때")]
     [SerializeField] private float matchedThickness = 7f;
     [SerializeField] private float normalThickness = 5f;
@@ -64,12 +59,6 @@ public class FrequencyBandWave : MonoBehaviour
         {
             _lastTarget = _band.targetValue;
             targetWave.SetValue01(_band.targetValue);
-
-            // 슬라이더 위 눈금도 같은 자리로 옮긴다.
-            if (targetTick != null)
-                targetTick.anchoredPosition = new Vector2(
-                    trackCenterX + (_band.targetValue - 0.5f) * trackWidth,
-                    targetTick.anchoredPosition.y);
         }
 
         if (currentWave != null && _band.slider != null)

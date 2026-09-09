@@ -109,6 +109,12 @@ public class TransformerRepairManager : MonoBehaviour
 
         // 발전기실 쪽이 끝났다고 알린다. 배전반 퓨즈까지 끝나면 건물 전원이 들어온다.
         if (BuildingPower.Instance != null) BuildingPower.Instance.MarkTransformerFixed();
+
+        GameCheckpoint.Save(GameStep.Transformer, player);
+
+        // 초록으로 바뀐 표시등을 보여주고 "그런데 왜 불이 안 들어오지" 를 짚어준다.
+        // 이게 없으면 플레이어가 배전반으로 갈 이유를 스스로 찾아야 한다.
+        if (TransformerFixedCutscene.Instance != null) TransformerFixedCutscene.Instance.Begin();
     }
 
     /// <summary>중간에 그만둘 때. 다시 들어오면 첫 단계부터다.</summary>

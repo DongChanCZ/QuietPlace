@@ -73,6 +73,10 @@ public class MainMenuController : MonoBehaviour
 
     void OnPlay()
     {
+        // 새 게임이므로 지난 세이브포인트를 지운다. 이게 없으면 메뉴에서 시작해도
+        // 지난 판에서 성공한 지점부터 시작한다.
+        GameProgress.Clear();
+
         SceneManager.LoadScene(gameSceneName);
     }
 

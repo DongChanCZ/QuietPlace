@@ -162,8 +162,20 @@ public class MonsterController : MonoBehaviour
         t == MonsterStateType.SecondDetection ? 2 :
         t == MonsterStateType.FirstDetection ? 1 : 0;
 
+    /// 애니메이션 트리거 이름 중 "주위를 살피는" 동작. 소리 연출이 이 순간을 잡는다.
+    public const string ScanAnimState = "Analyzing";
+
+    /// <summary>지금 주위를 살피는 동작 중인가.</summary>
+    ///
+    /// 상태(MonsterStateType)로는 알 수 없다 - 살피는 동작은 추적 상태 안에서
+    /// "갈 곳까지 갔는데 더 갈 데가 없을 때" 나오기 때문이다. 애니메이션이 바뀌는
+    /// 이 지점에서 한 번만 판정하면 다른 동작으로 넘어갈 때 저절로 풀린다.
+    public bool IsScanning { get; private set; }
+
     public void SetAnimState(string name)
     {
+        IsScanning = name == ScanAnimState;
+
         if (animator == null) return;
         // 이전에 걸린 트리거가 소비 안 된 채 남아있으면(Any State 전이가 canTransitionToSelf=false라
         // 자기 자신으로는 안 넘어가서 안 지워짐) 나중에 엉뚱한 상태로 튀는 원인이 됨 - 새로 걸기 전에 나머지를 비운다.

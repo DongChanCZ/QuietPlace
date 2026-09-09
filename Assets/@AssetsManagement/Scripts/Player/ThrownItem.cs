@@ -8,11 +8,27 @@ public sealed class ThrownItem : MonoBehaviour
     const float ImpactNoiseRange = 8f;
 
     GameObject landingRingPrefab;
+    AudioClip impactClip;
+    PlayerInteractor owner;
     bool landed;
 
     public void Init(GameObject landingRingPrefab)
     {
         this.landingRingPrefab = landingRingPrefab;
+    }
+
+    /// <summary>
+    /// 착지 소리는 던진 사람(PlayerInteractor)이 울려준다.
+    ///
+    /// 이 오브젝트는 닿는 순간 파괴되므로 자기 AudioSource 로는 소리를 끝까지 낼 수 없다.
+    /// PlayClipAtPoint 로도 되지만 그건 클립을 끝까지 재생해서 자를 수 없다 - 벽돌 소리가
+    /// 14초라 착지 후에도 한참 울린다. 그래서 앞부분만 잘라 쓸 수 있는 쪽에 맡긴다.
+    /// </summary>
+    public void Init(GameObject landingRingPrefab, PlayerInteractor owner, AudioClip impactClip)
+    {
+        this.landingRingPrefab = landingRingPrefab;
+        this.owner = owner;
+        this.impactClip = impactClip;
     }
 
     void OnCollisionEnter(Collision collision)
@@ -27,6 +43,10 @@ public sealed class ThrownItem : MonoBehaviour
             GameObject ring = Instantiate(landingRingPrefab, contact.point, Quaternion.identity);
             ring.GetComponent<WorldRingEffect>().Init(contact.point, contact.normal);
         }
+
+        // 소리는 떨어진 자리에서 나야 한다. 미끼로 쓰는 물건이라 플레이어가
+        // "저쪽에서 소리가 났다" 를 귀로 확인할 수 있어야 한다.
+        if (owner != null) owner.PlayThrowImpact(impactClip, contact.point);
 
         NoiseManager.Instance?.Emit(new NoiseEvent(contact.point, ImpactNoiseLevel, ImpactNoiseRange, NoiseType.ObjectImpact));
 

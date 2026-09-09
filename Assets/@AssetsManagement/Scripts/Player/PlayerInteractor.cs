@@ -31,6 +31,16 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
     public float throwUpwardArc = 2f;
     [SerializeField] GameObject landingRingPrefab;
 
+    [Header("던진 물건이 떨어질 때 나는 소리")]
+    [SerializeField] AudioClip bottleBreakSound;
+    [SerializeField] AudioClip brickThrowSound;
+
+    [Tooltip("떨어진 자리에서 울릴 3D 소스. 던진 물건은 파괴되므로 이쪽이 대신 울린다.")]
+    [SerializeField] AudioSource throwImpactSource;
+
+    [Tooltip("클립 앞에서 이만큼만 재생한다(초). 0 이면 끝까지.")]
+    [SerializeField] float throwImpactSeconds = 1.5f;
+
     Transform heldItemAnchor;
     GameObject brickHeldModel;
     GameObject bottleHeldModel;
@@ -188,9 +198,43 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         Rigidbody rb = thrown.AddComponent<Rigidbody>();
         rb.linearVelocity = eyes.transform.forward * throwForce + Vector3.up * throwUpwardArc;
 
-        thrown.AddComponent<ThrownItem>().Init(landingRingPrefab);
+        thrown.AddComponent<ThrownItem>().Init(landingRingPrefab, this, ImpactSoundFor(item));
 
         manager.RemoveItem(manager.SelectedIndex);
+    }
+
+    /// <summary>
+    /// 던진 물건이 떨어진 자리에서 소리를 울린다. ThrownItem 이 부른다.
+    ///
+    /// 던진 물건은 닿는 순간 파괴되므로 그쪽에서 소리를 낼 수 없다. 여기서 3D 소스를
+    /// 그 자리로 옮겨 재생하고, 클립이 길면(벽돌 소리는 14초다) 앞부분만 쓰고 끊는다.
+    /// </summary>
+    public void PlayThrowImpact(AudioClip clip, Vector3 at)
+    {
+        if (clip == null || throwImpactSource == null) return;
+
+        throwImpactSource.transform.position = at;
+        throwImpactSource.clip = clip;
+        throwImpactSource.time = 0f;
+        throwImpactSource.Play();
+
+        if (throwImpactSeconds > 0f) StartCoroutine(StopThrowImpactAfter(clip, throwImpactSeconds));
+    }
+
+    System.Collections.IEnumerator StopThrowImpactAfter(AudioClip clip, float seconds)
+    {
+        yield return new WaitForSeconds(seconds);
+
+        // 그 사이에 다른 물건을 던져 다른 클립이 올라갔으면 건드리지 않는다.
+        if (throwImpactSource != null && throwImpactSource.clip == clip) throwImpactSource.Stop();
+    }
+
+    /// 던진 물건이 떨어질 때 나는 소리. 물건마다 다르다.
+    AudioClip ImpactSoundFor(ItemType item)
+    {
+        if (item == ItemType.Bottle) return bottleBreakSound;
+        if (item == ItemType.Brick) return brickThrowSound;
+        return null;   // 손전등 등은 아직 전용 소리가 없다
     }
 
     GameObject HeldModelFor(ItemType item)
@@ -367,14 +411,27 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         Interactable nearest = null;
         Collider nearestCollider = null;
         float nearestDistance = float.PositiveInfinity;
+        int bestPriority = int.MinValue;
         for (int i = 0; i < count; i++)
         {
             var candidate = FindEnabledInteractable(reach[i].collider.transform);
             if (candidate == null) continue;
-            if (reach[i].distance >= nearestDistance) continue;
+
+            // 지금 쓸 수 없는 것은 조준 대상이 아니다. 이게 없으면 손에 든 물건이나
+            // 잠긴 판 안쪽의 부품이 우선순위로 조준을 차지한 채 아무 안내도 내지 않아,
+            // 뒤에 있는 진짜 대상(설치 슬롯, 고정판)을 가려버린다.
+            if (!candidate.Available(this)) continue;
+
+            // 우선순위가 먼저, 같으면 가까운 쪽. 거리만 보면 큰 기계 콜라이더에
+            // 파묻힌 작은 물건(스패너, 퓨즈)을 영영 집을 수 없다.
+            int priority = candidate.AimPriority;
+            if (priority < bestPriority) continue;
+            if (priority == bestPriority && reach[i].distance >= nearestDistance) continue;
+
             nearest = candidate;
             nearestCollider = reach[i].collider;
             nearestDistance = reach[i].distance;
+            bestPriority = priority;
         }
         if (nearest == null) return null;
 

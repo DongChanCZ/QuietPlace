@@ -57,6 +57,15 @@ public sealed class BoltedPanel : Interactable
         requiredTurns = MinigameTuning.BoltTurns;
     }
 
+    /// 고정판은 기계 몸통보다 먼저 잡혀야 한다.
+    ///
+    /// 이 판은 PROP_2F_Switchboard 의 3.4x2.2x2.6m 박스 콜라이더 안에 파묻혀 있어서,
+    /// 거리만으로 고르면 판을 조준해도 배전반이 먼저 잡혔다. 그때 FuseSlot.Prompt 는
+    /// 판이 닫혀 있다고 null 을 내주므로 화면에 아무 안내도 뜨지 않아, 플레이어는
+    /// 기계 안까지 파고들어야 볼트를 만질 수 있었다.
+    /// 판을 떼면 이 오브젝트가 꺼지므로 그다음부터는 자연히 슬롯이 잡힌다.
+    public override int AimPriority => 20;
+
     public override string Prompt(IInteractor player)
     {
         if (Open) return null;

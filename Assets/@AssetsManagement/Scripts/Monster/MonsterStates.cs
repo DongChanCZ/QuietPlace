@@ -346,6 +346,10 @@ public class MonsterAttackState : IMonsterState
     private const float FaceTurnSpeed = 720f; // 도/초 - 0.5초면 180도 어긋나 있어도 충분히 다 돈다
     private float timer;
 
+    /// 죽음 연출이 뒤를 맡았는가. 맡았으면 여기서 게임오버를 부르지 않는다 -
+    /// 연출이 비명/벽 충돌/회색 페이드를 다 보여준 뒤 스스로 부른다.
+    private bool deathSequenceTookOver;
+
     public void Enter(MonsterController ctx)
     {
         timer = 0f;
@@ -353,6 +357,10 @@ public class MonsterAttackState : IMonsterState
         ctx.Agent.velocity = Vector3.zero; // 잔여 속도 제거 - 안 지우면 에이전트가 이 방향으로 회전을 되돌림
         ctx.Agent.updateRotation = false; // 공격 중엔 회전을 이 상태가 전적으로 담당 (에이전트가 다시 못 덮어쓰게)
         ctx.SetAnimState("Attack");
+
+        // 팔을 휘두르는 동작에 맞춰 연출이 흘러가야 하므로 공격이 끝난 뒤가 아니라
+        // 시작할 때 넘긴다.
+        deathSequenceTookOver = PlayerDeathSequence.Begin(ctx.transform);
     }
 
     public void Tick(MonsterController ctx, float dt)
@@ -370,9 +378,10 @@ public class MonsterAttackState : IMonsterState
             }
         }
 
-        if (timer >= Duration)
+        if (timer >= Duration && !deathSequenceTookOver)
         {
-            // 공격이 닿으면 그대로 게임오버 - 살아서 순찰/추적으로 돌아가지 않는다.
+            // 연출이 없는 씬(프리뷰 등)에서는 예전처럼 바로 게임오버.
+            // 살아서 순찰/추적으로 돌아가지는 않는다.
             GameManager.Instance?.TriggerGameOver();
         }
     }

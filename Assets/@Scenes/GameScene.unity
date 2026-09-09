@@ -2025,67 +2025,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 282716004}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!1 &285841010 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 7039486806832812441, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
-  m_PrefabInstance: {fileID: 1879752900}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &285841011 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 7708640119110093603, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
-  m_PrefabInstance: {fileID: 1879752900}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &285841015
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 285841010}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9ef1d83ee97ee554681000bec9c0646c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::InteractableGlow
-  targetRenderers: []
-  glowColor: {r: 0.35, g: 0.72, b: 1, a: 1}
-  intensity: 0.85
-  idleLevel: 0.1
-  breathSpeed: 0.22
-  breathAmount: 0.14
-  twinkleInterval: 3.6
-  twinkleIntervalJitter: 1.6
-  twinkleDuration: 0.32
-  twinklePeak: 1
-  visibleDistance: 12
-  fadeMargin: 3
-  showSparkle: 1
-  sparkleOffset: {x: 0, y: 0.12, z: 0}
-  sparkleSize: 0.11
---- !u!114 &285841016
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 285841010}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 759998e939a55ed4eaf9f7d4fb99a809, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HidingSpot
-  displayName: "\uBCA4\uCE58 \uB4A4"
-  hiddenViewPoint: {fileID: 1493930187}
-  eyeDrop: 1.1
-  noiseLevelBump: 2
-  noiseRangeBump: 6
-  hideAnimationName: Hide
-  door: {fileID: 0}
-  doorOpenEuler: {x: 0, y: 0, z: 0}
-  doorClosedEuler: {x: 0, y: 90, z: 0}
-  doorSeconds: 0.25
-  enterSoundName: 
-  exitSoundName: 
 --- !u!1 &307917462
 GameObject:
   m_ObjectHideFlags: 0
@@ -3611,7 +3550,7 @@ Transform:
   m_LocalScale: {x: 0.99999964, y: 1, z: 0.99999964}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1766406488}
+  m_Father: {fileID: 1169553480}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &433035511
 GameObject:
@@ -5325,9 +5264,9 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 659814607}
   m_CullTransparentMesh: 1
---- !u!114 &666197369 stripped
+--- !u!114 &666197372 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1690992017536020739, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
+  m_CorrespondingSourceObject: {fileID: 416105348302997615, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
   m_PrefabInstance: {fileID: 1879752900}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -6045,30 +5984,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.2000008, y: 2.1000023, z: 0.89649963}
   m_Center: {x: 3.2000005, y: 9.369995, z: -9.811743}
---- !u!114 &778599723
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 778599718}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 759998e939a55ed4eaf9f7d4fb99a809, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HidingSpot
-  displayName: "\uCE90\uBE44\uB2DB"
-  hiddenViewPoint: {fileID: 538930492}
-  eyeDrop: 0
-  noiseLevelBump: 2
-  noiseRangeBump: 6
-  hideAnimationName: Hide
-  door: {fileID: 0}
-  doorOpenEuler: {x: 0, y: 0, z: 0}
-  doorClosedEuler: {x: 0, y: 90, z: 0}
-  doorSeconds: 0.25
-  enterSoundName: 
-  exitSoundName: 
 --- !u!1 &787475946
 GameObject:
   m_ObjectHideFlags: 0
@@ -7566,6 +7481,11 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1169194534}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!4 &1169553480 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2905508328416319362, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
+  m_PrefabInstance: {fileID: 1879752900}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1175829536
 GameObject:
   m_ObjectHideFlags: 0
@@ -9288,30 +9208,6 @@ MonoBehaviour:
   showSparkle: 1
   sparkleOffset: {x: 0, y: 0.12, z: 0}
   sparkleSize: 0.11
---- !u!114 &1478678462
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1478678456}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 759998e939a55ed4eaf9f7d4fb99a809, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HidingSpot
-  displayName: "\uD14C\uC774\uBE14 \uBC11"
-  hiddenViewPoint: {fileID: 1928024042}
-  eyeDrop: 0.85
-  noiseLevelBump: 2
-  noiseRangeBump: 6
-  hideAnimationName: Hide
-  door: {fileID: 0}
-  doorOpenEuler: {x: 0, y: 0, z: 0}
-  doorClosedEuler: {x: 0, y: 90, z: 0}
-  doorSeconds: 0.25
-  enterSoundName: 
-  exitSoundName: 
 --- !u!1 &1483080440 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2178716380261375656, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
@@ -9380,7 +9276,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 285841011}
+  m_Father: {fileID: 1169553480}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1518488060
 GameObject:
@@ -10513,67 +10409,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1766406487 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5427489690844136618, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
-  m_PrefabInstance: {fileID: 1879752900}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &1766406488 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 4618865497544089104, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
-  m_PrefabInstance: {fileID: 1879752900}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1766406492
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1766406487}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9ef1d83ee97ee554681000bec9c0646c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::InteractableGlow
-  targetRenderers: []
-  glowColor: {r: 0.35, g: 0.72, b: 1, a: 1}
-  intensity: 0.85
-  idleLevel: 0.1
-  breathSpeed: 0.22
-  breathAmount: 0.14
-  twinkleInterval: 3.6
-  twinkleIntervalJitter: 1.6
-  twinkleDuration: 0.32
-  twinklePeak: 1
-  visibleDistance: 12
-  fadeMargin: 3
-  showSparkle: 1
-  sparkleOffset: {x: 0, y: 0.12, z: 0}
-  sparkleSize: 0.11
---- !u!114 &1766406493
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1766406487}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 759998e939a55ed4eaf9f7d4fb99a809, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::HidingSpot
-  displayName: "\uCE90\uBE44\uB2DB"
-  hiddenViewPoint: {fileID: 431800833}
-  eyeDrop: 0
-  noiseLevelBump: 2
-  noiseRangeBump: 6
-  hideAnimationName: Hide
-  door: {fileID: 0}
-  doorOpenEuler: {x: 0, y: 0, z: 0}
-  doorClosedEuler: {x: 0, y: 90, z: 0}
-  doorSeconds: 0.25
-  enterSoundName: 
-  exitSoundName: 
 --- !u!1 &1767253808
 GameObject:
   m_ObjectHideFlags: 0
@@ -11838,10 +11673,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 4618865497544089104, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
+    - targetCorrespondingSourceObject: {fileID: 2905508328416319362, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 431800833}
-    - targetCorrespondingSourceObject: {fileID: 7708640119110093603, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
+    - targetCorrespondingSourceObject: {fileID: 2905508328416319362, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1493930187}
     - targetCorrespondingSourceObject: {fileID: 5423526209065643960, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
@@ -11851,18 +11686,6 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 538930492}
     m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 5427489690844136618, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1766406493}
-    - targetCorrespondingSourceObject: {fileID: 5427489690844136618, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1766406492}
-    - targetCorrespondingSourceObject: {fileID: 7039486806832812441, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 285841016}
-    - targetCorrespondingSourceObject: {fileID: 7039486806832812441, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 285841015}
     - targetCorrespondingSourceObject: {fileID: 2068400381902474753, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 378880266}
@@ -11875,9 +11698,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7136676130328201398, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1879752904}
-    - targetCorrespondingSourceObject: {fileID: 4616168687535174914, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1478678462}
     - targetCorrespondingSourceObject: {fileID: 4616168687535174914, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1478678461}
@@ -11959,9 +11779,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8651614980078340212, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2037443985}
-    - targetCorrespondingSourceObject: {fileID: 1608430914890568135, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 778599723}
     - targetCorrespondingSourceObject: {fileID: 1608430914890568135, guid: 096779a4cd9d6bd47a9d61b6278b728f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 778599722}
@@ -12430,7 +12247,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db35d9bcb3e9c4b459ab34db77cc3f8b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KeypadTerminal
-  door: {fileID: 666197369}
+  door: {fileID: 666197372}
   displayName: "\uBB38 \uD0A4\uD328\uB4DC"
   promptVerb: "\uB72F\uC5B4\uC11C \uD68C\uB85C \uC870\uC791"
   oneShot: 1
