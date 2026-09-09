@@ -444,11 +444,7 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         RaycastHit block;
         if (Physics.Linecast(from, to, out block, ~0, QueryTriggerInteraction.Ignore)
             && FindEnabledInteractable(block.collider.transform) != nearest
-            && !block.collider.transform.IsChildOf(transform)
-            // 물건이 그 콜라이더 '안에' 있으면 가림막일 수 없다. 책상처럼 콜라이더가
-            // 통짜 상자인 가구는 위에 올려둔 물건까지 부피 안에 품어버려서,
-            // 이걸 빼지 않으면 책상 앞에 서도 그 위의 손전등을 집을 수 없다.
-            && !block.collider.bounds.Contains(to))
+            && !block.collider.transform.IsChildOf(transform))
             return null;
 
         return nearest;
