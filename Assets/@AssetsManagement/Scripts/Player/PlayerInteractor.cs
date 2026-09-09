@@ -25,6 +25,7 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
     [Header("Held Item Models")]
     [SerializeField] GameObject flashlightModelPrefab;
     [SerializeField] GameObject brickModelPrefab;
+    [SerializeField] GameObject bottleModelPrefab;
 
     [Header("Throwing")]
     public float throwForce = 10f;
@@ -339,13 +340,15 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
             brickHeldModel.SetActive(false);
         }
 
-        bottleHeldModel = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        bottleHeldModel.name = "HeldBottle";
-        bottleHeldModel.transform.SetParent(heldItemAnchor, false);
-        bottleHeldModel.transform.localScale = Vector3.one * 0.16f;
-        Destroy(bottleHeldModel.GetComponent<Collider>());
-        DisableShadows(bottleHeldModel);
-        bottleHeldModel.SetActive(false);
+        if (bottleModelPrefab != null)
+        {
+            bottleHeldModel = Instantiate(bottleModelPrefab, heldItemAnchor);
+            bottleHeldModel.name = "HeldBottle";
+            bottleHeldModel.transform.localPosition = Vector3.zero;
+            bottleHeldModel.transform.localRotation = Quaternion.identity;
+            DisableShadows(bottleHeldModel);
+            bottleHeldModel.SetActive(false);
+        }
 
         if (flashlightModelPrefab != null)
         {
