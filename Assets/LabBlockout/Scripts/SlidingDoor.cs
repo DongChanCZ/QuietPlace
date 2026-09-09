@@ -68,7 +68,23 @@ public sealed class SlidingDoor : Interactable
         if (direction == 0) return;
         t = Mathf.Clamp01(t + direction * Time.deltaTime / Mathf.Max(seconds, 0.01f));
         Apply();
-        if (t <= 0f || t >= 1f) direction = 0;
+        if (t <= 0f || t >= 1f) { direction = 0; SetLeafColliders(true); }
+    }
+
+    /// 움직이는 동안만 문짝 콜라이더를 끈다.
+    ///
+    /// 문짝은 트랜스폼을 직접 옮겨 여는데, 그 자리에 CharacterController 가 서 있으면
+    /// 물리 엔진이 몸을 밀어내며 벽 밖으로 튕겨 보낸다. 캐비닛에 들어가 문을 닫으면
+    /// 건물 밖으로 나가지던 게 이것 때문이다. 0.5~0.9초 동안만 꺼두므로
+    /// 닫힌 문은 여전히 막고, 열린 문은 여전히 통과된다.
+    void SetLeafColliders(bool on)
+    {
+        if (leafA != null)
+            foreach (Collider c in leafA.GetComponentsInChildren<Collider>(true))
+                if (!c.isTrigger) c.enabled = on;
+        if (leafB != null)
+            foreach (Collider c in leafB.GetComponentsInChildren<Collider>(true))
+                if (!c.isTrigger) c.enabled = on;
     }
 
     void Apply()
@@ -126,6 +142,7 @@ public sealed class SlidingDoor : Interactable
         }
         open = !open;
         direction = open ? 1 : -1;
+        SetLeafColliders(false);
         player.ShowNotice(label + (open ? " 열림" : " 닫힘"));
         if (open) { var handler = Opened; if (handler != null) handler(); }
     }
@@ -139,6 +156,7 @@ public sealed class SlidingDoor : Interactable
 
         open = true;
         direction = 1;
+        SetLeafColliders(false);
 
         var handler = Opened;
         if (handler != null) handler();
@@ -151,6 +169,7 @@ public sealed class SlidingDoor : Interactable
         t = wantOpen ? 1f : 0f;
         direction = 0;
         Apply();
+        SetLeafColliders(true);
         Physics.SyncTransforms();
     }
 

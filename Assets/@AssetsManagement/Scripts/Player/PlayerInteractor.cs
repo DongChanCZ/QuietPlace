@@ -341,18 +341,38 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         int count = Physics.SphereCastNonAlloc(eyes.transform.position, 0.08f,
             eyes.transform.forward, reach, interactionDistance, ~0, QueryTriggerInteraction.Collide);
         Interactable nearest = null;
+        Collider nearestCollider = null;
         float nearestDistance = float.PositiveInfinity;
         for (int i = 0; i < count; i++)
         {
             var candidate = reach[i].collider.GetComponentInParent<Interactable>();
-            if (candidate == null || reach[i].distance >= nearestDistance) continue;
             // 컴포넌트를 꺼둔 Interactable 은 조준 대상이 아니다. GetComponentInParent 는
             // enabled 를 보지 않아서, 열고닫기를 없앤 문(SlidingDoor 비활성)이 그대로 잡혀
             // E 를 누르면 열림/닫힘 안내문만 계속 뜨는 문제가 있었다.
-            if (!candidate.enabled) continue;
+            if (candidate == null || !candidate.enabled) continue;
+            if (reach[i].distance >= nearestDistance) continue;
             nearest = candidate;
+            nearestCollider = reach[i].collider;
             nearestDistance = reach[i].distance;
         }
+        if (nearest == null) return null;
+
+        // 벽 너머의 물건을 집던 버그를 막는다. 위 스피어캐스트는 조준을 넉넉하게 잡으려고
+        // 반경이 있어서, 그 히트로 가림 판정을 하면 책상 모서리나 선반 판처럼 물건이
+        // 놓여 있는 면까지 '가림'으로 세어 아무것도 못 집게 된다.
+        // 가림 판정만 굵기 없는 선으로 따로 본다.
+        Vector3 from = eyes.transform.position;
+        Vector3 to = nearestCollider.ClosestPoint(from);
+        RaycastHit block;
+        if (Physics.Linecast(from, to, out block, ~0, QueryTriggerInteraction.Ignore)
+            && block.collider.GetComponentInParent<Interactable>() != nearest
+            && !block.collider.transform.IsChildOf(transform)
+            // 물건이 그 콜라이더 '안에' 있으면 가림막일 수 없다. 책상처럼 콜라이더가
+            // 통짜 상자인 가구는 위에 올려둔 물건까지 부피 안에 품어버려서,
+            // 이걸 빼지 않으면 책상 앞에 서도 그 위의 손전등을 집을 수 없다.
+            && !block.collider.bounds.Contains(to))
+            return null;
+
         return nearest;
     }
 
