@@ -41,6 +41,10 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
     [Tooltip("클립 앞에서 이만큼만 재생한다(초). 0 이면 끝까지.")]
     [SerializeField] float throwImpactSeconds = 1.5f;
 
+    // 클립 이름은 코드에 둔다 - 인스펙터 참조는 병합 때 빠지지만 이 문자열은 남는다.
+    const string BottleBreakName = "bottle_break";
+    const string BrickThrowName = "brick_throw";
+
     Transform heldItemAnchor;
     GameObject brickHeldModel;
     GameObject bottleHeldModel;
@@ -59,6 +63,11 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         playerController = GetComponent<PlayerController>();
         CreatePlayerFlashlight();
         CreateHeldItemModels();
+
+        // 인스펙터 참조는 병합 때 빠질 수 있다. 빠졌으면 이름으로 찾고 소스도 만든다.
+        bottleBreakSound = AudioLibrary.Resolve(bottleBreakSound, BottleBreakName);
+        brickThrowSound = AudioLibrary.Resolve(brickThrowSound, BrickThrowName);
+        throwImpactSource = AudioLibrary.EnsureSource(throwImpactSource, transform, "ThrowImpactSource", 1f, 3f, 45f, 1f);
     }
 
     void OnEnable()

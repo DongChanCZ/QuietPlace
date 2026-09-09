@@ -66,10 +66,18 @@ public class BuildingPower : MonoBehaviour
     private readonly List<Light> _managed = new List<Light>();
     private readonly List<float> _managedIntensity = new List<float>();
 
+    // 환경광은 씬에 저장되는 값이다. 런타임에 올려둔 채 두면 에디터에서 플레이를 멈춘
+    // 뒤에도 밝은 값이 남아 "처음부터 하는데 이미 환해 보이는" 상태가 될 수 있다.
+    private Color _ambientColorAtStart;
+    private float _ambientIntensityAtStart;
+
     void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
+
+        _ambientColorAtStart = RenderSettings.ambientLight;
+        _ambientIntensityAtStart = RenderSettings.ambientIntensity;
 
         CollectLights();
         SetLightsEnabled(false);
@@ -77,7 +85,15 @@ public class BuildingPower : MonoBehaviour
 
     void OnDestroy()
     {
-        if (Instance == this) Instance = null;
+        // 중복으로 붙었다가 Awake 에서 바로 지워진 쪽은 원래 값을 기억하지 못했다.
+        // 그쪽이 환경광을 되돌리면 검게 덮어쓴다.
+        if (Instance != this) return;
+        Instance = null;
+
+        // 씬을 떠날 때 환경광을 원래대로. 조명은 씬을 다시 불러오면 되돌아가지만
+        // 환경광은 전역 설정이라 직접 돌려놔야 한다.
+        RenderSettings.ambientLight = _ambientColorAtStart;
+        RenderSettings.ambientIntensity = _ambientIntensityAtStart;
     }
 
     /// 관리할 조명 목록을 만든다. 씬을 훑는 건 Awake 한 번뿐이라 런타임 비용이 없다.

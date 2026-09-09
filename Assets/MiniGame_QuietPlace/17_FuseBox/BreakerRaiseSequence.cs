@@ -7,8 +7,9 @@ using UnityEngine;
 ///   1. 퓨즈 미니게임이 닫히고, 플레이어가 실물 차단기 레버 앞으로 저절로 걸어간다.
 ///   2. 레버가 내려가 있는 것이 보이고, 전용 화면에서 E 를 연타해 올린다.
 ///      게이지가 차는 만큼 실물 레버가 같이 올라간다.
-///   3. 다 올리면 건물 전체에 전기가 들어오며 조명이 차례로 켜진다.
-///      그 장면을 잠시 보여준 뒤 조작을 돌려준다.
+///   3. 발전기실 변압기까지 고쳐둔 상태였다면 여기서 건물 전체에 전기가 들어온다.
+///      조명이 차례로 켜지는 장면(PowerOnCutscene)을 보여준 뒤 조작을 돌려준다.
+///      아직 변압기가 남았다면 불은 들어오지 않는다 - 다음 목표를 짚는 혼잣말만 띄운다.
 ///
 /// 조작을 빼앗는 방식이 중요하다. PlayerController 를 끄면 카메라 처리(ApplyCamera)까지
 /// 멈춰서 직접 카메라를 몰아야 하는데, 되돌릴 때 시선이 튄다. 대신 CharacterController 만
@@ -41,27 +42,11 @@ public class BreakerRaiseSequence : MonoBehaviour
     [SerializeField] private GameObject minigameRoot;
     [SerializeField] private MashToComplete mash;
 
-    [Header("3. 전원이 들어오는 장면")]
-    [Tooltip("올려다볼 각도(도). 음수가 위쪽. 시작 시선과 무관한 절대값이다.")]
-    [SerializeField] private float cutsceneLookUpPitch = -32f;
-    [Tooltip("가장 트인 방향으로 몸을 돌린다. 벽을 마주본 채 위를 보면 천장 조명이 안 보인다.")]
-    [SerializeField] private bool cutsceneTurnToOpenSpace = true;
-    [Tooltip("트인 방향을 찾을 때 몇 방향을 재볼지")]
-    [SerializeField] private int cutsceneProbeCount = 12;
-    [SerializeField] private float cutsceneProbeDistance = 14f;
-    [SerializeField] private float cutscenePanSeconds = 1.8f;
-    [Tooltip("불이 다 켜진 뒤 이만큼 더 보여준다(초)")]
-    [SerializeField] private float cutsceneHoldSeconds = 3.2f;
-
-    [Header("전원이 들어올 때 나는 소리")]
-    [Tooltip("건물이 살아나는 공간음")]
-    [SerializeField] private AudioClip ambienceClip;
-    [SerializeField] private AudioSource ambienceSource;
-    [Tooltip("어딘가에서 괴물이 반응하는 포효")]
-    [SerializeField] private AudioClip growlClip;
-    [SerializeField] private AudioSource growlSource;
-    [Tooltip("포효를 공간음보다 이만큼 늦게 낸다(초) - 겹쳐 나오면 둘 다 묻힌다")]
-    [SerializeField] private float growlDelay = 1.1f;
+    [Header("3. 변압기가 아직일 때 뜨는 혼잣말")]
+    [SerializeField]
+    private string fuseOnlyMonologue = "전력을 복구했으니 발전기를 가동시켜야지.";
+    [Tooltip("혼잣말이 화면에 머무는 시간(초)")]
+    [SerializeField] private float monologueHoldSeconds = 4.2f;
 
     public bool IsPlaying { get; private set; }
 
@@ -122,9 +107,7 @@ public class BreakerRaiseSequence : MonoBehaviour
         minigameRoot.SetActive(false);
         lever.ForceOn();                   // 끝까지 올라간 자세로 확정
 
-        yield return PowerOnCutscene();
-
-        GameCheckpoint.Save(GameStep.PowerRestored, _pendingPlayer);
+        yield return Finale();
 
         ReturnControl();
         IsPlaying = false;
@@ -177,87 +160,39 @@ public class BreakerRaiseSequence : MonoBehaviour
         player.LookPitch = toPitch;
     }
 
-    /// 불이 켜지는 것을 보여준다. BuildingPower 가 조명을 차례로 켜는 동안 시선을 든다.
-    private IEnumerator PowerOnCutscene()
+    /// <summary>
+    /// 차단기를 올린 뒤. 발전기실(변압기)까지 끝나 있었다면 여기서 전원이 들어오므로
+    /// 불이 켜지는 장면을 보여준다. 아직이라면 불은 안 들어온다 - 사운드와 카메라 연출
+    /// 대신 다음 목표를 짚어주는 혼잣말만 띄운다.
+    /// </summary>
+    private IEnumerator Finale()
     {
         // 퓨즈 쪽이 끝났다고 알린다. 변압기까지 끝나 있으면 여기서 전원이 들어온다.
         if (BuildingPower.Instance != null) BuildingPower.Instance.MarkFuseInstalled();
 
-        // 건물이 살아나는 소리. 포효는 조금 늦게 얹어 "불이 켜진 걸 저쪽도 알았다" 로 읽히게.
-        if (ambienceSource != null && ambienceClip != null)
-        {
-            ambienceSource.clip = ambienceClip;
-            ambienceSource.time = 0f;
-            ambienceSource.Play();
-        }
-        if (growlSource != null && growlClip != null) StartCoroutine(PlayDelayed(growlSource, growlClip, growlDelay));
-
-        float fromPitch = player.LookPitch;
-        float toPitch = Mathf.Clamp(cutsceneLookUpPitch, player.minPitch, player.maxPitch);
-
-        // 벽을 마주본 채 위를 보면 벽면만 보인다. 가장 트인 쪽으로 몸을 돌려야
-        // 차례로 켜지는 천장 조명이 화면에 들어온다.
-        Quaternion fromRot = player.transform.rotation;
-        Quaternion toRot = cutsceneTurnToOpenSpace ? OpenestDirection() : fromRot;
-
-        float t = 0f;
-        while (t < cutscenePanSeconds)
-        {
-            t += Time.deltaTime;
-            float k = Smooth(t / cutscenePanSeconds);
-            player.LookPitch = Mathf.Lerp(fromPitch, toPitch, k);
-            player.transform.rotation = Quaternion.Slerp(fromRot, toRot, k);
-            yield return null;
-        }
-        player.transform.rotation = toRot;
-
-        if (cutsceneHoldSeconds > 0f) yield return new WaitForSeconds(cutsceneHoldSeconds);
-
         bool powered = BuildingPower.Instance != null && BuildingPower.Instance.Powered;
-        Debug.Log($"[BreakerRaiseSequence] 차단기 올림 -> 전원 {(powered ? "복구" : "아직 - 변압기가 남았다")}");
-    }
 
-    /// <summary>
-    /// 눈높이에서 사방으로 재보고 가장 멀리까지 트인 방향을 고른다.
-    /// 그쪽이 방이 열려 있는 쪽이라 천장 조명이 여러 개 화면에 들어온다.
-    /// </summary>
-    private Quaternion OpenestDirection()
-    {
-        Vector3 eye = player.playerCamera != null
-            ? player.playerCamera.transform.position
-            : player.transform.position + Vector3.up * 1.6f;
-
-        int probes = Mathf.Max(4, cutsceneProbeCount);
-        Vector3 best = player.transform.forward;
-        float bestClear = -1f;
-
-        for (int i = 0; i < probes; i++)
+        if (powered)
         {
-            float angle = 360f * i / probes;
-            Vector3 dir = Quaternion.Euler(0f, angle, 0f) * Vector3.forward;
+            if (PowerOnCutscene.Instance != null) yield return PowerOnCutscene.Instance.Play();
+            else Debug.LogWarning($"[{nameof(BreakerRaiseSequence)}] PowerOnCutscene 이 없어 전원 연출을 건너뛴다.", this);
 
-            RaycastHit hit;
-            float clear = Physics.Raycast(eye, dir, out hit, cutsceneProbeDistance, ~0, QueryTriggerInteraction.Ignore)
-                ? hit.distance
-                : cutsceneProbeDistance;
-
-            if (clear <= bestClear) continue;
-            bestClear = clear;
-            best = dir;
+            GameCheckpoint.Save(GameStep.PowerRestored, _pendingPlayer);
+            Debug.Log("[BreakerRaiseSequence] 차단기 올림 -> 전원 복구 (변압기도 끝나 있었다)");
+            yield break;
         }
 
-        Debug.Log($"[BreakerRaiseSequence] 가장 트인 방향 {best.ToString("0.00")} ({bestClear:0.0}m)");
-        return Quaternion.LookRotation(best, Vector3.up);
-    }
+        // 변압기가 남았다. 단계를 PowerRestored 로 올리면 복원할 때 변압기까지 끝난 것이
+        // 되어버리므로, 퓨즈만 꽂았다는 사실만 따로 남긴다.
+        if (MonologueOverlay.Instance != null)
+            yield return MonologueOverlay.Instance.Show(fuseOnlyMonologue, monologueHoldSeconds);
+        else if (_pendingPlayer != null)
+            _pendingPlayer.ShowNotice(fuseOnlyMonologue);
 
-    private static System.Collections.IEnumerator PlayDelayed(AudioSource source, AudioClip clip, float delay)
-    {
-        if (delay > 0f) yield return new WaitForSeconds(delay);
-        if (source == null || clip == null) yield break;
+        GameProgress.MarkFuseOnly(player != null ? player.transform : null);
+        if (_pendingPlayer != null) _pendingPlayer.ShowNotice("◆ 기록됨 — 죽어도 이 지점부터 다시 시작한다.");
 
-        source.clip = clip;
-        source.time = 0f;
-        source.Play();
+        Debug.Log("[BreakerRaiseSequence] 차단기 올림 -> 전원 아직 (발전기 변압기가 남았다)");
     }
 
     private Vector3 StandPosition()
