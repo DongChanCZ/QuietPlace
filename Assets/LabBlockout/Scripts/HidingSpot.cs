@@ -28,6 +28,10 @@ public sealed class HidingSpot : Interactable
     void Awake()
     {
         spot = GetComponent<HidingSpotQTE>();
+
+        // E 는 여기서만 받는다. QTE 쪽에서도 읽으면 한 번의 E 로 나왔다가 같은 프레임에
+        // 다시 숨어서 영영 못 나온다. (Esc 는 QTE 쪽에 남겨 둔 탈출구다.)
+        spot.externalOwnsEKey = true;
         // 문이 E 를 두고 다투지 않게 한다. 컴포넌트를 꺼도 SetOpenImmediate 는 그대로 쓴다.
         if (door != null) door.enabled = false;
     }

@@ -38,7 +38,8 @@ public class FullscreenNoteViewer : MonoBehaviour
         if (!IsOpen || Time.frameCount == openedFrame) return;
         if (Keyboard.current == null) return;
 
-        if (Keyboard.current.eKey.wasPressedThisFrame || Keyboard.current.escapeKey.wasPressedThisFrame)
+        bool click = Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
+        if (click || Keyboard.current.eKey.wasPressedThisFrame || Keyboard.current.escapeKey.wasPressedThisFrame)
         {
             Close();
         }
@@ -62,5 +63,10 @@ public class FullscreenNoteViewer : MonoBehaviour
 
         if (playerMovement != null) playerMovement.enabled = true;
         if (playerController != null) playerController.enabled = true;
+
+        // PlayerController.OnDisable 이 커서 잠금을 풀어버린다. 다시 잠그지 않으면
+        // HandleLook 이 Locked 일 때만 돌기 때문에 읽고 나온 뒤 시야가 고정된다.
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 }

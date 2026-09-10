@@ -53,6 +53,12 @@ public class HidingSpotQTE : MonoBehaviour
     private bool qteActive;
     private float qteTimer;
     private int hiddenFrame = -1;   // 숨은 그 프레임에 바로 다시 나오지 않게
+    private int unhidFrame = -1;    // 나온 그 프레임에 바로 다시 숨지 않게
+
+    /// HidingSpot 이 붙어 있으면 E 는 그쪽(PlayerInteractor 경유)이 처리한다.
+    /// 여기서 또 읽으면 한 번의 E 로 '나오기 -> 다시 숨기' 가 같은 프레임에 일어나
+    /// 영영 못 나온다. Esc 는 조준이 막혔을 때의 탈출구라 여기 남겨둔다.
+    [System.NonSerialized] public bool externalOwnsEKey;
 
     void Start()
     {
@@ -104,7 +110,10 @@ public class HidingSpotQTE : MonoBehaviour
     {
         if (!IsPlayerHidden || Time.frameCount == hiddenFrame) return;
         if (Keyboard.current == null) return;
-        if (!Keyboard.current.eKey.wasPressedThisFrame && !Keyboard.current.escapeKey.wasPressedThisFrame) return;
+
+        bool esc = Keyboard.current.escapeKey.wasPressedThisFrame;
+        bool e = !externalOwnsEKey && Keyboard.current.eKey.wasPressedThisFrame;
+        if (!esc && !e) return;
         Unhide();
     }
 
@@ -113,6 +122,7 @@ public class HidingSpotQTE : MonoBehaviour
     {
         if (!IsPlayerHidden) return;
         IsPlayerHidden = false;
+        unhidFrame = Time.frameCount;
         AnyoneHidden = false;
 
         foreach (Renderer r in playerRenderersToHide)
@@ -206,6 +216,13 @@ public class HidingSpotQTE : MonoBehaviour
     }
 
     public void Hide()
+    {
+        // 나온 그 프레임에 같은 입력으로 다시 숨지 않게
+        if (Time.frameCount == unhidFrame) return;
+        HideNow();
+    }
+
+    private void HideNow()
     {
         qteActive = false;
         IsPlayerHidden = true;

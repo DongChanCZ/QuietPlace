@@ -26,6 +26,21 @@ public class BoltTurnPuzzle : MonoBehaviour
     [Header("회전 중심 - 비우면 boltVisual 을 쓴다")]
     public RectTransform pivot;
 
+    [Header("몽키스패너 이미지 - 볼트를 물고 돈다")]
+    public RectTransform wrenchVisual;
+
+    /// 좁은 데서 스패너를 쓰는 방식 그대로다. 이만큼 돌리면 더 못 돌리니
+    /// 빼서 처음 자리에 다시 물고 또 돌린다. 볼트는 돌린 만큼 그대로 남는다.
+    [Header("한 번에 돌리는 각도 - 이만큼 돌리면 빼서 다시 문다")]
+    public float wrenchStrokeDegrees = 60f;
+
+    [Header("스패너가 물리는 처음 각도 - 0 이면 왼쪽을 본다")]
+    public float wrenchStartDegrees = 0f;
+
+    [Header("다시 물 때 잠깐 작아지는 정도 (0~1) 와 걸리는 시간(초)")]
+    public float wrenchReseatDip = 0.18f;
+    public float wrenchReseatSeconds = 0.12f;
+
     [Header("몇 바퀴 돌려야 풀리는가")]
     public int requiredTurns = 3;
 
@@ -107,6 +122,8 @@ public class BoltTurnPuzzle : MonoBehaviour
     private float lastAngle;
     private float progressDegrees;
     private float torque;
+    private float wrenchStrokeLast;
+    private float wrenchReseatTimer;
     private int turns;
     private float strainSoundCooldown;
     private float markerFlashTimer;
@@ -248,13 +265,40 @@ public class BoltTurnPuzzle : MonoBehaviour
     /// 볼트는 진행도만큼 돌아간다. 힘이 모자랄 때는 그 자리에서 미세하게 떤다.
     private void ApplyBoltRotation(float strain01)
     {
-        if (boltVisual == null) return;
-
         float shake = 0f;
         if (strain01 > 0.05f)
             shake = (Mathf.PerlinNoise(Time.time * 34f, 0f) - 0.5f) * 2f * strainShakeDegrees * Mathf.Clamp01(strain01);
 
-        boltVisual.localRotation = Quaternion.Euler(0f, 0f, progressDegrees + shake);
+        if (boltVisual != null)
+            boltVisual.localRotation = Quaternion.Euler(0f, 0f, progressDegrees + shake);
+
+        ApplyWrenchStroke(shake);
+    }
+
+    /// 스패너는 볼트처럼 계속 돌지 않는다. wrenchStrokeDegrees 만큼 돌면 한 번 빼서
+    /// 처음 자리에 다시 물고 또 돈다. 볼트에 쌓인 각도(progressDegrees)는 그대로 두고
+    /// 그 나머지만 보여주면 그 동작이 된다.
+    private void ApplyWrenchStroke(float shake)
+    {
+        if (wrenchVisual == null) return;
+
+        float stroke = Mathf.Max(5f, wrenchStrokeDegrees);
+        float within = Mathf.Repeat(progressDegrees, stroke);
+
+        // 한 획이 끝나 각도가 되감긴 순간 = 스패너를 빼서 다시 무는 순간
+        if (within < wrenchStrokeLast) wrenchReseatTimer = wrenchReseatSeconds;
+        wrenchStrokeLast = within;
+
+        float scale = 1f;
+        if (wrenchReseatTimer > 0f)
+        {
+            wrenchReseatTimer -= Time.deltaTime;
+            float k = Mathf.Clamp01(wrenchReseatTimer / Mathf.Max(0.01f, wrenchReseatSeconds));
+            scale = 1f - wrenchReseatDip * k;
+        }
+
+        wrenchVisual.localRotation = Quaternion.Euler(0f, 0f, wrenchStartDegrees + within + shake);
+        wrenchVisual.localScale = new Vector3(scale, scale, 1f);
     }
 
     /// 눈금을 바퀴 수에 맞춰 배치하고 색을 맞춘다.
