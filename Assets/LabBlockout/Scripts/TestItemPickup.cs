@@ -7,7 +7,15 @@ public sealed class TestItemPickup : Interactable
     [SerializeField] ItemType itemType;
     [SerializeField] string displayName = "테스트 아이템";
 
-    public override string Prompt(IInteractor player) => "E  " + displayName + " 획득";
+    // 이미 같은 종류를 들고 있으면 조준 대상이 아니다 (Brick/Flashlight/Keycard와 동일 패턴).
+    public override bool Available(IInteractor player) =>
+        QuickSlotManager.Instance == null || !QuickSlotManager.Instance.HasItem(itemType);
+
+    public override string Prompt(IInteractor player)
+    {
+        if (QuickSlotManager.Instance != null && QuickSlotManager.Instance.HasItem(itemType)) return null;
+        return "E  " + displayName + " 획득";
+    }
 
     public override void Interact(IInteractor player)
     {

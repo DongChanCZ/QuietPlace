@@ -102,6 +102,13 @@ public class QuickSlotManager : MonoBehaviour
         OnSlotsChanged?.Invoke();
     }
 
+    // 인덱스를 모르고 종류만 아는 경우(퓨즈 설치 등). 없으면 조용히 무시한다.
+    public void RemoveItem(ItemType type)
+    {
+        int index = Array.IndexOf(slots, (ItemType?)type);
+        if (index >= 0) RemoveItem(index);
+    }
+
     public bool TryGetItem(int index, out ItemType item)
     {
         if (index >= 0 && index < SlotCount && slots[index].HasValue) { item = slots[index].Value; return true; }

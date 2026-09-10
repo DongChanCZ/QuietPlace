@@ -65,6 +65,8 @@ public class GameCheckpoint : MonoBehaviour
 
     void Start()
     {
+        // 세이브포인트가 없으면 되살릴 것이 없다. 소지품이 남아 있어도 마찬가지다 -
+        // 첫 세이브 전에 죽었다면 처음부터, 빈손으로 시작해야 한다.
         if (!GameProgress.HasAnythingToRestore) return;
         StartCoroutine(RestoreNextFrame());
     }

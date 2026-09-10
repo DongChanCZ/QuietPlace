@@ -111,6 +111,9 @@ public class FrequencyBroadcast : MonoBehaviour
         GameCheckpoint.Save(GameStep.Broadcast, _player);
 
         onBroadcastComplete?.Invoke();
+
+        // 여기서 엔딩으로 넘어간다. 컷신이 없는 씬(프리뷰 등)에서는 그냥 끝난다.
+        if (EndingCutscene.Instance != null) EndingCutscene.Instance.Begin(_player);
     }
 
     private void EmitNoise()
