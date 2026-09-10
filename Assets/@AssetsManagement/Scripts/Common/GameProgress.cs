@@ -71,8 +71,10 @@ public static class GameProgress
     /// 죽는 순간의 소지품. Valid 가 false 면 되살릴 게 없다.
     public static Inventory Carried { get; private set; }
 
-    /// 진행 단계든 소지품이든 하나라도 되살릴 게 있는가.
-    public static bool HasAnythingToRestore => HasCheckpoint || FuseOnly || Carried.Valid;
+    /// 되살릴 세이브포인트가 있는가.
+    /// 소지품은 여기 넣지 않는다 - 세이브포인트 없이 죽었다면 처음부터 시작해야 하고,
+    /// 그때 소지품만 되살리면 시작 지점에서 이미 손전등을 들고 있는 상태가 된다.
+    public static bool HasAnythingToRestore => HasCheckpoint || FuseOnly;
 
     /// <summary>
     /// 죽는 순간의 소지품을 남긴다. 진행 단계와 위치는 건드리지 않는다 -

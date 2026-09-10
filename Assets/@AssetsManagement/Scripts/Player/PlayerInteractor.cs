@@ -42,6 +42,9 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
     [Tooltip("클립 앞에서 이만큼만 재생한다(초). 0 이면 끝까지.")]
     [SerializeField] float throwImpactSeconds = 1.5f;
 
+    [Tooltip("벽돌 소리는 앞 0.6초가 무음이라 그냥 틀면 떨어진 뒤에 소리가 난다. 그만큼 건너뛰고 재생한다(초).")]
+    [SerializeField] float brickThrowStart = 0.55f;
+
     // 클립 이름은 코드에 둔다 - 인스펙터 참조는 병합 때 빠지지만 이 문자열은 남는다.
     const string BottleBreakName = "bottle_break";
     const string BrickThrowName = "brick_throw";
@@ -225,7 +228,11 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
 
         throwImpactSource.transform.position = at;
         throwImpactSource.clip = clip;
-        throwImpactSource.time = 0f;
+
+        // 클립 앞의 무음을 건너뛴다. 벽돌 소리는 0.60초부터 실제 충돌음이 나오므로
+        // 0 부터 틀면 벽돌이 떨어진 뒤에 소리가 나는 것처럼 들린다.
+        float startAt = clip == brickThrowSound ? brickThrowStart : 0f;
+        throwImpactSource.time = Mathf.Clamp(startAt, 0f, Mathf.Max(0f, clip.length - 0.05f));
         throwImpactSource.Play();
 
         if (throwImpactSeconds > 0f) StartCoroutine(StopThrowImpactAfter(clip, throwImpactSeconds));
@@ -422,6 +429,7 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
             eyes.transform.forward, reach, interactionDistance, ~0, QueryTriggerInteraction.Collide);
         Interactable nearest = null;
         Collider nearestCollider = null;
+        Vector3 nearestPoint = Vector3.zero;
         float nearestDistance = float.PositiveInfinity;
         int bestPriority = int.MinValue;
         for (int i = 0; i < count; i++)
@@ -442,6 +450,7 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
 
             nearest = candidate;
             nearestCollider = reach[i].collider;
+            nearestPoint = reach[i].point;
             nearestDistance = reach[i].distance;
             bestPriority = priority;
         }
@@ -452,11 +461,26 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         // 놓여 있는 면까지 '가림'으로 세어 아무것도 못 집게 된다.
         // 가림 판정만 굵기 없는 선으로 따로 본다.
         Vector3 from = eyes.transform.position;
-        Vector3 to = nearestCollider.ClosestPoint(from);
+
+        // 눈이 콜라이더 안에 들어가 있으면(거리 0) 사이에 가릴 것이 없다.
+        if (nearestDistance <= 0.001f) return nearest;
+
+        // 기준점은 스피어캐스트가 실제로 잡은 그 지점을 쓴다.
+        // Collider.ClosestPoint 는 볼록하지 않은 MeshCollider 에서 넘긴 점을 그대로
+        // 돌려준다(Unity 제약). 그러면 to == from 이 되어 가림 판정이 엉뚱해지고,
+        // 로비 책상처럼 메시 콜라이더인 가구는 서는 방향에 따라 조준이 됐다 안 됐다 한다.
+        Vector3 to = nearestPoint;
         RaycastHit block;
         if (Physics.Linecast(from, to, out block, ~0, QueryTriggerInteraction.Ignore)
             && FindEnabledInteractable(block.collider.transform) != nearest
-            && !block.collider.transform.IsChildOf(transform))
+            && !block.collider.transform.IsChildOf(transform)
+            // 물건이 그 콜라이더 '안에' 있으면 가림막일 수 없다. 책상처럼 콜라이더가
+            // 통짜 상자인 가구는 위에 올려둔 물건까지 부피 안에 품어버려서,
+            // 이걸 빼지 않으면 책상 앞에 서도 그 위의 손전등을 집을 수 없다.
+            // (병합 때 사라진 적이 있다 - 없으면 책상 위 물건을 영영 못 집는다)
+            // 기준은 물건의 중심이다. 표면점으로 보면 책상 윗면보다 몇 mm 위라서
+            // 포함으로 세지 않고, 그러면 책상 앞판이 가림막이 되어버린다.
+            && !block.collider.bounds.Contains(nearestCollider.bounds.center))
             return null;
 
         return nearest;
