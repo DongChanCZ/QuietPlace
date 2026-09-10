@@ -64,6 +64,8 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
     public float BatteryLevel => batteryLevel;
 
     public event Action<string> OnNotice;
+    public event Action<string> OnPersistentNotice;
+    public event Action OnClearPersistentNotice;
 
     void Awake()
     {
@@ -526,4 +528,6 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
 
     public void GiveKeycard() => hasKeycard = true;
     public void ShowNotice(string text) => OnNotice?.Invoke(text);
+    public void ShowPersistentNotice(string text) => OnPersistentNotice?.Invoke(text);
+    public void ClearPersistentNotice() => OnClearPersistentNotice?.Invoke();
 }

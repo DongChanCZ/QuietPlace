@@ -42,13 +42,18 @@ public sealed class HidingSpot : Interactable
             if (door != null) door.SetOpenImmediate(true);
             spot.Unhide();
             if (door != null) door.SetOpenImmediate(false);
-            if (player != null) player.ShowNotice(displayName + "에서 나왔습니다.");
+            if (player != null)
+            {
+                player.ClearPersistentNotice();
+                player.ShowNotice(displayName + "에서 나왔습니다.");
+            }
             return;
         }
 
         if (door != null) door.SetOpenImmediate(true);
         spot.Hide();
         if (door != null) door.SetOpenImmediate(false);   // 들어간 뒤 문을 닫아 준다
-        if (player != null) player.ShowNotice("숨었습니다.  E 로 나오기");
+        // 일반 안내(ShowNotice)와 달리 숨어있는 동안 계속 떠 있어야 한다 - 나올 때까지 시간이 지나도 안 사라짐.
+        if (player != null) player.ShowPersistentNotice("숨었습니다.  E 로 나오기");
     }
 }

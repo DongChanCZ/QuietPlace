@@ -483,6 +483,20 @@ public class PlayerController : MonoBehaviour
     }
 
     /// <summary>
+    /// 앉은 것과 같은 몸높이/시점으로 보간 없이 즉시 맞춘다. HidingSpotQTE 처럼 이 직후
+    /// 스스로를 꺼버리는(enabled=false) 곳에서 쓴다 - Update 가 안 돌면
+    /// UpdateSittingLookOffset 의 lerp 가 끝까지 진행될 시간이 없어서, 얼기 전에 목표값을
+    /// 바로 대입하고 카메라를 한 번 더 갱신해 둔다.
+    /// </summary>
+    public void SnapSittingView(bool sitting)
+    {
+        SetSittingCollider(sitting);
+        sittingEyeOffset = sitting ? sittingEyeDropOffset : 0f;
+        sittingLookOffset = sitting ? sittingLookDownPitch : 0f;
+        UpdateCameraView(thirdPersonActive); // currentState 를 다시 확인할 필요 없이 지금 3인칭 여부를 그대로 쓴다
+    }
+
+    /// <summary>
     /// 목적지가 이미 정해진 경우(쓰레기통→창문처럼) 곧장 그리로 넘어간다. TryVault 처럼
     /// 앞을 더듬어 찾지 않으므로 접근 각도/위치에 따라 실패하지 않는다 - 디자이너가
     /// 미리 검증해 둔 고정 지점 전용.
