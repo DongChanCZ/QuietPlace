@@ -22,6 +22,12 @@ public class IndicatorLed : MonoBehaviour
     [Header("시작 상태")]
     [SerializeField] private bool startOn;
 
+    [Header("같이 색을 바꿀 조명 (없으면 비워둔다)")]
+    [SerializeField] private Light lamp;
+
+    [Header("정상이 되면 끌 것 - 고장 중 깜빡이던 BlinkingLight 등")]
+    [SerializeField] private Behaviour stopWhenOn;
+
     public bool IsOn { get; private set; }
 
     private Material mat;
@@ -48,9 +54,14 @@ public class IndicatorLed : MonoBehaviour
     private void Apply(bool on)
     {
         IsOn = on;
-        if (mat == null) return;
 
         Color c = on ? onColor : offColor;
+
+        // 실제 조명도 같은 색으로. 깜빡이던 것은 정상이 되면 멈춰야 계속 켜져 있다.
+        if (lamp != null) lamp.color = c;
+        if (stopWhenOn != null && on) stopWhenOn.enabled = false;
+
+        if (mat == null) return;
 
         // URP Lit 은 _BaseColor 를, 구 Standard 는 _Color 를 쓴다. 있는 쪽만 설정한다.
         if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", c);

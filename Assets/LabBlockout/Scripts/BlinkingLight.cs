@@ -33,4 +33,12 @@ public sealed class BlinkingLight : MonoBehaviour
 
         for (int i = 0; i < lights.Length; i++) lights[i].intensity = fullIntensity[i] * level;
     }
+
+    /// 깜빡임을 끄면(고장이 고쳐졌을 때 등) 밝기가 죽은 채로 굳는다. 원래 세기로 돌려놓는다.
+    void OnDisable()
+    {
+        if (lights == null) return;
+        for (int i = 0; i < lights.Length; i++)
+            if (lights[i] != null) lights[i].intensity = fullIntensity[i];
+    }
 }

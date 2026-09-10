@@ -402,6 +402,12 @@ public class PlayerController : MonoBehaviour
     {
         Keyboard kb = Keyboard.current;
         if (kb == null) return;
+
+        // 일시정지 메뉴가 있으면 Esc 는 그쪽 것이다. 여기서 커서를 또 토글하면
+        // 메뉴를 닫은 그 프레임에 커서가 풀려버리고, HandleLook 이 Locked 일 때만
+        // 돌기 때문에 시야가 고정된다.
+        if (PauseMenu.Instance != null) return;
+
         if (kb.escapeKey.wasPressedThisFrame)
         {
             bool locked = Cursor.lockState == CursorLockMode.Locked;

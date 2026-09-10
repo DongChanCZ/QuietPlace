@@ -41,6 +41,10 @@ public class HidingSpotQTE : MonoBehaviour
 
     public bool IsPlayerHidden { get; private set; }
 
+    /// 어디든 숨어 있는 중인가. 숨은 동안 Esc 는 '나오기' 라서
+    /// 일시정지 메뉴가 같이 뜨면 안 된다.
+    public static bool AnyoneHidden { get; private set; }
+
     /// 공포 100% 순간의 비명. FearingState 와 같은 클립 이름 - 숨은 동안은 그 상태로
     /// 안 넘어가므로(3인칭 전환은 나중 작업) 여기서 직접 재생한다.
     const string FearScreamName = "malescreamHigh";
@@ -109,6 +113,7 @@ public class HidingSpotQTE : MonoBehaviour
     {
         if (!IsPlayerHidden) return;
         IsPlayerHidden = false;
+        AnyoneHidden = false;
 
         foreach (Renderer r in playerRenderersToHide)
         {
@@ -204,6 +209,7 @@ public class HidingSpotQTE : MonoBehaviour
     {
         qteActive = false;
         IsPlayerHidden = true;
+        AnyoneHidden = true;
         hiddenFrame = Time.frameCount;
 
         if (qtePromptUI != null) qtePromptUI.SetActive(false);
