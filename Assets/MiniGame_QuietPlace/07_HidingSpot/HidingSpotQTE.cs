@@ -37,6 +37,10 @@ public class HidingSpotQTE : MonoBehaviour
 
     public bool IsPlayerHidden { get; private set; }
 
+    /// 어디든 숨어 있는 중인가. 숨은 동안 Esc 는 '나오기' 라서
+    /// 일시정지 메뉴가 같이 뜨면 안 된다.
+    public static bool AnyoneHidden { get; private set; }
+
     private Transform player;
     private bool qteActive;
     private float qteTimer;
@@ -76,6 +80,7 @@ public class HidingSpotQTE : MonoBehaviour
     {
         if (!IsPlayerHidden) return;
         IsPlayerHidden = false;
+        AnyoneHidden = false;
 
         foreach (Renderer r in playerRenderersToHide)
         {
@@ -157,6 +162,7 @@ public class HidingSpotQTE : MonoBehaviour
     {
         qteActive = false;
         IsPlayerHidden = true;
+        AnyoneHidden = true;
         hiddenFrame = Time.frameCount;
 
         if (qtePromptUI != null) qtePromptUI.SetActive(false);

@@ -5,6 +5,11 @@ public static class RangeGizmo
 {
     public static Transform CreateDisc(Transform parent, string discName, Color color)
     {
+        // 플레이 중에 만든 원판이 씬에 저장돼 남는 일이 있다. 그대로 두면 원판이 둘이 되어
+        // 표시 on/off 가 새로 만든 쪽에만 걸리고 옛날 것은 계속 보인다.
+        Transform stale = parent.Find(discName);
+        if (stale != null) Object.Destroy(stale.gameObject);
+
         GameObject disc = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
         disc.name = discName;
         disc.layer = 2; // Ignore Raycast — 카메라/AI 계산에 안 끼도록
