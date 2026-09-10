@@ -824,6 +824,81 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!1 &3309379779756310547
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1393298688690328782}
+  - component: {fileID: 4248594593951508944}
+  - component: {fileID: 5987678881930849649}
+  m_Layer: 0
+  m_Name: Wrench
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1393298688690328782
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3309379779756310547}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1776936100333275367}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 340, y: 340}
+  m_Pivot: {x: 0.23, y: 0.75}
+--- !u!222 &4248594593951508944
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3309379779756310547}
+  m_CullTransparentMesh: 1
+--- !u!114 &5987678881930849649
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3309379779756310547}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 21300000, guid: 8c6c763f8bbc5dd438ff4c4e7429f6e4, type: 3}
+  m_Type: 0
+  m_PreserveAspect: 1
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &3825695192835895289
 GameObject:
   m_ObjectHideFlags: 0
@@ -2540,6 +2615,7 @@ RectTransform:
   m_Children:
   - {fileID: 1338799585055937636}
   - {fileID: 3231914209116884242}
+  - {fileID: 1393298688690328782}
   - {fileID: 981545479433413480}
   - {fileID: 3054107232842858888}
   - {fileID: 277691046223951337}
@@ -2575,8 +2651,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BoltTurnPuzzle
   boltVisual: {fileID: 8311885605299867432}
   pivot: {fileID: 3054107232842858888}
+  wrenchVisual: {fileID: 1393298688690328782}
+  wrenchStrokeDegrees: 60
+  wrenchStartDegrees: 226
+  wrenchReseatDip: 0.18
+  wrenchReseatSeconds: 0.12
   requiredTurns: 3
-  degreesPerTurn: 200
+  degreesPerTurn: 60
   breakawayTorque: 0.55
   maxTorque: 1.6
   torqueGainPerDegree: 0.012

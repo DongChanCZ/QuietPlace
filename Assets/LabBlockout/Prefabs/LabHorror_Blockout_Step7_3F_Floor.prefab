@@ -27381,6 +27381,7 @@ MonoBehaviour:
   playerRenderersToHide: []
   playerAnimator: {fileID: 0}
   hideAnimTrigger: Hide
+  crouchWhileHidden: 0
   monster: {fileID: 0}
   footShadowVisual: {fileID: 0}
   shadowVisibleRange: 4
@@ -37936,6 +37937,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FusePickup
   displayName: "\uBABD\uD0A4\uC2A4\uD328\uB108"
+  pocketItemType: 4
   carryInHands: 0
   pickupAnimationName: Holding
   heldLocalOffset: {x: 0, y: -0.35, z: 0.8}
@@ -52818,6 +52820,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FusePickup
   displayName: "\uBCC0\uC555\uAE30"
+  pocketItemType: 4
   carryInHands: 0
   pickupAnimationName: Holding
   heldLocalOffset: {x: 0, y: -0.35, z: 0.8}
@@ -62236,8 +62239,8 @@ Light:
   serializedVersion: 12
   m_Type: 2
   m_Color: {r: 1, g: 0.14, b: 0.1, a: 1}
-  m_Intensity: 3.6
-  m_Range: 2.4
+  m_Intensity: 8
+  m_Range: 7
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize2D: {x: 0.5, y: 0.5}
@@ -63402,6 +63405,7 @@ MonoBehaviour:
   playerRenderersToHide: []
   playerAnimator: {fileID: 0}
   hideAnimTrigger: Hide
+  crouchWhileHidden: 0
   monster: {fileID: 0}
   footShadowVisual: {fileID: 0}
   shadowVisibleRange: 4
@@ -95661,6 +95665,7 @@ MonoBehaviour:
   page: {fileID: 21300000, guid: 2110f57e455d726428b8f8c388a93291, type: 3}
   displayName: "\uC548\uC804\uC218\uCE59"
   aimPriority: 1
+  playBriefing: 0
 --- !u!1 &5699414652939770171
 GameObject:
   m_ObjectHideFlags: 0
@@ -118055,6 +118060,9 @@ MonoBehaviour:
   anchor: {fileID: 7051921383793587475}
   displayName: "\uC4F0\uB808\uAE30\uD1B5"
   seconds: 1.4
+  vaultInteractDistance: 1.2
+  vaultLandingPoint: {fileID: 0}
+  vaultPeakPoint: {fileID: 0}
   dragSound: {fileID: 0}
   dragSource: {fileID: 0}
   dragSoundSeconds: 1
@@ -127405,9 +127413,11 @@ MonoBehaviour:
   boltToTurn: {fileID: 0}
   rotationPerTurn: 120
   popOutPerTurn: 0.012
+  headAxis: {x: 0, y: 1, z: 0}
   audioSource: {fileID: 0}
   turnSound: {fileID: 0}
   openSound: {fileID: 0}
+  unscrewInWorld: 1
 --- !u!1 &7335128762177517071
 GameObject:
   m_ObjectHideFlags: 0
@@ -129498,6 +129508,7 @@ MonoBehaviour:
   page: {fileID: 21300000, guid: 83983f7489a2d0e4aaa3c091d0cd28db, type: 3}
   displayName: "\uC2DC\uC124 \uC548\uB0B4\uB3C4"
   aimPriority: 1
+  playBriefing: 1
 --- !u!1 &7468389915375164240
 GameObject:
   m_ObjectHideFlags: 0
@@ -163784,6 +163795,7 @@ MonoBehaviour:
   page: {fileID: 21300000, guid: 36727705784d05b41b38ad9b9787db8b, type: 3}
   displayName: "\uBA54\uBAA8\uC9C0"
   aimPriority: 3
+  playBriefing: 0
 --- !u!1 &9050857202760376290
 GameObject:
   m_ObjectHideFlags: 0
@@ -164072,6 +164084,7 @@ MonoBehaviour:
   playerRenderersToHide: []
   playerAnimator: {fileID: 0}
   hideAnimTrigger: Hide
+  crouchWhileHidden: 0
   monster: {fileID: 0}
   footShadowVisual: {fileID: 0}
   shadowVisibleRange: 4
@@ -175504,6 +175517,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FusePickup
   displayName: "\uD4E8\uC988"
+  pocketItemType: 4
   carryInHands: 0
   pickupAnimationName: Holding
   heldLocalOffset: {x: 0, y: -0.35, z: 0.8}
@@ -180035,6 +180049,7 @@ MonoBehaviour:
   playerRenderersToHide: []
   playerAnimator: {fileID: 0}
   hideAnimTrigger: Hide
+  crouchWhileHidden: 0
   monster: {fileID: 0}
   footShadowVisual: {fileID: 0}
   shadowVisibleRange: 4
