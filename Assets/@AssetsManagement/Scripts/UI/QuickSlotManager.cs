@@ -2,7 +2,10 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public enum ItemType { Flashlight, Bottle, Brick, Card, Fuse, Medicine }
+// Card(=3 이던 자리) 는 실제 플레이에서 안 써서 뺐고, 몽키스패너가 그 자리를 새로 쓴다.
+// 이미 저장된 씬 데이터의 Fuse/Medicine 값이 밀리지 않도록 정수값을 그대로 명시해 둔다 -
+// enum 은 이름이 아니라 숫자로 직렬화된다.
+public enum ItemType { Flashlight = 0, Bottle = 1, Brick = 2, Wrench = 3, Fuse = 4, Medicine = 5 }
 
 // 습득한 아이템을 획득 순서대로 빈 슬롯에 채운다. 1~6 키로 그 위치를 선택 상태로 만들고,
 // 빈 슬롯을 선택하면 아무것도 안 든 상태가 된다 (선택 인덱스는 그대로 유지, 그 자리에 아이템이 없을 뿐).
@@ -93,6 +96,18 @@ public class QuickSlotManager : MonoBehaviour
         slots[index] = item;
         OnSlotsChanged?.Invoke();
         OnItemAcquired?.Invoke(item, displayName, index);
+    }
+
+    /// <summary>
+    /// 세이브포인트 복원 전용. AddItem 은 "빈 자리 아무데나"에 채우지만, 죽기 전 있던
+    /// 자리 그대로 되살려야 하므로 인덱스를 직접 지정한다. 획득 알림(OnItemAcquired)도
+    /// 안 띄운다 - 원래 갖고 있던 것이지 방금 주운 게 아니다.
+    /// </summary>
+    public void RestoreSlot(int index, ItemType item)
+    {
+        if (index < 0 || index >= SlotCount) return;
+        slots[index] = item;
+        OnSlotsChanged?.Invoke();
     }
 
     public void RemoveItem(int index)

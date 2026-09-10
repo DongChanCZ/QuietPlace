@@ -43,6 +43,11 @@ public class GameCheckpoint : MonoBehaviour
     [Header("죽어도 들고 가는 부품들 - 순서가 저장 키다. 순서를 바꾸면 지난 기록이 어긋난다")]
     [SerializeField] private FusePickup[] trackedPickups;
 
+    // 주머니에 넣는 테스트 아이템(약/유리병/카드 등). 종류 단위로만 가르므로(QuickSlotManager.HasItem)
+    // 순서는 상관없다 - 슬롯에 그 종류가 있으면 같은 종류의 월드 오브젝트를 전부 치운다.
+    [Header("주머니 아이템 (약/유리병/카드 등) - 슬롯에 있으면 월드에서도 사라져 있어야 한다")]
+    [SerializeField] private TestItemPickup[] trackedItemPickups;
+
     [Header("되살아난 직후 청각을 잠시 막을 괴물들")]
     [SerializeField] private MonsterController[] monsters;
 
@@ -159,6 +164,20 @@ public class GameCheckpoint : MonoBehaviour
         GameProgress.Inventory inv = GameProgress.Carried;
         if (!inv.Valid) return;
 
+        // 퀵슬롯부터, 죽기 전 있던 자리 그대로 복원한다. 아래 손전등/부품 복원이 각자
+        // AddItem 을 다시 부르더라도 QuickSlotManager 가 이미 있는 종류는 알아서
+        // 건너뛰므로 순서와 상관없이 안전하다 - 대신 이걸 먼저 해야 "빈 자리 아무데나"가
+        // 아니라 정확한 인덱스에 꽂힌다(RestoreSlot 은 AddItem 과 달리 인덱스를 그대로 쓴다).
+        QuickSlotManager slots = QuickSlotManager.Instance;
+        if (slots != null && inv.SlotTypes != null)
+        {
+            for (int i = 0; i < inv.SlotTypes.Length; i++)
+            {
+                if (inv.SlotTypes[i] < 0) continue;
+                slots.RestoreSlot(i, (ItemType)inv.SlotTypes[i]);
+            }
+        }
+
         // 손전등 - 월드에 놓인 것도 같이 치운다. 안 그러면 하나를 두 번 줍는다.
         if (inv.HasFlashlight && interactor != null && !interactor.HasFlashlight)
         {
@@ -169,18 +188,7 @@ public class GameCheckpoint : MonoBehaviour
         if (inv.HasKeycard && interactor != null) interactor.GiveKeycard();
         if (interactor != null) interactor.batteryLevel = inv.Battery;
 
-        // 퀵슬롯. 손전등처럼 이미 들어간 것은 건너뛴다.
-        QuickSlotManager slots = QuickSlotManager.Instance;
-        if (slots != null && inv.SlotTypes != null)
-        {
-            for (int i = 0; i < inv.SlotTypes.Length; i++)
-            {
-                if (inv.SlotTypes[i] < 0) continue;
-                ItemType item = (ItemType)inv.SlotTypes[i];
-                if (slots.HasItem(item)) continue;
-                slots.AddItem(item, KoreanName(item));
-            }
-        }
+        HideTakenWorldItems(inv.SlotTypes);
 
         // 챙겨둔 부품을 다시 챙긴 상태로 만든다.
         if (trackedPickups == null) return;
@@ -194,8 +202,14 @@ public class GameCheckpoint : MonoBehaviour
 
             // 주머니에 넣는 물건은 조용히 치우고, 두 손으로 드는 물건은 실제로 들려준다.
             // AllowedWhileHandsFull 이 두 손 물건에서만 false 라 그것으로 가른다.
+            //
+            // 주머니 물건은 Interact 가 아니라 ForceConsumed 를 쓴다 - 슬롯은 위 SlotTypes
+            // 루프가 이미 복원해서 QuickSlotManager.HasItem 이 true 인 상태라, Interact 를
+            // 부르면 "이미 들고 있음" 가드에 막혀 정작 이 오브젝트(월드에 남은 원본)를
+            // 숨기는 쪽은 실행되지 않는다 - 슬롯엔 있는데 월드에도 그대로 남는 버그가 된다.
             bool twoHanded = !p.AllowedWhileHandsFull;
-            p.Interact(twoHanded ? interactor : null);
+            if (twoHanded) p.Interact(interactor);
+            else p.ForceConsumed();
         }
     }
 
@@ -207,11 +221,33 @@ public class GameCheckpoint : MonoBehaviour
         {
             case ItemType.Flashlight: return "손전등";
             case ItemType.Brick: return "벽돌";
-            case ItemType.Card: return "카드";
+            case ItemType.Wrench: return "몽키스패너";
             case ItemType.Fuse: return "퓨즈";
             case ItemType.Bottle: return "병";
             case ItemType.Medicine: return "진정제";
             default: return item.ToString();
+        }
+    }
+
+    /// <summary>
+    /// 슬롯에 남아 있던 종류는 월드의 같은 종류 오브젝트에서도 사라져 있어야 한다.
+    /// 안 그러면 씬이 리로드될 때 오브젝트는 저장된 그대로(활성) 돌아오는데 슬롯에는
+    /// 이미 들어있어서, 이미 챙긴 물건이 월드에 그대로 남아있는 것처럼 보인다.
+    /// </summary>
+    private void HideTakenWorldItems(int[] slotTypes)
+    {
+        if (trackedItemPickups == null || slotTypes == null) return;
+
+        for (int i = 0; i < slotTypes.Length; i++)
+        {
+            if (slotTypes[i] < 0) continue;
+            ItemType item = (ItemType)slotTypes[i];
+
+            for (int j = 0; j < trackedItemPickups.Length; j++)
+            {
+                TestItemPickup pickup = trackedItemPickups[j];
+                if (pickup != null && pickup.ItemType == item) pickup.gameObject.SetActive(false);
+            }
         }
     }
 

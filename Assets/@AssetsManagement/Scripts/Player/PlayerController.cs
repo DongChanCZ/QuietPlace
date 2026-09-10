@@ -15,6 +15,8 @@ public class PlayerController : MonoBehaviour
     public float mouseSensitivity = 0.12f;
     public float minPitch = -85f;
     public float maxPitch = 85f;
+    // 시작 연출용으로 맞춰둔 각도가 첫 프레임의 마우스 델타로 바로 틀어지지 않도록 잠깐 붙잡아둔다.
+    public float startLookFreezeSeconds = 0.5f;
 
     [Header("Physics")]
     public float gravity = -20f;
@@ -73,7 +75,6 @@ public class PlayerController : MonoBehaviour
     public bool InteractPressed { get; private set; }
     public bool ThrowPressed { get; private set; }
     public bool DropPressed { get; private set; }
-    public bool SpacePressed { get; private set; }
     public bool HasMoveInput => MoveAxis.sqrMagnitude > 0.0001f;
 
     private IPlayerState currentState;
@@ -169,6 +170,10 @@ public class PlayerController : MonoBehaviour
             cameraBaseLocalPosition = playerCamera.transform.localPosition;
             cameraBaseCullingMask = playerCamera.cullingMask & ~playerBodyLayerMask;
             playerCamera.cullingMask = cameraBaseCullingMask;
+
+            // UpdateCameraView 가 매 프레임 pitch 필드로 카메라 각도를 다시 씌운다 - 씬에 미리
+            // 잡아둔 카메라 각도를 여기서 읽어두지 않으면 시작하자마자 0도로 되돌아간다.
+            LookPitch = Mathf.DeltaAngle(0f, playerCamera.transform.localEulerAngles.x);
         }
 
         if (animator != null)
@@ -197,6 +202,17 @@ public class PlayerController : MonoBehaviour
         noiseRangeDisc = RangeGizmo.CreateDisc(transform, "NoiseRange_Gizmo", new Color(0.2f, 0.5f, 1f, 0.05f));
 
         ChangeState(idleState);
+
+        if (startLookFreezeSeconds > 0f) StartCoroutine(FreezeLookAtStart());
+    }
+
+    // 시작 각도를 잠깐 붙잡아둔다 - 그러지 않으면 로드 도중 쌓인 마우스 델타나 커서
+    // 잠금(Locked) 전환 때문에 첫 프레임에 화면이 홱 틀어져 보인다.
+    private IEnumerator FreezeLookAtStart()
+    {
+        CameraLocked = true;
+        yield return new WaitForSecondsRealtime(startLookFreezeSeconds);
+        CameraLocked = false;
     }
 
     void Update()
@@ -204,7 +220,6 @@ public class PlayerController : MonoBehaviour
         float dt = Time.deltaTime;
         ReadInput();
         HandleCursorToggle();
-        if (SpacePressed) TryVault();
 
         stats.TickFear(dt);
         if (currentState.Type != PlayerStateType.Stopping)
@@ -364,7 +379,6 @@ public class PlayerController : MonoBehaviour
             StopHeld = false;
             InteractPressed = false;
             DropPressed = false;
-            SpacePressed = false;
             ThrowPressed = false;
             return;
         }
@@ -380,7 +394,6 @@ public class PlayerController : MonoBehaviour
         StopHeld = kb.leftShiftKey.isPressed;
         InteractPressed = kb.fKey.wasPressedThisFrame;
         DropPressed = kb.gKey.wasPressedThisFrame;
-        SpacePressed = kb.spaceKey.wasPressedThisFrame;
 
         ThrowPressed = Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
     }
@@ -469,6 +482,22 @@ public class PlayerController : MonoBehaviour
         Controller.center = new Vector3(standingColliderCenter.x, height * 0.5f, standingColliderCenter.z);
     }
 
+    /// <summary>
+    /// 목적지가 이미 정해진 경우(쓰레기통→창문처럼) 곧장 그리로 넘어간다. TryVault 처럼
+    /// 앞을 더듬어 찾지 않으므로 접근 각도/위치에 따라 실패하지 않는다 - 디자이너가
+    /// 미리 검증해 둔 고정 지점 전용.
+    ///
+    /// peakPoint 를 주면 그 지점(쓰레기통 위/창틀 높이)을 반드시 지나가도록 포물선을
+    /// 그린다 - 안 주면 시작점/도착점 사이 중간·기존 낮은 높이로 대충 넘어간다.
+    /// </summary>
+    public bool VaultToPoint(Transform landingPoint, Transform peakPoint = null)
+    {
+        if (vaulting || landingPoint == null) return false;
+        Vector3? peak = peakPoint != null ? (Vector3?)peakPoint.position : null;
+        StartCoroutine(VaultTo(landingPoint.position, peak));
+        return true;
+    }
+
     // BlockoutWalkPlayer.TryVault를 그대로 이식. 낮은 턱/창틀을 짚고 넘어가는 동작 (점프 아님).
     public bool TryVault()
     {
@@ -536,21 +565,28 @@ public class PlayerController : MonoBehaviour
         return true;
     }
 
-    private IEnumerator VaultTo(Vector3 dest)
+    private IEnumerator VaultTo(Vector3 dest, Vector3? peakOverride = null)
     {
         vaulting = true;
         bool wasSitting = currentState.Type == PlayerStateType.Sitting;
         Controller.enabled = false; // 컨트롤러가 이동과 싸우지 않게
         SetSittingCollider(true);   // 창 개구부를 지나려면 판정을 낮춰야 한다
         Vector3 from = transform.position;
-        float peak = Mathf.Max(from.y, dest.y) + 0.25f;
+
+        // peakOverride 가 있으면(쓰레기통→창문처럼 디딜 지점이 정해진 경우) 반드시 그
+        // 지점을 지나가게 한다 - 안 그러면 from/dest 가 둘 다 바닥 높이일 때 정점도
+        // 거의 안 뜨는 밋밋한 직선이 된다(원래 TryVault 는 dest 자체가 턱 위 높이라
+        // 문제가 없었지만, 고정 도착점은 바닥이라 이 보정이 필요하다).
+        Vector3 peak = peakOverride ?? new Vector3((from.x + dest.x) * 0.5f, Mathf.Max(from.y, dest.y) + 0.25f, (from.z + dest.z) * 0.5f);
+
         for (float t = 0f; t < vaultSeconds; t += Time.deltaTime)
         {
             float k = Mathf.Clamp01(t / vaultSeconds);
-            // 손을 짚고 올라타는 느낌: 먼저 뜨고 나중에 앞으로 넘어간다.
-            Vector3 p = Vector3.Lerp(from, dest, k * k * (3f - 2f * k));
-            p.y = Mathf.Lerp(Mathf.Lerp(from.y, peak, Mathf.Clamp01(k / 0.5f)),
-                             dest.y, Mathf.Clamp01((k - 0.5f) / 0.5f));
+            // 포물선: 전반부는 시작점->정점, 후반부는 정점->도착점 - 손을 짚고 올라탔다가
+            // 넘어가는 느낌으로 각 구간을 부드럽게(smoothstep) 잇는다.
+            Vector3 p;
+            if (k < 0.5f) p = Vector3.Lerp(from, peak, Mathf.SmoothStep(0f, 1f, k / 0.5f));
+            else p = Vector3.Lerp(peak, dest, Mathf.SmoothStep(0f, 1f, (k - 0.5f) / 0.5f));
             transform.position = p;
             yield return null;
         }

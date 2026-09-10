@@ -16,6 +16,11 @@ public sealed class FusePickup : Interactable, IHoldable
 {
     [SerializeField] string displayName = "퓨즈";
 
+    // 같은 스크립트를 퓨즈/몽키스패너 둘 다에 쓰다 보니 예전엔 퀵슬롯 등록이 ItemType.Fuse로
+    // 박혀 있었다 - 그래서 몽키스패너를 주워도 "퓨즈를 든" 걸로 잡혀, 진짜 퓨즈를 들고 있으면
+    // 몽키스패너를 못 줍는(그리고 반대도) 버그가 있었다. 종류를 인스펙터에서 고르게 뺀다.
+    [SerializeField] ItemType pocketItemType = ItemType.Fuse;
+
     [Header("두 손으로 드는 무거운 물건인가")]
     [SerializeField] bool carryInHands;
 
@@ -52,6 +57,10 @@ public sealed class FusePickup : Interactable, IHoldable
     /// 한 번이라도 집었는가. Taken 은 내려놓으면 다시 false 가 되지만 "자리에서 빼냈다" 는
     /// 사실은 되돌아가지 않는다. 고장난 부품을 방 밖에 내려놨는데 슬롯이 다시 막히면 안 된다.
     public bool EverTaken { get; private set; }
+
+    /// 슬롯이 다른 여분 부품으로 이미 채워졌다(FuseSlot.LockOutOthers 가 부른다).
+    /// 이 부품은 더 이상 쓸모가 없으니 주울 수 없어야 하고 반짝임도 꺼야 한다.
+    public bool LockedOut { get; private set; }
 
     private Rigidbody body;
     private Transform originalParent;
@@ -103,23 +112,31 @@ public sealed class FusePickup : Interactable, IHoldable
 
     private bool Sealed => sealedBehind != null && !sealedBehind.Open;
 
+    /// 주머니에 넣는 물건은 같은 종류를 이미 하나 들고 있으면 다른 개체는 의미가 없다 -
+    /// 안 그러면 여분을 마저 주워 슬롯에 못 들어간 채로 조용히 사라진다(Interact 는
+    /// 실행되는데 AddItem 은 이미 있어서 no-op). 두 손으로 드는 변압기(carryInHands)는
+    /// QuickSlotManager 를 안 쓰므로 여기 해당 없다.
+    private bool AlreadyCarryingSameType =>
+        !carryInHands && QuickSlotManager.Instance != null && QuickSlotManager.Instance.HasItem(pocketItemType);
+
     /// <summary>FuseSlot 이 부른다. 이 부품이 고정판 안쪽에 있다고 알린다.</summary>
     public void SealBehind(BoltedPanel panel)
     {
         sealedBehind = panel;
     }
 
-    public override bool Available(IInteractor player) => !Taken && !Installed && !Sealed;
+    public override bool Available(IInteractor player) =>
+        !Taken && !Installed && !Sealed && !LockedOut && !AlreadyCarryingSameType;
 
     public override string Prompt(IInteractor player)
     {
-        if (Installed || Taken || Sealed) return null;
+        if (Installed || Taken || Sealed || LockedOut || AlreadyCarryingSameType) return null;
         return carryInHands ? "E  " + displayName + " 들기" : "E  " + displayName + " 획득";
     }
 
     public override void Interact(IInteractor player)
     {
-        if (Taken || Installed) return;
+        if (Taken || Installed || LockedOut || AlreadyCarryingSameType) return;
 
         if (Sealed)
         {
@@ -134,8 +151,8 @@ public sealed class FusePickup : Interactable, IHoldable
             if (glow != null) glow.Consume();
             gameObject.SetActive(false);
             // 약병처럼 슬롯에 남아있는다 - 던지기/들기는 CanThrow/HeldModelFor 어디에도
-            // Fuse 케이스가 없어서 저절로 둘 다 안 된다.
-            QuickSlotManager.Instance?.AddItem(ItemType.Fuse, displayName);
+            // 이 종류들 케이스가 없어서 저절로 둘 다 안 된다.
+            QuickSlotManager.Instance?.AddItem(pocketItemType, displayName);
             if (player != null) player.ShowNotice(displayName + "를 챙겼습니다.");
             return;
         }
@@ -259,6 +276,17 @@ public sealed class FusePickup : Interactable, IHoldable
         gameObject.SetActive(false);
     }
 
+    /// <summary>
+    /// FuseSlot 이 부른다. 같은 슬롯의 다른 여분 부품이 이미 설치되어 이 부품은 더 이상
+    /// 쓸모가 없다 - 주울 수 없게 막고 반짝임도 끈다.
+    /// </summary>
+    public void LockOut()
+    {
+        if (Installed || LockedOut) return;
+        LockedOut = true;
+        if (glow != null) glow.Consume();
+    }
+
     /// Called by FuseSlot. Put the same object down at the slot.
     public void InstallAt(Transform anchor, Quaternion rotation)
     {
@@ -268,7 +296,7 @@ public sealed class FusePickup : Interactable, IHoldable
         Taken = true;
         EverTaken = true;
         if (glow != null) glow.Consume();
-        QuickSlotManager.Instance?.RemoveItem(ItemType.Fuse); // 슬롯에 있었다면(약병처럼 챙긴 경우) 설치 순간 비운다
+        QuickSlotManager.Instance?.RemoveItem(pocketItemType); // 슬롯에 있었다면(약병처럼 챙긴 경우) 설치 순간 비운다
 
         // 손에 들려 있었다면 FuseSlot 이 먼저 DropHeldItem 으로 놓아주므로 부모는 이미 원복돼 있다.
         transform.SetParent(originalParent, true);

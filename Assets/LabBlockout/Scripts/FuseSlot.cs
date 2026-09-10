@@ -140,7 +140,20 @@ public sealed class FuseSlot : Interactable
         if (controller != null && ReferenceEquals(controller.HeldItem, carried)) controller.DropHeldItem();
 
         carried.InstallAt(anchor, Quaternion.Euler(installEuler));
+        LockOutOthers(carried);
         if (player != null) player.ShowNotice(itemName + "를 설치했습니다.");
+    }
+
+    /// <summary>
+    /// 설치되지 않은 나머지 여분 부품을 잠근다. 슬롯 하나에 하나만 꽂히면 되므로
+    /// 남은 예비 부품은 더 이상 주울 이유가 없다 - 반짝임도 꺼서 헷갈리지 않게 한다.
+    /// </summary>
+    void LockOutOthers(FusePickup installed)
+    {
+        if (part != null && part != installed) part.LockOut();
+        if (alternateParts == null) return;
+        for (int i = 0; i < alternateParts.Length; i++)
+            if (alternateParts[i] != null && alternateParts[i] != installed) alternateParts[i].LockOut();
     }
 
     /// <summary>
@@ -160,6 +173,7 @@ public sealed class FuseSlot : Interactable
         if (pick == null) return;
 
         pick.InstallAt(anchor, Quaternion.Euler(installEuler));
+        LockOutOthers(pick);
     }
 
     /// <summary>세이브포인트 복원용. 자리에 박혀 있던 고장난 부품을 들어낸 것으로 처리한다.</summary>
