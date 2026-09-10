@@ -18,6 +18,11 @@ public sealed class HidingSpot : Interactable
     /// 여닫을 문. 책상 밑처럼 문이 없는 자리는 비워둔다.
     [SerializeField] SlidingDoor door;
 
+    /// 숨은 동안 시점을 이만큼 내린다(플레이어 로컬 단위, 월드로는 x1.5).
+    /// 책상 밑처럼 천판이 낮은 자리는 그냥 숨으면 머리가 천판 위로 튀어나온다.
+    /// 캐비닛은 2.08m 여유가 있어서 0 이면 된다.
+    [SerializeField] float hiddenEyeDrop = 0f;
+
     HidingSpotQTE spot;
 
     void Awake()
@@ -41,6 +46,7 @@ public sealed class HidingSpot : Interactable
         {
             if (door != null) door.SetOpenImmediate(true);
             spot.Unhide();
+            SetEyeDrop(0f);
             if (door != null) door.SetOpenImmediate(false);
             if (player != null) player.ShowNotice(displayName + "에서 나왔습니다.");
             return;
@@ -48,7 +54,14 @@ public sealed class HidingSpot : Interactable
 
         if (door != null) door.SetOpenImmediate(true);
         spot.Hide();
+        SetEyeDrop(hiddenEyeDrop);
         if (door != null) door.SetOpenImmediate(false);   // 들어간 뒤 문을 닫아 준다
         if (player != null) player.ShowNotice("숨었습니다.  E 로 나오기");
+    }
+
+    /// PlayerController 는 HidingSpotQTE 가 Start 에서 찾아 들고 있다. 여기서 다시 찾지 않는다.
+    void SetEyeDrop(float drop)
+    {
+        if (spot.playerController != null) spot.playerController.HiddenEyeDrop = drop;
     }
 }
