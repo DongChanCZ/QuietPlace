@@ -66,6 +66,7 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
     public event Action<string> OnNotice;
     public event Action<string> OnPersistentNotice;
     public event Action OnClearPersistentNotice;
+    public event Action OnFlashlightToggled;
 
     void Awake()
     {
@@ -424,6 +425,7 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
     {
         if (!hasFlashlight || playerFlashlight == null || !IsFlashlightSelected || batteryLevel <= 0f) return;
         playerFlashlight.enabled = !playerFlashlight.enabled;
+        OnFlashlightToggled?.Invoke();
     }
 
     readonly RaycastHit[] reach = new RaycastHit[16];

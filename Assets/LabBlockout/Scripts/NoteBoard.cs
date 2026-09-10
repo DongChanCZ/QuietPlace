@@ -14,6 +14,9 @@ public sealed class NoteBoard : Interactable
     /// 게시판 액자보다 그 위에 붙은 메모지가 먼저 잡혀야 한다.
     [SerializeField] int aimPriority = 1;
 
+    [Tooltip("펼친 뒤 다음 목적지를 짚어 주는 브리핑을 재생한다 (1층 안내도용)")]
+    [SerializeField] bool playBriefing;
+
     // 물건을 들고 있어도 벽에 붙은 글은 읽을 수 있어야 한다
     public override bool AllowedWhileHandsFull => true;
 
@@ -35,5 +38,7 @@ public sealed class NoteBoard : Interactable
     {
         if (FullscreenNoteViewer.Instance == null || page == null) return;
         FullscreenNoteViewer.Instance.Show(page);
+
+        if (playBriefing && MapBriefing.Instance != null) MapBriefing.Instance.Play();
     }
 }

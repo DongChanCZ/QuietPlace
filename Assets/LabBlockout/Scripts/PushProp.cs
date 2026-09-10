@@ -11,7 +11,13 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public sealed class PushProp : Interactable
 {
+    [Tooltip("최종 도착점(창문 밑). 여기 도착하면 넘어가기가 활성화된다.")]
     [SerializeField] Transform anchor;
+
+    [Tooltip("한 번 더 밀어야 하는 경우의 중간 정차점(원래 있던 자리). 비워두면 예전처럼 " +
+             "한 번만 밀어서 곧장 anchor 로 간다.")]
+    [SerializeField] Transform intermediateAnchor;
+
     [SerializeField] string displayName = "쓰레기통";
     [SerializeField] float seconds = 1.4f;
 
@@ -36,7 +42,11 @@ public sealed class PushProp : Interactable
     [Tooltip("밀기 시작하고 이만큼 지난 뒤 소리를 낸다(초)")]
     [SerializeField] float dragSoundDelay;
 
-    public bool Moved { get; private set; }
+    enum Stage { AtStart, AtIntermediate, AtFinal }
+    Stage stage = Stage.AtStart;
+
+    /// 예전 이름 그대로 유지 - "넘어가기가 활성화되는 최종 자리에 도착했는가".
+    public bool Moved => stage == Stage.AtFinal;
 
     Vector3 from;
     Vector3 to;
@@ -59,7 +69,7 @@ public sealed class PushProp : Interactable
     public override bool Available(IInteractor player)
     {
         if (anchor == null) return false;
-        if (!Moved) return true;
+        if (stage != Stage.AtFinal) return true;
 
         Transform playerT = (player as MonoBehaviour)?.transform;
         if (playerT == null) return false;
@@ -69,30 +79,46 @@ public sealed class PushProp : Interactable
     public override string Prompt(IInteractor player)
     {
         if (anchor == null) return null;
-        return Moved ? "E  넘어가기" : "E  " + displayName + " 밀기";
+        return stage == Stage.AtFinal ? "E  넘어가기" : "E  " + displayName + " 밀기";
     }
 
     public override void Interact(IInteractor player)
     {
         if (anchor == null) return;
 
-        if (!Moved)
+        switch (stage)
         {
-            Moved = true;
-            from = transform.position;
-            to = anchor.position;
-            t = 0f;
-            PlayDrag();
-            if (player != null) player.ShowNotice(displayName + "을 창문 아래로 밀었습니다.");
-            return;
+            case Stage.AtStart:
+                // 중간 정차점이 없으면 예전처럼 한 번에 최종 자리로 곧장 민다.
+                Transform firstDest = intermediateAnchor != null ? intermediateAnchor : anchor;
+                stage = intermediateAnchor != null ? Stage.AtIntermediate : Stage.AtFinal;
+                SlideTo(firstDest);
+                PlayDrag();
+                if (player != null) player.ShowNotice(displayName + "을 밀었습니다.");
+                return;
+
+            case Stage.AtIntermediate:
+                stage = Stage.AtFinal;
+                SlideTo(anchor);
+                PlayDrag();
+                if (player != null) player.ShowNotice(displayName + "을 창문 아래로 밀었습니다.");
+                return;
+
+            default: // AtFinal - 밀어서 창문 밑에 자리잡은 뒤에는 여기서 바로 넘어간다.
+                PlayerController controller = (player as MonoBehaviour)?.GetComponent<PlayerController>();
+                if (controller == null) return;
+
+                if (vaultLandingPoint != null) controller.VaultToPoint(vaultLandingPoint, vaultPeakPoint);
+                else controller.TryVault(); // 도착 지점을 안 잡아뒀으면 예전 방식대로 더듬어 찾는다
+                return;
         }
+    }
 
-        // 밀어서 창문 밑에 자리잡은 뒤에는 여기서 바로 넘어간다.
-        PlayerController controller = (player as MonoBehaviour)?.GetComponent<PlayerController>();
-        if (controller == null) return;
-
-        if (vaultLandingPoint != null) controller.VaultToPoint(vaultLandingPoint, vaultPeakPoint);
-        else controller.TryVault(); // 도착 지점을 안 잡아뒀으면 예전 방식대로 더듬어 찾는다
+    void SlideTo(Transform dest)
+    {
+        from = transform.position;
+        to = dest.position;
+        t = 0f;
     }
 
     /// <summary>
@@ -124,7 +150,7 @@ public sealed class PushProp : Interactable
     public void MoveNow()
     {
         if (anchor == null) return;
-        Moved = true;
+        stage = Stage.AtFinal;
         t = -1f;
         transform.position = anchor.position;
         Physics.SyncTransforms();

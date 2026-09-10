@@ -51,9 +51,13 @@ public class BreakerRaiseSequence : MonoBehaviour
     [Tooltip("밀어올리는 동안 떨리는 정도(0~1)")]
     [SerializeField] private float leverShake = 0.022f;
 
-    // 게이지 연타 단계는 뺐다. 두 참조는 그 화면이 켜진 채 남지 않도록 꺼두는 데만 쓴다.
     [SerializeField] private GameObject minigameRoot;
     [SerializeField] private MashToComplete mash;
+
+    [Tooltip("게이지 화면은 숨기고 실물 레버만 보여준다. 판정은 그대로 돈다.")]
+    [SerializeField] private bool hideGauge = true;
+
+    [SerializeField] private string mashHint = "E 를 연타해 차단기를 올리세요.";
 
     [Header("3. 변압기가 아직일 때 뜨는 혼잣말")]
     [SerializeField]
@@ -64,6 +68,7 @@ public class BreakerRaiseSequence : MonoBehaviour
     public bool IsPlaying { get; private set; }
 
     private IInteractor _pendingPlayer;
+    private bool _mashDone;
 
     void Awake()
     {
@@ -106,11 +111,34 @@ public class BreakerRaiseSequence : MonoBehaviour
         yield return WalkToLever();
 
         // ---------- 차단기 올리기 ----------
-        // 게이지 연타 화면 없이 레버가 그대로 올라간다. 올라가는 것만 보이면 되는 단계라
-        // 판정을 붙일 이유가 없었다.
-        if (minigameRoot != null) minigameRoot.SetActive(false);
+        // 게이지는 그대로 돌리되 화면에는 안 보이게 한다. MashToComplete 가 게이지 비율을
+        // 그대로 실물 레버에 넣으므로(UpdateFill), 화면 대신 레버가 게이지 노릇을 한다.
+        // E 를 놓으면 진행도가 도로 빠져서 레버도 같이 내려온다 - 뻑뻑한 느낌은 여기서 난다.
+        mash.lever = lever;
+        mash.leverGoesUp = true;
 
-        yield return RaiseLever();
+        _mashDone = false;
+        mash.onComplete.AddListener(OnMashDone);
+
+        if (minigameRoot != null)
+        {
+            if (hideGauge)
+            {
+                CanvasGroup cg = minigameRoot.GetComponent<CanvasGroup>();
+                if (cg == null) cg = minigameRoot.AddComponent<CanvasGroup>();
+                cg.alpha = 0f;              // 꺼버리면 Update 가 안 돌아 연타를 못 받는다
+                cg.interactable = false;
+                cg.blocksRaycasts = false;
+            }
+            minigameRoot.SetActive(true);   // MashToComplete.OnEnable 이 게이지를 0 으로 되돌린다
+        }
+
+        if (_pendingPlayer != null && !string.IsNullOrEmpty(mashHint)) _pendingPlayer.ShowNotice(mashHint);
+
+        while (!_mashDone) yield return null;
+
+        mash.onComplete.RemoveListener(OnMashDone);
+        if (minigameRoot != null) minigameRoot.SetActive(false);
         lever.ForceOn();                   // 끝까지 올라간 자세로 확정
 
         yield return Finale();
@@ -120,8 +148,13 @@ public class BreakerRaiseSequence : MonoBehaviour
         _pendingPlayer = null;
     }
 
+    private void OnMashDone()
+    {
+        _mashDone = true;
+    }
+
     /// <summary>
-    /// 뻑뻑한 차단기를 밀어올리는 동작. 한 번에 안 올라간다 -
+    /// (지금은 안 쓴다 - 게이지 연타가 레버를 굴린다) 뻑뻑한 차단기를 밀어올리는 동작. 한 번에 안 올라간다 -
     /// 단계까지 밀어올렸다가 조금 미끄러지기를 반복하고, 미는 동안엔 손이 떨린다.
     /// 마지막 단계에서만 끝까지 올라간다.
     /// </summary>

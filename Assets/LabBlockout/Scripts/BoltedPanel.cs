@@ -28,8 +28,36 @@ public sealed class BoltedPanel : Interactable
     /// 볼트 메시의 축이 반대로 잡혀 있어 화면에서 거꾸로 돌면 이 값을 음수로 바꾸면 된다.
     [SerializeField] float rotationPerTurn = 120f;
 
-    /// 로컬 -Z 로 이동해 카메라 쪽으로 빠져나온다(원래 BoltUnscrew 와 같은 부호 규칙).
+    /// 머리 방향으로 이동해 카메라 쪽으로 빠져나온다.
     [SerializeField] float popOutPerTurn = 0.012f;
+
+    /// <summary>
+    /// 볼트 머리가 보는 축(로컬). 이 축을 중심으로 돌아야 나사처럼 풀린다.
+    ///
+    /// 볼트 메시가 어떻게 놓였느냐에 따라 다르다 - 이 맵의 육각볼트는 localEuler (90,0,0)
+    /// 이라 머리 축이 로컬 Y 다. 로컬 Z 로 돌리면 나사가 아니라 바퀴처럼 앞으로 구른다.
+    /// 비워 두면(0,0,0) 월드 축을 재서 알아서 고른다.
+    /// </summary>
+    [Header("볼트 머리가 보는 축 (로컬). 0,0,0 이면 자동으로 고른다")]
+    [SerializeField] Vector3 headAxis = new Vector3(0f, 1f, 0f);
+
+    /// 설정이 비어 있으면 로컬 축 중 판에서 바깥(월드 +Z)을 향하는 것을 고른다.
+    private Vector3 HeadAxis
+    {
+        get
+        {
+            if (headAxis.sqrMagnitude > 0.0001f) return headAxis.normalized;
+            if (boltToTurn == null) return Vector3.forward;
+
+            Vector3 outward = Vector3.forward;
+            float bx = Mathf.Abs(Vector3.Dot(boltToTurn.right, outward));
+            float by = Mathf.Abs(Vector3.Dot(boltToTurn.up, outward));
+            float bz = Mathf.Abs(Vector3.Dot(boltToTurn.forward, outward));
+            if (bx >= by && bx >= bz) return Vector3.Dot(boltToTurn.right, outward) >= 0f ? Vector3.right : Vector3.left;
+            if (by >= bz) return Vector3.Dot(boltToTurn.up, outward) >= 0f ? Vector3.up : Vector3.down;
+            return Vector3.Dot(boltToTurn.forward, outward) >= 0f ? Vector3.forward : Vector3.back;
+        }
+    }
 
     [Header("사운드")]
     [SerializeField] AudioSource audioSource;
@@ -46,6 +74,12 @@ public sealed class BoltedPanel : Interactable
 
     /// 몽키스패너를 챙겼는가.
     public bool HasTool => tool != null && tool.Taken;
+
+    /// 그 자리에서 돌릴 볼트 메시. 인게임 연출이 시선을 여기에 맞춘다.
+    public Transform BoltTransform => boltToTurn;
+
+    [Header("화면 UI 대신 그 자리에서 스패너로 돌린다")]
+    [SerializeField] bool unscrewInWorld = true;
 
     private int turns;
 
@@ -83,6 +117,10 @@ public sealed class BoltedPanel : Interactable
             return;
         }
 
+        // 그 자리에서 스패너로 돌리는 연출. 맡아 가면 화면 UI 는 안 뜬다.
+        // 연출이 없는 씬이거나 꺼두었으면 예전처럼 미니게임으로 넘어간다.
+        if (unscrewInWorld && BoltUnscrewSequence.Begin(this, player)) return;
+
         // 실제로 돌리는 조작은 미니게임에서 한다. 매니저가 없는 씬(프리뷰 등)에서는
         // 진행이 막히지 않게 그냥 떼어낸다.
         if (BoltRepairManager.Instance == null)
@@ -101,11 +139,12 @@ public sealed class BoltedPanel : Interactable
     {
         if (Open) return;
 
+        Vector3 axis = HeadAxis;
         for (int i = 0; i < turns; i++)
         {
             if (boltToTurn == null) break;
-            boltToTurn.Translate(0f, 0f, popOutPerTurn, Space.Self);
-            boltToTurn.Rotate(0f, 0f, -rotationPerTurn, Space.Self);
+            boltToTurn.Translate(-axis * popOutPerTurn, Space.Self);
+            boltToTurn.Rotate(-axis * rotationPerTurn, Space.Self);
         }
 
         turns = 0;
@@ -135,12 +174,13 @@ public sealed class BoltedPanel : Interactable
         gameObject.SetActive(false);
     }
 
-    // 시계 반대 방향으로 돌면서 살짝 빠져나온다. 축은 볼트의 로컬 Z(머리가 보는 방향)다.
+    // 시계 반대 방향으로 돌면서 머리 쪽으로 살짝 빠져나온다.
     private void TurnBolt()
     {
         if (boltToTurn == null) return;
-        boltToTurn.Rotate(0f, 0f, rotationPerTurn, Space.Self);
-        boltToTurn.Translate(0f, 0f, -popOutPerTurn, Space.Self);
+        Vector3 axis = HeadAxis;
+        boltToTurn.Rotate(axis * rotationPerTurn, Space.Self);
+        boltToTurn.Translate(axis * popOutPerTurn, Space.Self);
     }
 
     private void Play(AudioClip clip)
