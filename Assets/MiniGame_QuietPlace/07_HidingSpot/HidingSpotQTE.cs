@@ -21,6 +21,10 @@ public class HidingSpotQTE : MonoBehaviour
     public Animator playerAnimator;
     public string hideAnimTrigger = "Hide";
 
+    [Tooltip("숨었을 때 앉은 자세로 몸높이/시점을 낮출지 - 테이블 밑처럼 웅크려야 하는 " +
+             "곳만 켠다. 캐비닛처럼 서서 숨는 곳은 꺼둔다(서 있는 채로 숨는 게 맞다).")]
+    public bool crouchWhileHidden;
+
     [Header("발 그림자")]
     public Transform monster;
     public GameObject footShadowVisual;
@@ -36,6 +40,14 @@ public class HidingSpotQTE : MonoBehaviour
     public UnityEvent onUnhide;
 
     public bool IsPlayerHidden { get; private set; }
+
+    /// 어디든 숨어 있는 중인가. 숨은 동안 Esc 는 '나오기' 라서
+    /// 일시정지 메뉴가 같이 뜨면 안 된다.
+    public static bool AnyoneHidden { get; private set; }
+
+    /// 공포 100% 순간의 비명. FearingState 와 같은 클립 이름 - 숨은 동안은 그 상태로
+    /// 안 넘어가므로(3인칭 전환은 나중 작업) 여기서 직접 재생한다.
+    const string FearScreamName = "malescreamHigh";
 
     private Transform player;
     private bool qteActive;
@@ -61,6 +73,31 @@ public class HidingSpotQTE : MonoBehaviour
         HandleUnhide();
         HandleQte();
         HandleFootShadow();
+        TickFearWhileHidden();
+    }
+
+    /// <summary>
+    /// 숨은 동안은 playerController.enabled = false 라 PlayerController.Update() 가 안 돌아서
+    /// 공포(fear)가 안 쌓인다 - 이 컴포넌트는 계속 켜져 있으니 대신 여기서 불려준다.
+    /// 산소는 손대지 않는다 - 숨어도 오직 공포만 쌓이게 한다.
+    ///
+    /// 가득 차도 FearingState 로 넘기지 않는다 - 그러면 3인칭 전환/노출이 필요해지는데
+    /// 그건 나중 작업이다. 지금은 비명만 내고 소음 수치는 그대로 0 유지 -
+    /// 숨어서 안전한 상태 자체는 깨지지 않아야 한다(괴물의 공격 판정은 오직
+    /// currentNoiseLevel 로만 걸리므로, 이걸 안 건드리면 공격도 안 걸린다).
+    /// </summary>
+    void TickFearWhileHidden()
+    {
+        if (!IsPlayerHidden || playerController == null) return;
+
+        PlayerStats stats = playerController.stats;
+        stats.TickFear(Time.deltaTime);
+
+        if (stats.IsFearMaxed)
+        {
+            if (SoundManager.Instance != null) SoundManager.Instance.PlaySFX(FearScreamName);
+            stats.fear = 0f; // 정식 Fearing 지속시간이 없으므로 바로 리셋해 다음 번에 다시 쌓이게 한다.
+        }
     }
 
     void HandleUnhide()
@@ -76,6 +113,7 @@ public class HidingSpotQTE : MonoBehaviour
     {
         if (!IsPlayerHidden) return;
         IsPlayerHidden = false;
+        AnyoneHidden = false;
 
         foreach (Renderer r in playerRenderersToHide)
         {
@@ -99,10 +137,25 @@ public class HidingSpotQTE : MonoBehaviour
             if (!blocked) MovePlayerTo(exit);
         }
 
-        if (playerMovement != null) playerMovement.enabled = true;
-        if (playerController != null) playerController.enabled = true;
+        if (crouchWhileHidden && playerController != null) playerController.SnapSittingView(false);
+        RestoreControl();
 
         onUnhide?.Invoke();
+    }
+
+    /// <summary>
+    /// 조작을 되돌린다(숨기 나오기 / QTE 실패). playerController.enabled = false 는
+    /// OnDisable() 에서 커서 잠금을 풀어버리는데(사망 연출 등에서는 그게 맞는 동작이다),
+    /// 여기서 다시 켤 때는 정상 플레이로 돌아가는 것이므로 커서 잠금도 같이 되살려야 한다.
+    /// </summary>
+    void RestoreControl()
+    {
+        if (playerMovement != null) playerMovement.enabled = true;
+        if (playerController == null) return;
+
+        playerController.enabled = true;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     /// CharacterController 는 켜진 채로 transform 을 옮기면 다음 프레임에 원래 자리로
@@ -146,8 +199,7 @@ public class HidingSpotQTE : MonoBehaviour
             if (qtePromptUI != null) qtePromptUI.SetActive(false);
 
             // 실패 - 숨는 데 실패했으니 조작권을 돌려준다
-            if (playerMovement != null) playerMovement.enabled = true;
-            if (playerController != null) playerController.enabled = true;
+            RestoreControl();
 
             onQteFailed?.Invoke();
         }
@@ -157,6 +209,7 @@ public class HidingSpotQTE : MonoBehaviour
     {
         qteActive = false;
         IsPlayerHidden = true;
+        AnyoneHidden = true;
         hiddenFrame = Time.frameCount;
 
         if (qtePromptUI != null) qtePromptUI.SetActive(false);
@@ -175,7 +228,17 @@ public class HidingSpotQTE : MonoBehaviour
 
         if (playerAnimator != null) playerAnimator.SetTrigger(hideAnimTrigger);
 
-        // 숨은 동안은 계속 조작 잠금 상태 유지 (playerMovement.enabled = false 그대로)
+        // 테이블 밑처럼 웅크려야 하는 곳은 앉은 자세 시점으로 즉시 맞춘다 - 서 있는 채로
+        // 얼면 시점이 천판 위로 튀어나와 이상해 보인다. PlayerController 를 끄기 전에
+        // 해야 한다(꺼지면 Update 가 안 돌아 보간이 진행 안 되므로 즉시 대입이 필요).
+        if (crouchWhileHidden && playerController != null) playerController.SnapSittingView(true);
+
+        // 조작/시점 잠금. BeginQte 를 거쳐 왔으면 이미 꺼져 있지만, HidingSpot.Interact 의
+        // 평범한 E 상호작용은 BeginQte 없이 곧장 Hide() 를 부르므로 여기서도 직접 꺼야
+        // 확실히 잠긴다 - 안 그러면 숨은 채로 마우스가 시점을 계속 돌리고 WASD 로 걸어서
+        // 나가버린다.
+        if (playerMovement != null) playerMovement.enabled = false;
+        if (playerController != null) playerController.enabled = false;
 
         onHideSuccess?.Invoke();
     }

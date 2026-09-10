@@ -38,7 +38,20 @@ public class BreakerRaiseSequence : MonoBehaviour
     [Tooltip("레버의 어느 높이를 보게 할지 (레버 피벗에서 위로 m)")]
     [SerializeField] private float lookAtHeight = 0f;
 
-    [Header("2. 차단기 올리기 화면")]
+    [Header("2. 차단기 올리기")]
+    [Tooltip("레버가 끝까지 올라가는 데 걸리는 전체 시간(초)")]
+    [SerializeField] private float leverRaiseSeconds = 2.2f;
+
+    [Tooltip("한 번에 안 올라간다. 이 지점까지 밀어올렸다가 미끄러지기를 반복한다(0~1)")]
+    [SerializeField] private float[] leverStages = { 0.45f, 0.74f, 1f };
+
+    [Tooltip("미끄러져 내려오는 양(0~1)")]
+    [SerializeField] private float leverSlip = 0.13f;
+
+    [Tooltip("밀어올리는 동안 떨리는 정도(0~1)")]
+    [SerializeField] private float leverShake = 0.022f;
+
+    // 게이지 연타 단계는 뺐다. 두 참조는 그 화면이 켜진 채 남지 않도록 꺼두는 데만 쓴다.
     [SerializeField] private GameObject minigameRoot;
     [SerializeField] private MashToComplete mash;
 
@@ -51,7 +64,6 @@ public class BreakerRaiseSequence : MonoBehaviour
     public bool IsPlaying { get; private set; }
 
     private IInteractor _pendingPlayer;
-    private bool _mashDone;
 
     void Awake()
     {
@@ -72,10 +84,10 @@ public class BreakerRaiseSequence : MonoBehaviour
         if (IsPlaying) return;
         if (physicalLever != null) lever = physicalLever;
 
-        if (player == null || lever == null || minigameRoot == null || mash == null)
+        if (player == null || lever == null)
         {
             Debug.LogError($"[{nameof(BreakerRaiseSequence)}] 참조가 비어 있어 연출을 시작할 수 없다. " +
-                           $"player={player != null} lever={lever != null} minigameRoot={minigameRoot != null} mash={mash != null}", this);
+                           $"player={player != null} lever={lever != null}", this);
             return;
         }
 
@@ -94,17 +106,11 @@ public class BreakerRaiseSequence : MonoBehaviour
         yield return WalkToLever();
 
         // ---------- 차단기 올리기 ----------
-        mash.lever = lever;
-        mash.leverGoesUp = true;
+        // 게이지 연타 화면 없이 레버가 그대로 올라간다. 올라가는 것만 보이면 되는 단계라
+        // 판정을 붙일 이유가 없었다.
+        if (minigameRoot != null) minigameRoot.SetActive(false);
 
-        _mashDone = false;
-        mash.onComplete.AddListener(OnMashDone);
-        minigameRoot.SetActive(true);      // MashToComplete.OnEnable 이 게이지를 0 으로 되돌린다
-
-        while (!_mashDone) yield return null;
-
-        mash.onComplete.RemoveListener(OnMashDone);
-        minigameRoot.SetActive(false);
+        yield return RaiseLever();
         lever.ForceOn();                   // 끝까지 올라간 자세로 확정
 
         yield return Finale();
@@ -114,9 +120,50 @@ public class BreakerRaiseSequence : MonoBehaviour
         _pendingPlayer = null;
     }
 
-    private void OnMashDone()
+    /// <summary>
+    /// 뻑뻑한 차단기를 밀어올리는 동작. 한 번에 안 올라간다 -
+    /// 단계까지 밀어올렸다가 조금 미끄러지기를 반복하고, 미는 동안엔 손이 떨린다.
+    /// 마지막 단계에서만 끝까지 올라간다.
+    /// </summary>
+    private IEnumerator RaiseLever()
     {
-        _mashDone = true;
+        int n = (leverStages != null && leverStages.Length > 0) ? leverStages.Length : 1;
+        float pushTime = leverRaiseSeconds * 0.75f / n;
+        float slipTime = leverRaiseSeconds * 0.25f / Mathf.Max(1, n - 1);
+        float cur = 0f;
+
+        for (int i = 0; i < n; i++)
+        {
+            float goal = (leverStages != null && i < leverStages.Length) ? Mathf.Clamp01(leverStages[i]) : 1f;
+
+            float t = 0f;
+            while (t < pushTime)
+            {
+                t += Time.deltaTime;
+                float k = Mathf.Lerp(cur, goal, Smooth(t / pushTime));
+                // 끝에 다다를수록 떨림을 줄여야 '겨우 걸렸다' 로 읽힌다
+                float fade = 1f - Smooth(t / pushTime) * 0.6f;
+                float shake = (Mathf.PerlinNoise(Time.time * 26f, i * 7.3f) - 0.5f) * 2f * leverShake * fade;
+                lever.SetLeverProgress(Mathf.Clamp01(k + shake));
+                yield return null;
+            }
+            cur = goal;
+            lever.SetLeverProgress(cur);
+
+            if (i == n - 1) break;          // 마지막엔 미끄러지지 않는다
+
+            float back = Mathf.Max(0f, cur - leverSlip);
+            t = 0f;
+            while (t < slipTime)
+            {
+                t += Time.deltaTime;
+                lever.SetLeverProgress(Mathf.Lerp(cur, back, Smooth(t / slipTime)));
+                yield return null;
+            }
+            cur = back;
+        }
+
+        lever.SetLeverProgress(1f);
     }
 
     /// 레버 앞까지 저절로 걸어간다. 시선도 레버로 돌아간다.

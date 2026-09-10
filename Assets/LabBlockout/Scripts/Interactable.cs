@@ -10,6 +10,11 @@ public interface IInteractor
     bool HasKeycard { get; }
     void GiveKeycard();
     void ShowNotice(string text);
+
+    /// ShowNotice 와 달리 정해진 시간 뒤 저절로 안 사라진다 - ClearPersistentNotice 를
+    /// 부를 때까지 유지된다. 숨기처럼 "그 상태가 풀릴 때까지" 안내가 떠 있어야 하는 경우용.
+    void ShowPersistentNotice(string text);
+    void ClearPersistentNotice();
 }
 
 /// Anything the player can point at and press E on.

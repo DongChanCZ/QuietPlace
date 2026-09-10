@@ -49,6 +49,12 @@ public static class GameCheckpointSetup
             Object.FindObjectsByType<FusePickup>(FindObjectsInactive.Include, FindObjectsSortMode.None));
         pickups.Sort((a, b) => string.CompareOrdinal(a.gameObject.name, b.gameObject.name));
 
+        // 약/유리병/카드 등 주머니 테스트 아이템. 종류 단위로만 가르므로 순서는 상관없지만
+        // 로그를 안정적으로 보려고 이름순으로 정렬해 둔다.
+        var itemPickups = new List<TestItemPickup>(
+            Object.FindObjectsByType<TestItemPickup>(FindObjectsInactive.Include, FindObjectsSortMode.None));
+        itemPickups.Sort((a, b) => string.CompareOrdinal(a.gameObject.name, b.gameObject.name));
+
         var monsters = new List<MonsterController>(
             Object.FindObjectsByType<MonsterController>(FindObjectsInactive.Include, FindObjectsSortMode.None));
         monsters.Sort((a, b) => string.CompareOrdinal(a.gameObject.name, b.gameObject.name));
@@ -70,6 +76,11 @@ public static class GameCheckpointSetup
         for (int i = 0; i < pickups.Count; i++)
             picks.GetArrayElementAtIndex(i).objectReferenceValue = pickups[i];
 
+        SerializedProperty items = so.FindProperty("trackedItemPickups");
+        items.arraySize = itemPickups.Count;
+        for (int i = 0; i < itemPickups.Count; i++)
+            items.GetArrayElementAtIndex(i).objectReferenceValue = itemPickups[i];
+
         SerializedProperty mons = so.FindProperty("monsters");
         mons.arraySize = monsters.Count;
         for (int i = 0; i < monsters.Count; i++)
@@ -87,6 +98,8 @@ public static class GameCheckpointSetup
                   $"  worldFlashlight={Name(worldFlashlight)}\n" +
                   $"  trackedPickups {pickups.Count}개 (이름순): " +
                   string.Join(", ", pickups.ConvertAll(p => p.gameObject.name).ToArray()) + "\n" +
+                  $"  trackedItemPickups {itemPickups.Count}개 (이름순): " +
+                  string.Join(", ", itemPickups.ConvertAll(p => p.gameObject.name).ToArray()) + "\n" +
                   $"  monsters {monsters.Count}마리 (부활 유예 대상)", cp);
     }
 

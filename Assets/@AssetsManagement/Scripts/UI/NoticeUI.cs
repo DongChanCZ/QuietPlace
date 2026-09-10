@@ -12,6 +12,7 @@ public class NoticeUI : MonoBehaviour
 
     private Image box;
     private float hideAt;
+    private bool persistent;
 
     void Awake()
     {
@@ -20,25 +21,51 @@ public class NoticeUI : MonoBehaviour
 
     void OnEnable()
     {
-        if (player != null) player.OnNotice += HandleNotice;
+        if (player != null)
+        {
+            player.OnNotice += HandleNotice;
+            player.OnPersistentNotice += HandlePersistentNotice;
+            player.OnClearPersistentNotice += HandleClearPersistentNotice;
+        }
         SetVisible(false);
     }
 
     void OnDisable()
     {
-        if (player != null) player.OnNotice -= HandleNotice;
+        if (player != null)
+        {
+            player.OnNotice -= HandleNotice;
+            player.OnPersistentNotice -= HandlePersistentNotice;
+            player.OnClearPersistentNotice -= HandleClearPersistentNotice;
+        }
     }
 
     void HandleNotice(string text)
     {
         if (noticeText != null) noticeText.text = text;
         hideAt = Time.time + displaySeconds;
+        persistent = false;
         SetVisible(true);
+    }
+
+    // 숨기처럼 상태가 풀릴 때까지 떠 있어야 하는 안내 - 시간이 지나도 저절로 안 사라진다.
+    void HandlePersistentNotice(string text)
+    {
+        if (noticeText != null) noticeText.text = text;
+        persistent = true;
+        SetVisible(true);
+    }
+
+    void HandleClearPersistentNotice()
+    {
+        if (!persistent) return;
+        persistent = false;
+        SetVisible(false);
     }
 
     void Update()
     {
-        if (Time.time >= hideAt) SetVisible(false);
+        if (!persistent && Time.time >= hideAt) SetVisible(false);
     }
 
     void SetVisible(bool visible)

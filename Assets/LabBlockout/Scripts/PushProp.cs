@@ -15,6 +15,17 @@ public sealed class PushProp : Interactable
     [SerializeField] string displayName = "쓰레기통";
     [SerializeField] float seconds = 1.4f;
 
+    [Header("민 뒤 - 딱 붙어야만 넘어가기가 뜬다")]
+    [SerializeField] float vaultInteractDistance = 1.2f;
+
+    [Tooltip("창문 너머 도착 지점. TryVault 는 접근 각도에 따라 실패할 수 있어서, 미리 " +
+             "검증해 둔 고정 지점으로 곧장 보낸다. 비워두면 예전처럼 TryVault 로 더듬어 찾는다.")]
+    [SerializeField] Transform vaultLandingPoint;
+
+    [Tooltip("넘어가는 도중 반드시 거치는 정점(쓰레기통 위/창틀 높이) - 직선이 아니라 " +
+             "쓰레기통과 창문을 짚고 넘어가는 포물선으로 보이게 한다. 비워도 동작은 하지만 낮고 밋밋해진다.")]
+    [SerializeField] Transform vaultPeakPoint;
+
     [Header("끄는 소리")]
     [SerializeField] AudioClip dragSound;
     [SerializeField] AudioSource dragSource;
@@ -42,21 +53,46 @@ public sealed class PushProp : Interactable
         dragSource = AudioLibrary.EnsureSource(dragSource, transform, "DragSource", 0.85f, 2f, 25f, 0.9f);
     }
 
+    /// 밀기 전엔 평소 조준거리(PlayerInteractor.interactionDistance)를 그대로 쓰지만,
+    /// 밀고 난 뒤의 "넘어가기"는 스페이스바 시절과 달리 딱 붙어야만 나와야 한다 -
+    /// 안 그러면 창문 앞 아무 데서나 E 하나로 훌쩍 넘어가 버린다.
+    public override bool Available(IInteractor player)
+    {
+        if (anchor == null) return false;
+        if (!Moved) return true;
+
+        Transform playerT = (player as MonoBehaviour)?.transform;
+        if (playerT == null) return false;
+        return (playerT.position - transform.position).sqrMagnitude <= vaultInteractDistance * vaultInteractDistance;
+    }
+
     public override string Prompt(IInteractor player)
     {
-        if (Moved || anchor == null) return null;
-        return "E  " + displayName + " 밀기";
+        if (anchor == null) return null;
+        return Moved ? "E  넘어가기" : "E  " + displayName + " 밀기";
     }
 
     public override void Interact(IInteractor player)
     {
-        if (Moved || anchor == null) return;
-        Moved = true;
-        from = transform.position;
-        to = anchor.position;
-        t = 0f;
-        PlayDrag();
-        if (player != null) player.ShowNotice(displayName + "을 창문 아래로 밀었습니다.");
+        if (anchor == null) return;
+
+        if (!Moved)
+        {
+            Moved = true;
+            from = transform.position;
+            to = anchor.position;
+            t = 0f;
+            PlayDrag();
+            if (player != null) player.ShowNotice(displayName + "을 창문 아래로 밀었습니다.");
+            return;
+        }
+
+        // 밀어서 창문 밑에 자리잡은 뒤에는 여기서 바로 넘어간다.
+        PlayerController controller = (player as MonoBehaviour)?.GetComponent<PlayerController>();
+        if (controller == null) return;
+
+        if (vaultLandingPoint != null) controller.VaultToPoint(vaultLandingPoint, vaultPeakPoint);
+        else controller.TryVault(); // 도착 지점을 안 잡아뒀으면 예전 방식대로 더듬어 찾는다
     }
 
     /// <summary>

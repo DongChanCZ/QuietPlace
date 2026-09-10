@@ -29,6 +29,7 @@ public sealed class BlockoutWalkPlayer : MonoBehaviour, IInteractor
     bool crouching;
     string notice = "";
     float noticeUntil;
+    bool noticePersistent;
 
     public bool IsCrouching => crouching;
 
@@ -194,6 +195,18 @@ public sealed class BlockoutWalkPlayer : MonoBehaviour, IInteractor
     {
         notice = text;
         noticeUntil = Time.time + 2.8f;
+        noticePersistent = false;
+    }
+
+    public void ShowPersistentNotice(string text)
+    {
+        notice = text;
+        noticePersistent = true;
+    }
+
+    public void ClearPersistentNotice()
+    {
+        noticePersistent = false;
     }
 
     public void ToggleFlashlight()
@@ -373,7 +386,7 @@ public sealed class BlockoutWalkPlayer : MonoBehaviour, IInteractor
             $"손전등: {(hasFlashlight ? "보유" : "없음")} · 빛: {(FlashlightEnabled ? "켜짐" : "꺼짐")} · 카드키: {(hasKeycard ? "보유" : "없음")} · 자세: {(crouching ? "웅크림" : "서 있음")}");
         if (Cursor.lockState == CursorLockMode.Locked)
             GUI.Label(new Rect(Screen.width / 2f - 4, Screen.height / 2f - 10, 20, 20), "+");
-        if (Time.time < noticeUntil)
+        if (Time.time < noticeUntil || noticePersistent)
             GUI.Box(new Rect(Screen.width / 2f - 230, Screen.height - 92, 460, 36), notice);
         Interactable target = AimedInteractable();
         string prompt = target != null ? target.Prompt(this) : null;

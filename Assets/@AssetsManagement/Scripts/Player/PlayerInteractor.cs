@@ -32,6 +32,10 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
     public float throwUpwardArc = 2f;
     [SerializeField] GameObject landingRingPrefab;
 
+    [Header("던진 물건의 흰색 궤적")]
+    [SerializeField] float trailDuration = 0.25f;
+    [SerializeField] float trailStartWidth = 0.05f;
+
     [Header("던진 물건이 떨어질 때 나는 소리")]
     [SerializeField] AudioClip bottleBreakSound;
     [SerializeField] AudioClip brickThrowSound;
@@ -60,6 +64,8 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
     public float BatteryLevel => batteryLevel;
 
     public event Action<string> OnNotice;
+    public event Action<string> OnPersistentNotice;
+    public event Action OnClearPersistentNotice;
 
     void Awake()
     {
@@ -211,9 +217,37 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         Rigidbody rb = thrown.AddComponent<Rigidbody>();
         rb.linearVelocity = eyes.transform.forward * throwForce + Vector3.up * throwUpwardArc;
 
-        thrown.AddComponent<ThrownItem>().Init(landingRingPrefab, this, ImpactSoundFor(item));
+        AddTrail(thrown);
+
+        thrown.AddComponent<ThrownItem>().Init(landingRingPrefab, this, ImpactSoundFor(item), ImpactNoiseRangeFor(item));
 
         manager.RemoveItem(manager.SelectedIndex);
+    }
+
+    static Material _trailMaterial;
+    static Gradient _trailGradient;
+
+    // 날아가는 동안만 보이면 되므로(착지 즉시 오브젝트째 파괴됨) 재질/그라디언트는 한 번만
+    // 만들어 재사용한다. Sprites/Default 는 URP든 빌트인이든 항상 있어서 안전하다.
+    void AddTrail(GameObject thrown)
+    {
+        if (_trailMaterial == null) _trailMaterial = new Material(Shader.Find("Sprites/Default"));
+        if (_trailGradient == null)
+        {
+            _trailGradient = new Gradient();
+            _trailGradient.SetKeys(
+                new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
+                new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0f, 1f) });
+        }
+
+        TrailRenderer trail = thrown.AddComponent<TrailRenderer>();
+        trail.time = trailDuration;
+        trail.startWidth = trailStartWidth;
+        trail.endWidth = 0f;
+        trail.minVertexDistance = 0.02f;
+        trail.material = _trailMaterial;
+        trail.colorGradient = _trailGradient;
+        trail.shadowCastingMode = ShadowCastingMode.Off;
     }
 
     /// <summary>
@@ -252,6 +286,14 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         if (item == ItemType.Bottle) return bottleBreakSound;
         if (item == ItemType.Brick) return brickThrowSound;
         return null;   // 손전등 등은 아직 전용 소리가 없다
+    }
+
+    /// 던진 물건이 떨어질 때 소음이 들리는 범위(m). 유리병 깨지는 소리가 벽돌보다 멀리까지 들린다.
+    float ImpactNoiseRangeFor(ItemType item)
+    {
+        if (item == ItemType.Bottle) return 13f;
+        if (item == ItemType.Brick) return 10f;
+        return 8f;   // 그 외(배터리 나간 손전등 등)는 기존 값 유지
     }
 
     GameObject HeldModelFor(ItemType item)
@@ -494,4 +536,6 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
 
     public void GiveKeycard() => hasKeycard = true;
     public void ShowNotice(string text) => OnNotice?.Invoke(text);
+    public void ShowPersistentNotice(string text) => OnPersistentNotice?.Invoke(text);
+    public void ClearPersistentNotice() => OnClearPersistentNotice?.Invoke();
 }

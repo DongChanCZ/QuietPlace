@@ -171,11 +171,14 @@ public class FearingState : IPlayerState
     /// 빠지지만 이 문자열은 남고, SoundManager 가 못 찾으면 사운드 목록에서 찾아준다.
     private const string ScreamName = "malescreamHigh";
 
+    /// 범위는 레벨(noiseMaxTier)과 따로 조절할 수 있어야 해서 별도 상수로 둔다.
+    private const float NoiseRange = 14f;
+
     public void Enter(PlayerController ctx)
     {
         var s = ctx.stats;
         s.currentNoiseLevel = s.noiseMaxTier;
-        s.currentNoiseRange = s.noiseMaxTier;
+        s.currentNoiseRange = NoiseRange;
         s.currentMoveSpeed = 0f;
         timer = 0f;
         ctx.CameraLocked = true;
