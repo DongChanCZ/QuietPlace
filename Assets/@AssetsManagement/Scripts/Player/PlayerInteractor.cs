@@ -219,7 +219,7 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
 
         AddTrail(thrown);
 
-        thrown.AddComponent<ThrownItem>().Init(landingRingPrefab, this, ImpactSoundFor(item));
+        thrown.AddComponent<ThrownItem>().Init(landingRingPrefab, this, ImpactSoundFor(item), ImpactNoiseRangeFor(item));
 
         manager.RemoveItem(manager.SelectedIndex);
     }
@@ -286,6 +286,14 @@ public sealed class PlayerInteractor : MonoBehaviour, IInteractor
         if (item == ItemType.Bottle) return bottleBreakSound;
         if (item == ItemType.Brick) return brickThrowSound;
         return null;   // 손전등 등은 아직 전용 소리가 없다
+    }
+
+    /// 던진 물건이 떨어질 때 소음이 들리는 범위(m). 유리병 깨지는 소리가 벽돌보다 멀리까지 들린다.
+    float ImpactNoiseRangeFor(ItemType item)
+    {
+        if (item == ItemType.Bottle) return 13f;
+        if (item == ItemType.Brick) return 10f;
+        return 8f;   // 그 외(배터리 나간 손전등 등)는 기존 값 유지
     }
 
     GameObject HeldModelFor(ItemType item)
