@@ -133,6 +133,9 @@ public sealed class FusePickup : Interactable, IHoldable
             EverTaken = true;
             if (glow != null) glow.Consume();
             gameObject.SetActive(false);
+            // 약병처럼 슬롯에 남아있는다 - 던지기/들기는 CanThrow/HeldModelFor 어디에도
+            // Fuse 케이스가 없어서 저절로 둘 다 안 된다.
+            QuickSlotManager.Instance?.AddItem(ItemType.Fuse, displayName);
             if (player != null) player.ShowNotice(displayName + "를 챙겼습니다.");
             return;
         }
@@ -265,6 +268,7 @@ public sealed class FusePickup : Interactable, IHoldable
         Taken = true;
         EverTaken = true;
         if (glow != null) glow.Consume();
+        QuickSlotManager.Instance?.RemoveItem(ItemType.Fuse); // 슬롯에 있었다면(약병처럼 챙긴 경우) 설치 순간 비운다
 
         // 손에 들려 있었다면 FuseSlot 이 먼저 DropHeldItem 으로 놓아주므로 부모는 이미 원복돼 있다.
         transform.SetParent(originalParent, true);
